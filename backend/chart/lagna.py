@@ -9,15 +9,13 @@ def calculate_lagna(jd, lat, lon, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset
     # Calculate houses
     # cusps: 13 elements (index 1 to 12 are houses)
     # ascmc: 10 elements (index 0 is Ascendant)
-    # Note: For Whole Sign, we primarily need the Ascendant (ascmc[0])
     cusps, ascmc = swe.houses_ex(jd, lat, lon, house_system.encode(), swe.FLG_SIDEREAL)
     
     lagna_longitude = ascmc[0]
     
     return {
         "longitude": lagna_longitude,
-        "sign_index": int(lagna_longitude / 30),
+        "sign": int(lagna_longitude / 30) + 1, # Back to 1-12
         "degree_in_sign": lagna_longitude % 30,
         "cusps": list(cusps[1:])
     }
-

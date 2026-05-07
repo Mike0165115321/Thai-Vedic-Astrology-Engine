@@ -116,11 +116,11 @@ export function ZodiacWheel({ planets, transitPlanets, lagna, transitOffset, ena
         return (
           <g key={s.name}>
             <path d={path} fill={fill} stroke="var(--border)" strokeWidth={0.5} />
-            <text x={labelPos.x} y={labelPos.y + 6} textAnchor="middle" fontSize="18"
+            <text x={labelPos.x} y={labelPos.y + 4} textAnchor="middle" fontSize="11" fontWeight="bold"
               fill={s.element === "fire" ? "var(--destructive)" :
                     s.element === "earth" ? "var(--success)" :
                     s.element === "air" ? "var(--info)" : "var(--accent)"}>
-              {s.symbol}
+              {s.name_th}
             </text>
           </g>
         );
@@ -211,7 +211,7 @@ export function ZodiacWheel({ planets, transitPlanets, lagna, transitOffset, ena
         {planets ? "NATAL" : "LIVE"}
       </text>
       <text x={CENTER} y={CENTER + 14} textAnchor="middle" fontSize="14" fill="var(--primary)" fontWeight={600}>
-        {lagna ? `${SIGNS[lagna.sign_index].symbol} ${(lagna.longitude % 30).toFixed(1)}°` : "SKY MAP"}
+        {(lagna && lagna.sign && SIGNS[lagna.sign - 1]) ? `${SIGNS[lagna.sign - 1].name_th} ${(lagna.longitude % 30).toFixed(1)}°` : "SKY MAP"}
       </text>
     </svg>
   );

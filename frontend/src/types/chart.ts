@@ -11,7 +11,7 @@ export interface Planet {
 
 export interface Lagna {
   longitude: number;
-  sign_index: number;
+  sign: number;
   cusps: number[];
 }
 
