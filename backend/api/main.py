@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import chart, compare, transit, realtime
+from api.routes import chart, compare, transit, realtime, history
+from db.database import init_db
 
-app = FastAPI(title="Thai-Vedic Astrology Engine")
+# Initialize database
+init_db()
+
+app = FastAPI(title="Thai-Vedic Astrology API")
 
 # Configure CORS
 app.add_middleware(
@@ -13,11 +17,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(chart.router, prefix="/calculate/chart", tags=["Chart"])
-app.include_router(compare.router, prefix="/calculate/compare", tags=["Synastry"])
+# Register routes
+app.include_router(chart.router, prefix="/calculate/chart", tags=["Natal"])
+app.include_router(compare.router, prefix="/calculate/compare", tags=["Compare"])
 app.include_router(transit.router, prefix="/calculate/transit", tags=["Transit"])
-app.include_router(realtime.router, prefix="/sky/realtime", tags=["Sky"])
+app.include_router(history.router, prefix="/history", tags=["History"])
+app.include_router(realtime.router, prefix="/sky", tags=["Realtime"])
 
 @app.get("/")
 def read_root():

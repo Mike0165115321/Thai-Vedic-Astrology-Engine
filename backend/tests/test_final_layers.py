@@ -29,7 +29,7 @@ def test_nakshatra_logic():
 
 def test_dasha_logic():
     # If Moon is at 0° Aries, first dasha is Ketu
-    birth_dt = datetime(2000, 1, 1, 12, 0)
+    birth_dt = datetime(2000, 1, 1, 12, 0, tzinfo=pytz.UTC)
     timeline = calculate_vimshottari_dasha(0.0, birth_dt)
     
     assert timeline[0]["planet"] == "Ketu"

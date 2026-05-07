@@ -14,11 +14,11 @@ export const SIGNS = [
 ];
 
 export const ASPECTS = [
-  { type: "Conjunction", angle: 0, color: "var(--primary)" },
-  { type: "Opposition", angle: 180, color: "var(--destructive)" },
-  { type: "Trine", angle: 120, color: "var(--success)" },
-  { type: "Square", angle: 90, color: "var(--warning)" },
-  { type: "Sextile", angle: 60, color: "var(--info)" },
+  { type: "ร่วมองศา", angle: 0, color: "var(--primary)" },       // Conjunction
+  { type: "เล็ง", angle: 180, color: "var(--destructive)" },     // Opposition
+  { type: "ตรีโกณ", angle: 120, color: "var(--success)" },       // Trine
+  { type: "ฉาก", angle: 90, color: "var(--warning)" },           // Square
+  { type: "โยค 60", angle: 60, color: "var(--info)" },           // Sextile
 ];
 
 export const RECENT_CHARTS: any[] = [];

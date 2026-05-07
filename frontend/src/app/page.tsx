@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TopBar } from "@/components/astro/TopBar";
-import { LeftPanel } from "@/components/astro/LeftPanel";
+import { LeftPanel, HistoryItem } from "@/components/astro/LeftPanel";
 import { CenterPanel } from "@/components/astro/CenterPanel";
 import { RightPanel } from "@/components/astro/RightPanel";
 import { AIAssistant } from "@/components/astro/AIAssistant";
@@ -17,11 +17,45 @@ export default function Home() {
   const [settings, setSettings] = useState(false);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const currentBirthData = useRef<BirthFormData | null>(null);
   const transitTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setHasMounted(true);
+    
+    // Load history from backend
+    const fetchHistory = async () => {
+        try {
+            const response = await fetch("http://localhost:8000/history/");
+            if (response.ok) {
+                const data = await response.json();
+                // Map backend data to HistoryItem
+                const mapped: HistoryItem[] = data.map((item: any) => ({
+                    id: item.id.toString(),
+                    name: item.name,
+                    date: `${item.day}/${item.month}/${item.year + 543}`,
+                    loc: `${item.lat.toFixed(2)}, ${item.lon.toFixed(2)}`,
+                    formData: {
+                        name: item.name,
+                        day: item.day,
+                        month: item.month,
+                        year: item.year,
+                        hour: item.hour,
+                        minute: item.minute,
+                        lat: item.lat,
+                        lon: item.lon,
+                        timezone: item.timezone
+                    }
+                }));
+                setHistory(mapped);
+            }
+        } catch (e) {
+            console.error("Failed to load history from backend");
+        }
+    };
+    fetchHistory();
+
     // Initial Transit Load
     const now = new Date();
     const initData: BirthFormData = {
@@ -37,9 +71,14 @@ export default function Home() {
     calculateInitialTransits(initData);
   }, []);
 
+  const saveHistory = (newHistory: HistoryItem[]) => {
+    setHistory(newHistory);
+    localStorage.setItem("astro_history", JSON.stringify(newHistory));
+  };
+
   const calculateInitialTransits = async (formData: BirthFormData) => {
     try {
-      const response = await fetch("http://localhost:8000/calculate/chart", {
+      const response = await fetch("http://localhost:8000/calculate/chart/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -61,12 +100,8 @@ export default function Home() {
       const birth = currentBirthData.current;
       if (!birth) return;
 
-      // Calculate target date: Birth Date + Age (Years)
-      // Strictly anchored to Birth Date
       const targetDate = new Date(birth.year, birth.month - 1, birth.day, birth.hour, birth.minute);
-      
-      // Add age in years (handling float for partial years)
-      const daysToAdd = age * 365.2422; // Using tropical year for better accuracy
+      const daysToAdd = age * 365.2422;
       targetDate.setTime(targetDate.getTime() + daysToAdd * 24 * 3600 * 1000);
 
       const formData: BirthFormData = {
@@ -79,7 +114,7 @@ export default function Home() {
       };
       
       try {
-        const response = await fetch("http://localhost:8000/calculate/chart", {
+        const response = await fetch("http://localhost:8000/calculate/chart/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -99,18 +134,41 @@ export default function Home() {
   const calculateChart = async (formData: BirthFormData) => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/calculate/chart", {
+      const response = await fetch("http://localhost:8000/calculate/chart/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
       if (!response.ok) throw new Error("API Error");
       const data = await response.json();
       setChartData(data);
       currentBirthData.current = formData;
-      setTransitData(data); // Initially show birth transits (Age 0)
+      setTransitData(data);
+
+      // Add to backend history
+      await fetch("http://localhost:8000/history/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              name: formData.name || `ดวงชะตาใหม่`,
+              ...formData
+          })
+      });
+      
+      // Refresh history list
+      const histResp = await fetch("http://localhost:8000/history/");
+      if (histResp.ok) {
+          const histData = await histResp.json();
+          const mapped: HistoryItem[] = histData.map((item: any) => ({
+              id: item.id.toString(),
+              name: item.name,
+              date: `${item.day}/${item.month}/${item.year + 543}`,
+              loc: `${item.lat.toFixed(2)}, ${item.lon.toFixed(2)}`,
+              formData: { ...item, name: item.name }
+          }));
+          setHistory(mapped);
+      }
+
     } catch (error) {
       console.error("Error calculating chart:", error);
       alert("Backend not connected? Make sure to run start-backend.bat");
@@ -129,6 +187,14 @@ export default function Home() {
           setMode={setMode} 
           onCalculate={calculateChart} 
           loading={loading}
+          history={history}
+          onSelectHistory={(item) => {
+              // History selection handled in LeftPanel
+          }}
+          onDeleteHistory={async (id) => {
+              await fetch(`http://localhost:8000/history/${id}`, { method: "DELETE" });
+              setHistory(history.filter(h => h.id !== id));
+          }}
         />
         
         <CenterPanel 
@@ -151,6 +217,7 @@ export default function Home() {
           onSelectPlanet={setSelectedPlanet}
         />
       </main>
+
 
       <AIAssistant />
       

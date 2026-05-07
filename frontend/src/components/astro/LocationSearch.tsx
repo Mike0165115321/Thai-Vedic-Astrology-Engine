@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Search, MapPin, Loader2, ChevronDown, X } from "lucide-react";
 import { THAI_PROVINCES } from "./thai_provinces";
+import { THAI_DISTRICTS } from "./thai_data";
 
 type LocationResult = {
   display_name: string;
   lat: string;
   lon: string;
-  address: {
+  address?: {
     city?: string;
     town?: string;
     village?: string;
@@ -28,8 +29,18 @@ export function LocationSearch({ onSelect }: Props) {
   const [amphoe, setAmphoe] = useState("");
   const [results, setResults] = useState<LocationResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<"province" | "results" | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<"province" | "results" | "suggestions" | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const localSuggestions = useMemo(() => {
+    if (!province || !THAI_DISTRICTS[province]) return [];
+    const list = THAI_DISTRICTS[province];
+    if (!amphoe) return list;
+    return list.filter(d => 
+        d.name_th.includes(amphoe) || 
+        d.name_en.toLowerCase().includes(amphoe.toLowerCase())
+    );
+  }, [province, amphoe]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -49,47 +60,71 @@ export function LocationSearch({ onSelect }: Props) {
     ).slice(0, 8);
   }, [province]);
 
-  const searchLocations = async (query: string) => {
+  const searchLocations = useCallback(async (query: string) => {
     if (query.length < 2) return;
     setLoading(true);
+    
     try {
-      // Strategy: Search for District, Province, Thailand
-      const fullQuery = province ? `${query}, ${provinceEn || province}, Thailand` : `${query}, Thailand`;
+      // Improve query: if searching for common district terms, make it more specific
+      let refinedQuery = query;
+      if (query === "เมือง" || query === "เมืองน่าน" || query.length < 5) {
+          refinedQuery = `อำเภอ${query}`;
+      }
+
+      const fullQuery = province ? `${refinedQuery}, ${provinceEn || province}, Thailand` : `${refinedQuery}, Thailand`;
       const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(fullQuery)}&accept-language=th,en&limit=5`;
       
-      const response = await fetch(url);
+      const response = await fetch(url, {
+          headers: { 'Accept-Language': 'th,en' }
+      });
       const data = await response.json();
       
-      // Filter results to ensure they are in Thailand and ideally in the selected province
-      let filtered = data;
+      let filtered = data.filter((res: any) => {
+          const dn = res.display_name.toLowerCase();
+          return dn.includes("thailand") || dn.includes("ประเทศไทย");
+      });
+
       if (province) {
           const pSearch = (provinceEn || province).toLowerCase();
-          filtered = data.filter((res: any) => {
+          const pThai = province.toLowerCase();
+          filtered = filtered.filter((res: any) => {
               const dn = res.display_name.toLowerCase();
-              return dn.includes("thailand") && (dn.includes(pSearch) || dn.includes(province.toLowerCase()));
+              const addr = res.address || {};
+              const provinceInAddr = (addr.province || addr.state || addr.city || "").toLowerCase();
+              return dn.includes(pSearch) || dn.includes(pThai) || provinceInAddr.includes(pSearch) || provinceInAddr.includes(pThai);
           });
       }
       
       setResults(filtered);
-      setOpenDropdown("results");
+      
+      // Auto-select first result ONLY if we don't have local suggestions or they are weak
+      if (filtered.length > 0 && query.length >= 4 && localSuggestions.length === 0) {
+          const first = filtered[0];
+          onSelect(parseFloat(first.lat), parseFloat(first.lon), first.display_name);
+      }
+      
+      if (filtered.length > 0) setOpenDropdown("results");
     } catch (error) {
       console.error("Geocoding error:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [province, provinceEn, onSelect, localSuggestions.length]);
 
   useEffect(() => {
     if (amphoe.length < 2) {
         setResults([]);
         return;
     }
+    // Don't trigger search if dropdown is null (means we just selected something or closed it)
+    if (openDropdown === null) return;
+
     const timer = setTimeout(() => searchLocations(amphoe), 800);
     return () => clearTimeout(timer);
-  }, [amphoe, provinceEn]);
+  }, [amphoe, searchLocations, openDropdown]);
 
   return (
-    <div className="space-y-3" ref={containerRef}>
+    <div className="space-y-3 relative" ref={containerRef}>
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
           <label className="text-[9px] uppercase text-muted-foreground mb-1 block font-bold">จังหวัด (Province)</label>
@@ -122,7 +157,7 @@ export function LocationSearch({ onSelect }: Props) {
                         onClick={() => {
                             setProvince(p.name_th);
                             setProvinceEn(p.name_en);
-                            setOpenDropdown(null);
+                            setOpenDropdown("suggestions"); // Open suggestions after choosing province
                         }}
                         className="px-3 py-2 text-[10px] hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors flex justify-between items-center"
                     >
@@ -140,8 +175,14 @@ export function LocationSearch({ onSelect }: Props) {
             <input
               type="text"
               value={amphoe}
-              onChange={(e) => setAmphoe(e.target.value)}
-              onFocus={() => { if (results.length > 0) setOpenDropdown("results"); }}
+              onChange={(e) => {
+                  setAmphoe(e.target.value);
+                  if (openDropdown !== "suggestions") setOpenDropdown("suggestions");
+              }}
+              onFocus={() => { 
+                  if (localSuggestions.length > 0) setOpenDropdown("suggestions");
+                  else if (results.length > 0) setOpenDropdown("results"); 
+              }}
               placeholder={province ? `ค้นหาใน${province}...` : "ระบุอำเภอ..."}
               className="w-full bg-input/50 border border-border rounded px-2 py-1.5 font-sans text-xs focus:ring-1 focus:ring-primary outline-none transition-all"
             />
@@ -150,7 +191,36 @@ export function LocationSearch({ onSelect }: Props) {
         </div>
       </div>
 
-      {openDropdown === "results" && results.length > 0 && (
+      {/* Local Suggestions (Instant) */}
+      {openDropdown === "suggestions" && localSuggestions.length > 0 && (
+        <ul className="absolute z-50 mt-1 w-[calc(100%-24px)] max-h-60 overflow-y-auto rounded-md border border-primary/30 bg-card shadow-2xl divide-y divide-border animate-in slide-in-from-top-2 duration-200">
+          <li className="px-3 py-1 bg-primary/10 text-[8px] text-primary font-bold uppercase tracking-widest flex justify-between">
+            <span>รายชื่ออำเภอใน{province}</span>
+            <span className="opacity-60 italic">ข้อมูลภายในระบบ</span>
+          </li>
+          {localSuggestions.map((d, i) => (
+            <li
+              key={i}
+              onClick={() => {
+                onSelect(d.lat, d.lon, `อำเภอ${d.name_th}, จังหวัด${province}`);
+                setAmphoe(`อำเภอ${d.name_th}`);
+                setResults([]);
+                setOpenDropdown(null);
+              }}
+              className="flex items-start gap-3 px-3 py-2.5 hover:bg-primary/5 cursor-pointer transition-colors"
+            >
+              <MapPin className="h-3.5 w-3.5 mt-0.5 text-primary shrink-0" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] font-bold text-foreground">{d.name_th}</span>
+                <span className="text-[8px] text-muted-foreground uppercase">{d.name_en} · {d.lat}, {d.lon}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* API Search Results (Fallback/Detailed) */}
+      {openDropdown === "results" && results.length > 0 && (!localSuggestions.length || amphoe.length > 3) && (
         <ul className="absolute z-50 mt-1 w-[calc(100%-24px)] max-h-60 overflow-y-auto rounded-md border border-primary/30 bg-card shadow-2xl divide-y divide-border animate-in slide-in-from-top-2 duration-200">
           <li className="px-3 py-1 bg-primary/10 text-[8px] text-primary font-bold uppercase tracking-widest">
             {province ? `ผลลัพธ์ในจังหวัด${province}` : "ผลการค้นหา"}
@@ -161,6 +231,7 @@ export function LocationSearch({ onSelect }: Props) {
               onClick={() => {
                 onSelect(parseFloat(res.lat), parseFloat(res.lon), res.display_name);
                 setAmphoe(res.display_name.split(",")[0]);
+                setResults([]);
                 setOpenDropdown(null);
               }}
               className="flex items-start gap-3 px-3 py-2.5 hover:bg-muted cursor-pointer transition-colors"

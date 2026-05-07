@@ -53,6 +53,7 @@ export interface ChartData {
 }
 
 export interface BirthFormData {
+  name?: string;
   year: number;
   month: number;
   day: number;

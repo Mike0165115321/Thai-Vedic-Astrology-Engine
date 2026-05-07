@@ -3,6 +3,7 @@ from typing import Optional
 from core.constants import DEFAULT_AYANAMSA, DEFAULT_NODE_TYPE, DEFAULT_KETU_MODE
 
 class BirthData(BaseModel):
+    name: Optional[str] = None
     year: int
     month: int
     day: int

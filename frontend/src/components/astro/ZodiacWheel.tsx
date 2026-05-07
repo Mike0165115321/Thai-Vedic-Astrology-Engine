@@ -218,17 +218,20 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
       {/* Natal Lagna marker */}
       {natalLagna && (() => {
         const lon = natalLagna.longitude;
-        const pos = polar(lon, R_HOUSES + 10);
-        const lineStart = polar(lon, R_INNER - 10);
-        const lineEnd = polar(lon, R_SIGNS);
+        const pos = polar(lon, R_PLANETS);
         return (
-          <g>
-            <line x1={lineStart.x} y1={lineStart.y} x2={lineEnd.x} y2={lineEnd.y} stroke="var(--warning)" strokeWidth="1.5" opacity="0.6" strokeDasharray="4 2" />
-            <g transform={`translate(${pos.x}, ${pos.y})`}>
-              <circle cx={0} cy={0} r="14" fill="var(--warning)" opacity="0.2" />
-              <text textAnchor="middle" dy="5" fontSize="16" fill="var(--warning)" fontWeight="900" style={{ filter: "drop-shadow(0 0 4px var(--warning))" }}>ลั</text>
-              <text textAnchor="middle" dy="22" fontSize="8" fill="var(--warning)" fontWeight="bold">เดิม</text>
-            </g>
+          <g transform={`translate(${pos.x}, ${pos.y})`} className="transition-all duration-300">
+            {/* Background glow */}
+            <circle cx={0} cy={0} r={16} fill="var(--warning)" opacity={0.15} />
+            
+            {/* Main circle */}
+            <circle cx={0} cy={0} r={12} fill="var(--background)" stroke="var(--warning)" strokeWidth={1.5} />
+            
+            {/* symbol */}
+            <text textAnchor="middle" dy="4.5" fontSize="13" fill="var(--warning)" fontWeight="900">ลั</text>
+            
+            {/* Label */}
+            <text textAnchor="middle" dy="24" fontSize="9" fill="var(--warning)" fontWeight="bold" opacity="0.9">เดิม</text>
           </g>
         );
       })()}
