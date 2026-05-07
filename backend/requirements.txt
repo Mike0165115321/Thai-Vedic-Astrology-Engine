@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pyswisseph
+pydantic
+python-dotenv
+pytest
+pytz
