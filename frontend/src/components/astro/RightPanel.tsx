@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SIGNS } from "./data";
 import { ChartData } from "@/types/chart";
+import { THAI_NAKSHATRAS } from "./nakshatra_data";
 
 type Tab = "ตำแหน่งดาว" | "กำลังดาว" | "เกณฑ์พิเศษ";
 
@@ -36,8 +37,13 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
       Saturn: "#94a3b8", Rahu: "var(--accent)", Ketu: "var(--accent)"
   };
 
+  const getThaiNak = (index: number) => {
+    return THAI_NAKSHATRAS.find(n => n.id === index);
+  };
+
   const planets = chartData ? Object.entries(chartData.planets).map(([name, p]) => {
     const naks = chartData.lunar_data.planet_nakshatras[name];
+    const thaiNak = naks ? getThaiNak(naks.index) : null;
     return {
       name: planetThaiNames[name] || name,
       symbol: p.symbol || name.substring(0, 2),
@@ -45,7 +51,8 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
       retro: p.is_retrograde,
       house: p.house || "?",
       dignity: p.dignity || "ปกติ",
-      nakshatra: naks ? `${naks.name} (${naks.pada})` : "—",
+      nakshatra: thaiNak ? `${thaiNak.name} (${naks.pada})` : "—",
+      nakCategory: thaiNak ? `${thaiNak.category}ฤกษ์` : "",
       color: planetColors[name] || "var(--accent)"
     }
   }) : [];
@@ -54,9 +61,16 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
     name: "ลัคนา",
     symbol: "ลั",
     lon: chartData.lagna.longitude,
-    nakshatra: chartData.lunar_data.lagna_nakshatra 
-      ? `${chartData.lunar_data.lagna_nakshatra.name} (${chartData.lunar_data.lagna_nakshatra.pada})` 
-      : "—",
+    nakshatra: (() => {
+        const n = chartData.lunar_data.lagna_nakshatra;
+        const t = n ? getThaiNak(n.index) : null;
+        return t ? `${t.name} (${n.pada})` : "—";
+    })(),
+    nakCategory: (() => {
+        const n = chartData.lunar_data.lagna_nakshatra;
+        const t = n ? getThaiNak(n.index) : null;
+        return t ? `${t.category}ฤกษ์` : "";
+    })(),
     color: "var(--warning)"
   } : null;
 
@@ -110,7 +124,7 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                       </td>
                       <td className="px-2 py-1.5">
                         <div className="text-foreground">{lagna.nakshatra}</div>
-                        <div className="text-[9px] text-muted-foreground">ตนุลัคน์</div>
+                        <div className="text-[10px] text-primary/80 font-bold">{lagna.nakCategory}</div>
                       </td>
                       <td className="px-2 py-1.5">—</td>
                     </tr>
@@ -124,17 +138,20 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                           onClick={() => onSelectPlanet(isSelected ? null : nameInEng)}
                           className={`border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer ${isSelected ? "bg-primary/10" : ""}`}>
                         <td className="px-2 py-1.5">
-                          <span className="mr-1.5" style={{ color: p.color }}>{p.symbol}</span>
-                          <span className="text-foreground">{p.name}</span>
+                          <span className="mr-1.5 font-bold" style={{ color: p.color }}>{p.symbol}</span>
+                          <span className="text-foreground font-bold">{p.name}</span>
                           {p.retro && <span className="ml-1 text-destructive">℞</span>}
                         </td>
                         <td className="px-2 py-1.5">
-                            <div className="text-foreground">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
+                            <div className="text-foreground font-bold">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
                             <div className="text-[9px] text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</div>
                         </td>
                         <td className="px-2 py-1.5">
                             <div className="text-foreground">{p.nakshatra}</div>
-                            <div className="text-[9px] text-muted-foreground">ภพที่ {p.house}</div>
+                            <div className="flex items-center justify-between gap-2 mt-0.5">
+                                <span className="text-[10px] text-accent/80 font-bold whitespace-nowrap">{p.nakCategory}</span>
+                                <span className="text-[9px] text-muted-foreground italic whitespace-nowrap">ภพที่ {p.house}</span>
+                            </div>
                         </td>
                         <td className="px-2 py-1.5">
                           <span className={`rounded px-1.5 py-0.5 text-[9px] ${

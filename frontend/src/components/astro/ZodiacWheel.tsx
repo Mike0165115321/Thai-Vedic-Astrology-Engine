@@ -18,6 +18,7 @@ type Props = {
 };
 
 const SIZE = 560;
+const NAK_SIZE = 360 / 27;
 const CENTER = SIZE / 2;
 const R_OUTER = 280;
 const R_SIGNS = 250;
@@ -178,6 +179,18 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
       </defs>
 
       <circle cx={CENTER} cy={CENTER} r={R_OUTER} fill="url(#wheelBg)" stroke="var(--border)" />
+      
+      {/* Nakshatra Ticks (27 Divisions) */}
+      {Array.from({ length: 27 }).map((_, i) => {
+        const angle = i * NAK_SIZE;
+        const p1 = polar(angle, R_OUTER);
+        const p2 = polar(angle, R_OUTER + 8);
+        return (
+          <line key={`nak-${i}`} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="var(--primary)" strokeWidth="1" opacity={0.4} />
+        );
+      })}
+      <circle cx={CENTER} cy={CENTER} r={R_OUTER + 8} fill="none" stroke="var(--border)" strokeWidth="0.5" opacity={0.3} />
+
       <circle cx={CENTER} cy={CENTER} r={R_SIGNS} fill="none" stroke="var(--border)" />
       <circle cx={CENTER} cy={CENTER} r={R_HOUSES} fill="none" stroke="var(--border)" strokeDasharray="2 4" />
       <circle cx={CENTER} cy={CENTER} r={R_INNER} fill="none" stroke="var(--border)" />
