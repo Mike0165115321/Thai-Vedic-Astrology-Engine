@@ -11,14 +11,44 @@ import { ChartData, BirthFormData } from "@/types/chart";
 
 export default function Home() {
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [transitData, setTransitData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"Natal" | "Synastry" | "Transit">("Natal");
   const [settings, setSettings] = useState(false);
+  const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
+    // Initial Transit Load
+    const now = new Date();
+    const initData: BirthFormData = {
+      day: now.getDate(),
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+      hour: now.getHours(),
+      minute: now.getMinutes(),
+      lat: 13.7563, // Bangkok default
+      lon: 100.5018
+    };
+    calculateInitialTransits(initData);
   }, []);
+
+  const calculateInitialTransits = async (formData: BirthFormData) => {
+    try {
+      const response = await fetch("http://localhost:8000/calculate/chart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTransitData(data);
+      }
+    } catch (e) {
+      console.warn("Initial transit fetch failed. Is backend running?");
+    }
+  };
 
   if (!hasMounted) return null;
 
@@ -57,11 +87,16 @@ export default function Home() {
         
         <CenterPanel 
           chartData={chartData} 
+          transitData={transitData}
           loading={loading}
+          selectedPlanet={selectedPlanet}
+          onSelectPlanet={setSelectedPlanet}
         />
         
         <RightPanel 
           chartData={chartData}
+          selectedPlanet={selectedPlanet}
+          onSelectPlanet={setSelectedPlanet}
         />
       </main>
 

@@ -6,18 +6,33 @@ import { Planet, Lagna } from "@/types/chart";
 
 type Props = {
   planets: { [key: string]: Planet } | null;
+  transitPlanets: { [key: string]: Planet } | null;
   lagna: Lagna | null;
-  transitOffset: number; // degrees added to all planets for transit scrub
+  transitOffset: number; 
   enabledAspects: string[];
+  selectedPlanet: string | null;
+  onSelectPlanet: (name: string | null) => void;
 };
 
 const SIZE = 560;
 const CENTER = SIZE / 2;
 const R_OUTER = 270;
 const R_SIGNS = 240;
+const R_TRANSITS = 222; // New ring for transit planets
 const R_HOUSES = 200;
-const R_PLANETS = 168;
+const R_PLANETS = 168; // Natal planets
 const R_INNER = 120;
+
+const getPlanetColor = (name: string) => {
+  return name === "Sun" ? "var(--warning)" : 
+         name === "Moon" ? "#cfd6e4" : 
+         name === "Mars" ? "var(--destructive)" :
+         name === "Jupiter" ? "var(--primary)" :
+         name === "Venus" ? "#f5b8e0" :
+         name === "Mercury" ? "var(--info)" :
+         name === "Saturn" ? "#94a3b8" :
+         "var(--accent)";
+};
 
 const polar = (deg: number, r: number) => {
   // 0° Aries on the left (9 o'clock), counter-clockwise (astro convention)
@@ -25,47 +40,56 @@ const polar = (deg: number, r: number) => {
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 
-export function ZodiacWheel({ planets, lagna, transitOffset, enabledAspects }: Props) {
-  const planetList = useMemo(() => {
+export function ZodiacWheel({ planets, transitPlanets, lagna, transitOffset, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
+  const natalList = useMemo(() => {
     if (!planets) return [];
     return Object.entries(planets).map(([name, p]) => ({
       name,
       symbol: p.symbol || name.substring(0, 2),
+      lon: p.longitude,
+      retro: p.is_retrograde,
+      color: getPlanetColor(name),
+      isTransit: false
+    }));
+  }, [planets]);
+
+  const transitList = useMemo(() => {
+    if (!transitPlanets) return [];
+    return Object.entries(transitPlanets).map(([name, p]) => ({
+      name,
+      symbol: p.symbol || name.substring(0, 2),
       lon: (p.longitude + transitOffset) % 360,
       retro: p.is_retrograde,
-      color: name === "Sun" ? "var(--warning)" : 
-             name === "Moon" ? "#cfd6e4" : 
-             name === "Mars" ? "var(--destructive)" :
-             name === "Jupiter" ? "var(--primary)" :
-             name === "Venus" ? "#f5b8e0" :
-             name === "Mercury" ? "var(--info)" :
-             name === "Saturn" ? "#94a3b8" :
-             "var(--accent)"
+      color: getPlanetColor(name),
+      isTransit: true
     }));
-  }, [planets, transitOffset]);
+  }, [transitPlanets, transitOffset]);
+
+  const combinedList = useMemo(() => [...natalList, ...transitList], [natalList, transitList]);
 
   const aspectLines = useMemo(() => {
     const lines: { a: any; b: any; type: string; color: string }[] = [];
-    if (planetList.length < 2) return lines;
+    const source = planets ? natalList : transitList;
+    if (source.length < 2) return lines;
 
-    for (let i = 0; i < planetList.length; i++) {
-      for (let j = i + 1; j < planetList.length; j++) {
-        const diff = Math.abs(planetList[i].lon - planetList[j].lon);
+    for (let i = 0; i < source.length; i++) {
+      for (let j = i + 1; j < source.length; j++) {
+        const diff = Math.abs(source[i].lon - source[j].lon);
         const d = diff > 180 ? 360 - diff : diff;
         for (const a of ASPECTS) {
           if (Math.abs(d - a.angle) <= 5 && enabledAspects.includes(a.type)) {
-            lines.push({ a: planetList[i], b: planetList[j], type: a.type, color: a.color });
+            lines.push({ a: source[i], b: source[j], type: a.type, color: a.color });
           }
         }
       }
     }
     return lines;
-  }, [planetList, enabledAspects]);
+  }, [natalList, transitList, planets, enabledAspects]);
 
   const ascDeg = lagna?.longitude || 0;
 
   return (
-    <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full">
+    <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full" onClick={() => onSelectPlanet(null)}>
       <defs>
         <radialGradient id="wheelBg" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="oklch(0.22 0.04 280)" />
@@ -73,6 +97,7 @@ export function ZodiacWheel({ planets, lagna, transitOffset, enabledAspects }: P
           <stop offset="100%" stopColor="oklch(0.14 0.02 260)" />
         </radialGradient>
         <filter id="glow"><feGaussianBlur stdDeviation="2.2" /></filter>
+        <filter id="strongGlow"><feGaussianBlur stdDeviation="5" /></filter>
       </defs>
 
       <circle cx={CENTER} cy={CENTER} r={R_OUTER} fill="url(#wheelBg)" stroke="var(--border)" />
@@ -122,23 +147,46 @@ export function ZodiacWheel({ planets, lagna, transitOffset, enabledAspects }: P
       {/* Aspect lines */}
       <g opacity={0.85}>
         {aspectLines.map((l, i) => {
+          const isSelected = selectedPlanet === l.a.name || selectedPlanet === l.b.name;
           const a = polar(l.a.lon, R_INNER);
           const b = polar(l.b.lon, R_INNER);
-          return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={l.color} strokeOpacity={0.55} strokeWidth={1.2} />;
+          return (
+            <line 
+                key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} 
+                stroke={l.color} 
+                strokeOpacity={isSelected ? 1 : selectedPlanet ? 0.05 : 0.45} 
+                strokeWidth={isSelected ? 2 : 1.2} 
+                className="transition-all duration-300"
+            />
+          );
         })}
       </g>
 
       {/* Planets */}
-      {planetList.map((p) => {
-        const pos = polar(p.lon, R_PLANETS);
+      {combinedList.map((p) => {
+        const isSelected = selectedPlanet === p.name;
+        const radius = p.isTransit ? R_TRANSITS : R_PLANETS;
+        const pos = polar(p.lon, radius);
         const tick1 = polar(p.lon, R_SIGNS - 2);
-        const tick2 = polar(p.lon, R_HOUSES + 2);
+        const tick2 = polar(p.lon, p.isTransit ? R_TRANSITS + 10 : R_HOUSES + 2);
+        
         return (
-          <g key={p.name}>
-            <line x1={tick1.x} y1={tick1.y} x2={tick2.x} y2={tick2.y} stroke={p.color} strokeWidth={1.2} />
-            <circle cx={pos.x} cy={pos.y} r={13} fill="oklch(0.16 0.02 260)" stroke={p.color} strokeWidth={1.2} filter="url(#glow)" />
-            <text x={pos.x} y={pos.y + 5} textAnchor="middle" fontSize="14" fill={p.color}>{p.symbol}</text>
-            {p.retro && <text x={pos.x + 12} y={pos.y - 8} fontSize="8" fill="var(--destructive)">℞</text>}
+          <g key={`${p.isTransit ? 't-' : 'n-'}${p.name}`} 
+             className="cursor-pointer transition-all duration-300" 
+             onClick={(e) => { e.stopPropagation(); onSelectPlanet(p.name); }}>
+            {!p.isTransit && (
+                <line x1={tick1.x} y1={tick1.y} x2={tick2.x} y2={tick2.y} stroke={p.color} strokeWidth={isSelected ? 2.5 : 1.2} opacity={selectedPlanet && !isSelected ? 0.3 : 1} />
+            )}
+            <circle cx={pos.x} cy={pos.y} r={p.isTransit ? (isSelected ? 12 : 9) : (isSelected ? 16 : 13)} 
+                fill={p.isTransit ? "transparent" : "oklch(0.16 0.02 260)"} 
+                stroke={p.color} 
+                strokeWidth={isSelected ? 2.5 : p.isTransit ? 2 : 1.2} 
+                strokeDasharray={p.isTransit ? "2 1" : "none"}
+                filter={isSelected ? "url(#strongGlow)" : "url(#glow)"}
+                className="transition-all duration-300"
+            />
+            <text x={pos.x} y={pos.y + (p.isTransit ? 4 : 5)} textAnchor="middle" fontSize={p.isTransit ? (isSelected ? "11" : "9") : (isSelected ? "16" : "14")} fill={p.color} fontWeight={isSelected ? "bold" : "normal"}>{p.symbol}</text>
+            {p.retro && <text x={pos.x + (p.isTransit ? 8 : 12)} y={pos.y - 8} fontSize="8" fill="var(--destructive)">℞</text>}
           </g>
         );
       })}
@@ -159,9 +207,11 @@ export function ZodiacWheel({ planets, lagna, transitOffset, enabledAspects }: P
 
       {/* Center crest */}
       <circle cx={CENTER} cy={CENTER} r={56} fill="oklch(0.18 0.03 270)" stroke="var(--primary)" strokeOpacity={0.4} />
-      <text x={CENTER} y={CENTER - 4} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" letterSpacing="2">NATAL</text>
+      <text x={CENTER} y={CENTER - 4} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" letterSpacing="2">
+        {planets ? "NATAL" : "LIVE"}
+      </text>
       <text x={CENTER} y={CENTER + 14} textAnchor="middle" fontSize="14" fill="var(--primary)" fontWeight={600}>
-        {lagna ? `${SIGNS[lagna.sign_index].symbol} ${(lagna.longitude % 30).toFixed(1)}°` : "—"}
+        {lagna ? `${SIGNS[lagna.sign_index].symbol} ${(lagna.longitude % 30).toFixed(1)}°` : "SKY MAP"}
       </text>
     </svg>
   );

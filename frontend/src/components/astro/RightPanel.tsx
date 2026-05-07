@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SIGNS, DASHA } from "./data";
+import { SIGNS } from "./data";
 import { ChartData } from "@/types/chart";
 
 type Tab = "ตำแหน่งดาว" | "กำลังดาว" | "เกณฑ์พิเศษ";
@@ -15,36 +15,40 @@ function degToSign(lon: number) {
 
 type Props = {
   chartData: ChartData | null;
+  selectedPlanet: string | null;
+  onSelectPlanet: (name: string | null) => void;
 };
 
-export function RightPanel({ chartData }: Props) {
+export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ตำแหน่งดาว");
-  const nowYear = new Date().getFullYear();
-  const span = DASHA[DASHA.length - 1].end - DASHA[0].start;
-  const nowPct = ((nowYear - DASHA[0].start) / span) * 100;
+  
+  // Use real dasha timeline if available, otherwise empty
+  const dashaTimeline = chartData?.dasha_timeline || [];
+  
+  const planetThaiNames: { [key: string]: string } = {
+      Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
+      Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ"
+  };
+
+  const planetColors: { [key: string]: string } = {
+      Sun: "var(--warning)", Moon: "#cfd6e4", Mars: "var(--destructive)",
+      Jupiter: "var(--primary)", Venus: "#f5b8e0", Mercury: "var(--info)",
+      Saturn: "#94a3b8", Rahu: "var(--accent)", Ketu: "var(--accent)"
+  };
 
   const planets = chartData ? Object.entries(chartData.planets).map(([name, p]) => {
-    const planetThaiNames: { [key: string]: string } = {
-        Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
-        Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ"
-    };
+    const naks = chartData.lunar_data.planet_nakshatras[name];
     return {
-    name: planetThaiNames[name] || name,
-    symbol: p.symbol || name.substring(0, 2),
-    lon: p.longitude,
-    retro: p.is_retrograde,
-    house: "?", // Backend should provide house
-    dignity: "ปกติ", // Backend should provide dignity
-    nakshatra: "—", // Backend should provide nakshatra
-    color: name === "Sun" ? "var(--warning)" : 
-           name === "Moon" ? "#cfd6e4" : 
-           name === "Mars" ? "var(--destructive)" :
-           name === "Jupiter" ? "var(--primary)" :
-           name === "Venus" ? "#f5b8e0" :
-           name === "Mercury" ? "var(--info)" :
-           name === "Saturn" ? "#94a3b8" :
-           "var(--accent)"
-  }}) : [];
+      name: planetThaiNames[name] || name,
+      symbol: p.symbol || name.substring(0, 2),
+      lon: p.longitude,
+      retro: p.is_retrograde,
+      house: p.house || "?",
+      dignity: p.dignity || "ปกติ",
+      nakshatra: naks ? `${naks.name} (${naks.pada})` : "—",
+      color: planetColors[name] || "var(--accent)"
+    }
+  }) : [];
 
   return (
     <aside className="flex flex-col border-l border-border bg-card/40 overflow-hidden">
@@ -67,26 +71,37 @@ export function RightPanel({ chartData }: Props) {
         ) : (
           <>
             {tab === "ตำแหน่งดาว" && (
-              <table className="w-full border-collapse text-[11px] font-mono">
+              <table className="w-full border-collapse text-[10px] font-mono">
                 <thead className="sticky top-0 bg-card/95 backdrop-blur">
-                  <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {["ดาว", "องศา", "ราศี", "มาตรฐาน"].map((h) => (
-                      <th key={h} className="border-b border-border px-2 py-1.5 font-semibold">{h}</th>
-                    ))}
+                  <tr className="text-left text-[9px] uppercase tracking-wider text-muted-foreground">
+                    <th className="border-b border-border px-2 py-1.5 font-semibold">ดาว</th>
+                    <th className="border-b border-border px-2 py-1.5 font-semibold">องศา/ราศี</th>
+                    <th className="border-b border-border px-2 py-1.5 font-semibold">นพเคราะห์/ภพ</th>
+                    <th className="border-b border-border px-2 py-1.5 font-semibold">มาตรฐาน</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {planets.map((p) => {
+                  {planets.map((p, idx) => {
                     const d = degToSign(p.lon);
+                    const nameInEng = Object.keys(chartData.planets)[idx];
+                    const isSelected = selectedPlanet === nameInEng;
                     return (
-                      <tr key={p.name} className="border-b border-border/50 hover:bg-muted/30">
+                      <tr key={p.name} 
+                          onClick={() => onSelectPlanet(isSelected ? null : nameInEng)}
+                          className={`border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer ${isSelected ? "bg-primary/10" : ""}`}>
                         <td className="px-2 py-1.5">
                           <span className="mr-1.5" style={{ color: p.color }}>{p.symbol}</span>
                           <span className="text-foreground">{p.name}</span>
                           {p.retro && <span className="ml-1 text-destructive">℞</span>}
                         </td>
-                        <td className="px-2 py-1.5 text-foreground">{d.deg}°{String(d.min).padStart(2, "0")}′</td>
-                        <td className="px-2 py-1.5">{d.sign.symbol} {d.sign.name.slice(0,3)}</td>
+                        <td className="px-2 py-1.5">
+                            <div className="text-foreground">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
+                            <div className="text-[9px] text-muted-foreground">{d.sign.symbol} {d.sign.name}</div>
+                        </td>
+                        <td className="px-2 py-1.5">
+                            <div className="text-foreground">{p.nakshatra}</div>
+                            <div className="text-[9px] text-muted-foreground">ภพที่ {p.house}</div>
+                        </td>
                         <td className="px-2 py-1.5">
                           <span className={`rounded px-1.5 py-0.5 text-[9px] ${
                             p.dignity === "Exalted" ? "bg-success/20 text-[color:var(--success)]" :
@@ -104,8 +119,21 @@ export function RightPanel({ chartData }: Props) {
             )}
 
             {tab === "กำลังดาว" && (
-              <div className="space-y-2 p-3 text-center py-10 text-muted-foreground/60 italic text-[10px]">
-                ระบบคำนวณกำลังดาว (Shadbala) กำลังพัฒนาใน Layer 2
+              <div className="p-4 space-y-4">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest border-b border-border pb-1">Divisional Charts (D3 / D9)</div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded border border-border bg-muted/20 p-2">
+                        <div className="text-[9px] text-muted-foreground mb-1">D3 (Drekkana)</div>
+                        <div className="text-[10px] font-mono">Sign {Math.floor(chartData.d3["Sun"].longitude / 30) + 1} Sun</div>
+                    </div>
+                    <div className="rounded border border-border bg-muted/20 p-2">
+                        <div className="text-[9px] text-muted-foreground mb-1">D9 (Navamsa)</div>
+                        <div className="text-[10px] font-mono">Sign {Math.floor(chartData.d9["Sun"].longitude / 30) + 1} Sun</div>
+                    </div>
+                </div>
+                <div className="text-[10px] text-muted-foreground italic text-center py-4">
+                    กำลังดาว (Shadbala) กำลังถูกคำนวณ...
+                </div>
               </div>
             )}
 
@@ -118,28 +146,45 @@ export function RightPanel({ chartData }: Props) {
         )}
       </div>
 
-      {/* Dasha Gantt (Mock for now, will connect to Layer 1G) */}
+      {/* Dasha Gantt (Connected to Layer 1G) */}
       <div className="border-t border-border bg-card/60 p-3">
         <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           <span>วิมโชตตรีทศา (Vimshottari Dasha)</span>
-          <span className="font-mono text-primary">ปัจจุบัน · {nowYear}</span>
+          <span className="font-mono text-primary">LIVE</span>
         </div>
-        <div className="relative h-7 overflow-hidden rounded border border-border bg-muted/40">
-          {DASHA.map((d) => {
-            const left = ((d.start - DASHA[0].start) / span) * 100;
-            const width = ((d.end - d.start) / span) * 100;
-            return (
-              <div key={d.lord}
-                className="absolute top-0 flex h-full items-center justify-center border-r border-background/40 text-[9px] font-bold text-background"
-                style={{ left: `${left}%`, width: `${width}%`, background: d.color }}
-                title={`${d.lord} ${d.start}–${d.end}`}>
-                {width > 6 ? d.lord : ""}
-              </div>
-            );
-          })}
-          <div className="absolute top-0 h-full w-px bg-primary shadow-[0_0_8px_var(--primary)]" style={{ left: `${nowPct}%` }}>
-            <div className="absolute -top-1 -translate-x-1/2 rounded-sm bg-primary px-1 text-[8px] font-bold text-primary-foreground">▼</div>
-          </div>
+        <div className="relative h-8 overflow-hidden rounded border border-border bg-muted/40">
+          {dashaTimeline.length > 0 ? (
+            <>
+                {dashaTimeline.map((d, i) => {
+                    const width = (100 / dashaTimeline.length);
+                    const left = i * width;
+                    const dashaColors: { [key: string]: string } = {
+                        Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981",
+                        Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF"
+                    };
+                    return (
+                        <div key={d.planet + d.start}
+                            className={`absolute top-0 flex h-full items-center justify-center border-r border-background/20 text-[8px] font-bold text-background transition-all hover:brightness-110 cursor-help ${d.is_current ? "ring-2 ring-primary ring-inset" : ""}`}
+                            style={{ left: `${left}%`, width: `${width}%`, background: dashaColors[d.planet] || "#ccc" }}
+                            title={`${d.planet}: ${new Date(d.start).getFullYear()} - ${new Date(d.end).getFullYear()}`}>
+                            {d.planet.substring(0, 2)}
+                        </div>
+                    );
+                })}
+            </>
+          ) : (
+            <div className="flex h-full items-center justify-center text-[9px] text-muted-foreground italic">
+                กรอกข้อมูลเพื่อคำนวณทศา
+            </div>
+          )}
+        </div>
+        <div className="mt-1.5 flex justify-between text-[8px] text-muted-foreground font-mono">
+            {dashaTimeline.length > 0 && (
+                <>
+                    <span>{new Date(dashaTimeline[0].start).getFullYear()}</span>
+                    <span>{new Date(dashaTimeline[dashaTimeline.length-1].end).getFullYear()}</span>
+                </>
+            )}
         </div>
       </div>
     </aside>

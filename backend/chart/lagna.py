@@ -16,7 +16,7 @@ def calculate_lagna(jd, lat, lon, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset
     
     return {
         "longitude": lagna_longitude,
-        "sign": int(lagna_longitude / 30) + 1,
+        "sign_index": int(lagna_longitude / 30),
         "degree_in_sign": lagna_longitude % 30,
         "cusps": list(cusps[1:])
     }

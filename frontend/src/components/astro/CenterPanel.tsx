@@ -8,10 +8,13 @@ import { ChartData } from "@/types/chart";
 
 type Props = {
   chartData: ChartData | null;
+  transitData: ChartData | null;
   loading: boolean;
+  selectedPlanet: string | null;
+  onSelectPlanet: (name: string | null) => void;
 };
 
-export function CenterPanel({ chartData, loading }: Props) {
+export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet }: Props) {
   const [offset, setOffset] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
@@ -55,16 +58,19 @@ export function CenterPanel({ chartData, loading }: Props) {
         <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
           <ZodiacWheel 
             planets={chartData?.planets || null} 
-            lagna={chartData?.lagna || null}
+            transitPlanets={transitData?.planets || null}
+            lagna={chartData?.lagna || transitData?.lagna || null}
             transitOffset={offset} 
             enabledAspects={enabled} 
+            selectedPlanet={selectedPlanet}
+            onSelectPlanet={onSelectPlanet}
           />
         </div>
 
         {chartData && (
           <>
             <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
-              JD · {chartData.julian_date.toFixed(4)}
+              BIRTH · {chartData.julian_date.toFixed(4)}
             </div>
             <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
               ASC · {chartData.lagna.longitude.toFixed(2)}°
@@ -72,7 +78,13 @@ export function CenterPanel({ chartData, loading }: Props) {
           </>
         )}
 
-        {!chartData && !loading && (
+        {transitData && !chartData && (
+          <div className="pointer-events-none absolute left-3 top-3 rounded border border-primary/20 bg-primary/10 px-2 py-1 font-mono text-[10px] text-primary backdrop-blur animate-pulse">
+            LIVE TRANSIT · {(transitData.julian_date).toFixed(4)}
+          </div>
+        )}
+
+        {!chartData && !transitData && !loading && (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/40 italic font-mono uppercase tracking-widest text-center px-10">
             ระบบพร้อมทำงาน กรุณากรอกข้อมูลเพื่อคำนวณตำแหน่งดาว
           </div>

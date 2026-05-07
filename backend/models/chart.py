@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 class BirthChart(BaseModel):
     """

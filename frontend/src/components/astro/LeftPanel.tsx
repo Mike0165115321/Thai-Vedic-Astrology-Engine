@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Plus, Clock, Loader2 } from "lucide-react";
 import { RECENT_CHARTS } from "./data";
 import { BirthFormData } from "@/types/chart";
+import { LocationSearch } from "./LocationSearch";
 
 type Mode = "Natal" | "Synastry" | "Transit";
 
@@ -85,13 +86,19 @@ export function LeftPanel({ mode, setMode, onCalculate, loading }: Props) {
                 </div>
              </div>
 
+             <LocationSearch 
+                onSelect={(lat, lon) => {
+                    setFormData(prev => ({ ...prev, lat, lon }));
+                }} 
+             />
+
              <div className="grid grid-cols-2 gap-2">
                 <div>
-                    <label className="text-[9px] uppercase text-muted-foreground">ละติจูด</label>
+                    <label className="text-[9px] uppercase text-muted-foreground">ละติจูด (Lat)</label>
                     <input type="number" step="any" value={formData.lat} onChange={e => handleInputChange("lat", e.target.value)} className="w-full bg-input/50 border border-border rounded px-2 py-1 font-mono text-xs" />
                 </div>
                 <div>
-                    <label className="text-[9px] uppercase text-muted-foreground">ลองจิจูด</label>
+                    <label className="text-[9px] uppercase text-muted-foreground">ลองจิจูด (Lon)</label>
                     <input type="number" step="any" value={formData.lon} onChange={e => handleInputChange("lon", e.target.value)} className="w-full bg-input/50 border border-border rounded px-2 py-1 font-mono text-xs" />
                 </div>
              </div>
