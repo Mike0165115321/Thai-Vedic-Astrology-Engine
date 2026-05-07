@@ -7,7 +7,8 @@ import { Planet, Lagna } from "@/types/chart";
 type Props = {
   planets: { [key: string]: Planet } | null;
   transitPlanets: { [key: string]: Planet } | null;
-  lagna: Lagna | null;
+  natalLagna: Lagna | null;
+  transitLagna: Lagna | null;
   enabledAspects: string[];
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
@@ -15,12 +16,12 @@ type Props = {
 
 const SIZE = 560;
 const CENTER = SIZE / 2;
-const R_OUTER = 270;
-const R_SIGNS = 240;
-const R_TRANSITS = 222; // New ring for transit planets
+const R_OUTER = 280;
+const R_SIGNS = 250;
+const R_TRANSITS = 225; // Clearly outside the house grid
 const R_HOUSES = 200;
-const R_PLANETS = 168; // Natal planets
-const R_INNER = 120;
+const R_PLANETS = 160; // Natal planets
+const R_INNER = 110;
 
 const getPlanetColor = (name: string) => {
   return name === "Sun" ? "var(--warning)" : 
@@ -39,7 +40,7 @@ const polar = (deg: number, r: number) => {
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 
-export function ZodiacWheel({ planets, transitPlanets, lagna, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
+export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
   const natalList = useMemo(() => {
     if (!planets) return [];
     return Object.entries(planets).map(([name, p]) => ({
@@ -85,7 +86,7 @@ export function ZodiacWheel({ planets, transitPlanets, lagna, enabledAspects, se
     return lines;
   }, [natalList, transitList, planets, enabledAspects]);
 
-  const ascDeg = lagna?.longitude || 0;
+  const ascDeg = natalLagna?.longitude || 0;
 
   return (
     <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full" onClick={() => onSelectPlanet(null)}>
@@ -161,48 +162,94 @@ export function ZodiacWheel({ planets, transitPlanets, lagna, enabledAspects, se
         })}
       </g>
 
+      {/* Transit planets outer ring path */}
+      <circle cx={CENTER} cy={CENTER} r={R_TRANSITS} fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.3" />
+
       {/* Planets */}
       {combinedList.map((p) => {
         const isSelected = selectedPlanet === p.name;
         const radius = p.isTransit ? R_TRANSITS : R_PLANETS;
         const pos = polar(p.lon, radius);
-        const tick1 = polar(p.lon, R_SIGNS - 2);
-        const tick2 = polar(p.lon, p.isTransit ? R_TRANSITS + 10 : R_HOUSES + 2);
         
         return (
           <g key={`${p.isTransit ? 't-' : 'n-'}${p.name}`} 
+             transform={`translate(${pos.x}, ${pos.y})`}
              className="cursor-pointer transition-all duration-300" 
              onClick={(e) => { e.stopPropagation(); onSelectPlanet(p.name); }}>
-            {!p.isTransit && (
-                <line x1={tick1.x} y1={tick1.y} x2={tick2.x} y2={tick2.y} stroke={p.color} strokeWidth={isSelected ? 2.5 : 1.2} opacity={selectedPlanet && !isSelected ? 0.3 : 1} />
-            )}
-            <circle cx={pos.x} cy={pos.y} r={p.isTransit ? (isSelected ? 12 : 9) : (isSelected ? 16 : 13)} 
-                fill={p.isTransit ? "transparent" : "oklch(0.16 0.02 260)"} 
-                stroke={p.color} 
-                strokeWidth={isSelected ? 2.5 : p.isTransit ? 2 : 1.2} 
-                strokeDasharray={p.isTransit ? "2 1" : "none"}
-                filter={isSelected ? "url(#strongGlow)" : "url(#glow)"}
-                className="transition-all duration-300"
-            />
-            <text x={pos.x} y={pos.y + (p.isTransit ? 4 : 5)} textAnchor="middle" fontSize={p.isTransit ? (isSelected ? "11" : "9") : (isSelected ? "16" : "14")} fill={p.color} fontWeight={isSelected ? "bold" : "normal"}>{p.symbol}</text>
-            {p.retro && <text x={pos.x + (p.isTransit ? 8 : 12)} y={pos.y - 8} fontSize="8" fill="var(--destructive)">℞</text>}
+              <g style={{ filter: isSelected ? "drop-shadow(0 0 8px var(--primary))" : "none" }}>
+                {/* Planet background glow */}
+                <circle cx={0} cy={0} r={p.isTransit ? 10 : 14} fill={p.color} opacity={isSelected ? 0.3 : 0.1} />
+                
+                {/* Planet icon circle */}
+                <circle 
+                  cx={0} cy={0} r={p.isTransit ? 8 : 12} 
+                  fill="var(--background)" 
+                  stroke={p.color} 
+                  strokeWidth={isSelected ? 2 : 1}
+                  opacity={p.isTransit ? 0.8 : 1}
+                />
+                
+                {/* Planet symbol/number */}
+                <text
+                  textAnchor="middle"
+                  dy={p.isTransit ? "3" : "4"}
+                  fontSize={p.isTransit ? "9" : "13"}
+                  fill={p.color}
+                  fontWeight={700}
+                  className="select-none"
+                >
+                  {p.symbol}
+                </text>
+
+                {/* Retrograde indicator */}
+                {p.retro && (
+                  <text x="6" y="-6" fontSize="8" fill="var(--destructive)" fontWeight="bold">℞</text>
+                )}
+
+                {/* Transit badge */}
+                {p.isTransit && (
+                  <circle cx="6" cy="6" r="2" fill="var(--primary)" />
+                )}
+              </g>
           </g>
         );
       })}
 
-      {/* Lagna marker */}
-      {lagna && (
-        <g>
-            <line 
-                x1={polar(ascDeg, R_SIGNS).x} 
-                y1={polar(ascDeg, R_SIGNS).y} 
-                x2={polar(ascDeg, R_INNER).x} 
-                y2={polar(ascDeg, R_INNER).y} 
-                stroke="var(--warning)" 
-                strokeWidth={2} 
-            />
-        </g>
-      )}
+      {/* Natal Lagna marker */}
+      {natalLagna && (() => {
+        const lon = natalLagna.longitude;
+        const pos = polar(lon, R_HOUSES + 10);
+        const lineStart = polar(lon, R_INNER - 10);
+        const lineEnd = polar(lon, R_SIGNS);
+        return (
+          <g>
+            <line x1={lineStart.x} y1={lineStart.y} x2={lineEnd.x} y2={lineEnd.y} stroke="var(--warning)" strokeWidth="1.5" opacity="0.6" strokeDasharray="4 2" />
+            <g transform={`translate(${pos.x}, ${pos.y})`}>
+              <circle cx={0} cy={0} r="14" fill="var(--warning)" opacity="0.2" />
+              <text textAnchor="middle" dy="5" fontSize="16" fill="var(--warning)" fontWeight="900" style={{ filter: "drop-shadow(0 0 4px var(--warning))" }}>ลั</text>
+              <text textAnchor="middle" dy="22" fontSize="8" fill="var(--warning)" fontWeight="bold">เดิม</text>
+            </g>
+          </g>
+        );
+      })()}
+
+      {/* Transit Lagna marker */}
+      {transitLagna && (() => {
+        const lon = transitLagna.longitude;
+        const pos = polar(lon, R_TRANSITS + 10);
+        const lineStart = polar(lon, R_HOUSES);
+        const lineEnd = polar(lon, R_SIGNS);
+        return (
+          <g>
+            <line x1={lineStart.x} y1={lineStart.y} x2={lineEnd.x} y2={lineEnd.y} stroke="var(--info)" strokeWidth="1.2" opacity="0.4" />
+            <g transform={`translate(${pos.x}, ${pos.y})`}>
+              <circle cx={0} cy={0} r="11" fill="var(--info)" opacity="0.2" />
+              <text textAnchor="middle" dy="4" fontSize="12" fill="var(--info)" fontWeight="900">ลั</text>
+              <text textAnchor="middle" dy="16" fontSize="7" fill="var(--info)" fontWeight="bold">จร</text>
+            </g>
+          </g>
+        );
+      })()}
 
       {/* Center crest */}
       <circle cx={CENTER} cy={CENTER} r={56} fill="oklch(0.18 0.03 270)" stroke="var(--primary)" strokeOpacity={0.4} />
@@ -210,7 +257,7 @@ export function ZodiacWheel({ planets, transitPlanets, lagna, enabledAspects, se
         {planets ? "NATAL" : "LIVE"}
       </text>
       <text x={CENTER} y={CENTER + 14} textAnchor="middle" fontSize="14" fill="var(--primary)" fontWeight={600}>
-        {(lagna && lagna.sign && SIGNS[lagna.sign - 1]) ? `${SIGNS[lagna.sign - 1].name_th} ${(lagna.longitude % 30).toFixed(1)}°` : "SKY MAP"}
+        {(natalLagna && natalLagna.sign && SIGNS[natalLagna.sign - 1]) ? `${SIGNS[natalLagna.sign - 1].name_th} ${(natalLagna.longitude % 30).toFixed(1)}°` : "SKY MAP"}
       </text>
     </svg>
   );

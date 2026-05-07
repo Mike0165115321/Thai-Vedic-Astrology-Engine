@@ -60,7 +60,8 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
           <ZodiacWheel 
             planets={chartData?.planets || null} 
             transitPlanets={transitData?.planets || null}
-            lagna={chartData?.lagna || transitData?.lagna || null}
+            natalLagna={chartData?.lagna || null}
+            transitLagna={transitData?.lagna || null}
             enabledAspects={enabled} 
             selectedPlanet={selectedPlanet}
             onSelectPlanet={onSelectPlanet}
@@ -94,13 +95,6 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
       {/* Transit scrubber */}
       <div className="border-t border-border bg-card/60 px-4 py-3">
         <div className="mb-2 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1">
-            <button className="rounded border border-border bg-muted/40 p-1 hover:bg-muted"><SkipBack className="h-3.5 w-3.5" /></button>
-            <button onClick={() => setPlaying((p) => !p)} className="rounded border border-primary/50 bg-primary/10 p-1 text-primary hover:bg-primary/20">
-              {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-            </button>
-            <button className="rounded border border-border bg-muted/40 p-1 hover:bg-muted"><SkipForward className="h-3.5 w-3.5" /></button>
-          </div>
           <div className="font-mono text-xs text-foreground flex items-center gap-3">
             <span className="text-muted-foreground uppercase tracking-widest text-[10px]">อายุ (Age):</span>
             <div className="flex items-center gap-1">
