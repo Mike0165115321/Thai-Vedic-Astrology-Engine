@@ -14,4 +14,7 @@ class BirthChart(BaseModel):
     lagna: Dict[str, Any]
     planets: Dict[str, Any]
     houses: Dict[int, int] # House Number → Sign (1-12)
+    western_aspects: List[Dict[str, Any]]
+    vedic_aspects: List[Dict[str, Any]]
+
 

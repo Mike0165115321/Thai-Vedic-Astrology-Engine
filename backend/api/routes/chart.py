@@ -8,9 +8,9 @@ from chart.lagna import calculate_lagna
 from chart.house_system import calculate_whole_sign_houses
 from chart.zodiac_wheel import map_planets_to_houses
 from core.ayanamsa import set_ayanamsa
+from chart.aspects import calculate_western_aspects, calculate_vedic_aspects
 
 router = APIRouter()
-
 
 @router.post("/", response_model=BirthChart)
 def calculate_chart_endpoint(data: BirthData):
@@ -44,14 +44,21 @@ def calculate_chart_endpoint(data: BirthData):
         # 5. Map Planets to Houses
         planets_with_houses = map_planets_to_houses(planets, lagna_sign)
         
+        # 6. Calculate Aspects
+        western_aspects = calculate_western_aspects(planets_with_houses)
+        vedic_aspects = calculate_vedic_aspects(planets_with_houses)
+        
         return {
             "julian_date": jd,
             "ayanamsa_name": data.ayanamsa_mode,
             "ayanamsa_value": ayanamsa_val,
             "lagna": lagna,
             "planets": planets_with_houses,
-            "houses": houses
+            "houses": houses,
+            "western_aspects": western_aspects,
+            "vedic_aspects": vedic_aspects
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 

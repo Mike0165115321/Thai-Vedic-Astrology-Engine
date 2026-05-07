@@ -66,5 +66,15 @@ PLANET_RELATIONSHIPS = {
     6: {'friends': [3, 5], 'enemies': [0, 1, 2], 'neutrals': [4]}, # Saturn
 }
 
+# Western Aspect Orbs (degrees)
+WESTERN_ASPECTS = {
+    "Conjunction": {"angle": 0, "orb": 8},
+    "Sextile": {"angle": 60, "orb": 6},
+    "Square": {"angle": 90, "orb": 7},
+    "Trine": {"angle": 120, "orb": 8},
+    "Opposition": {"angle": 180, "orb": 8},
+}
+
+
 
 

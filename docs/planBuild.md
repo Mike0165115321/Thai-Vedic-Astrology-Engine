@@ -31,16 +31,17 @@ Layer 1C — Planet Status (สภาพดาว)
 Layer 1D — Planet Relationships (ปฏิสัมพันธ์ดาว)
 
   Western Aspects:
-  □ Conjunction  0°
-  □ Sextile      60°
-  □ Square       90°
-  □ Trine        120°
-  □ Opposition   180°
+  [x] Conjunction  0°
+  [x] Sextile      60°
+  [x] Square       90°
+  [x] Trine        120°
+  [x] Opposition   180°
 
   Vedic:
-  □ Graha Drishti  การเล็งของดาว (Special Aspects อังคาร/พฤหัส/เสาร์)
-  □ Rashi Drishti  การเล็งระหว่างราศี (ถ้าจะลึก)
-  □ Argala         อิทธิพลแทรกแซง (เก็บไว้อนาคต)
+  [x] Graha Drishti  การเล็งของดาว (Special Aspects อังคาร/พฤหัส/เสาร์)
+  [ ] Rashi Drishti  การเล็งระหว่างราศี (ถ้าจะลึก)
+  [ ] Argala         อิทธิพลแทรกแซง (เก็บไว้อนาคต)
+
 
 Layer 1E — Divisional Charts
 □ D1 Rasi
