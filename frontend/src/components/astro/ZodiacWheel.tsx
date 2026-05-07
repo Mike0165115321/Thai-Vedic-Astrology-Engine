@@ -229,9 +229,6 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
             
             {/* symbol */}
             <text textAnchor="middle" dy="4.5" fontSize="13" fill="var(--warning)" fontWeight="900">ลั</text>
-            
-            {/* Label */}
-            <text textAnchor="middle" dy="24" fontSize="9" fill="var(--warning)" fontWeight="bold" opacity="0.9">เดิม</text>
           </g>
         );
       })()}
@@ -239,17 +236,17 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
       {/* Transit Lagna marker */}
       {transitLagna && (() => {
         const lon = transitLagna.longitude;
-        const pos = polar(lon, R_TRANSITS + 10);
-        const lineStart = polar(lon, R_HOUSES);
-        const lineEnd = polar(lon, R_SIGNS);
+        const pos = polar(lon, R_TRANSITS);
         return (
-          <g>
-            <line x1={lineStart.x} y1={lineStart.y} x2={lineEnd.x} y2={lineEnd.y} stroke="var(--info)" strokeWidth="1.2" opacity="0.4" />
-            <g transform={`translate(${pos.x}, ${pos.y})`}>
-              <circle cx={0} cy={0} r="11" fill="var(--info)" opacity="0.2" />
-              <text textAnchor="middle" dy="4" fontSize="12" fill="var(--info)" fontWeight="900">ลั</text>
-              <text textAnchor="middle" dy="16" fontSize="7" fill="var(--info)" fontWeight="bold">จร</text>
-            </g>
+          <g transform={`translate(${pos.x}, ${pos.y})`} className="transition-all duration-300">
+            {/* Background glow */}
+            <circle cx={0} cy={0} r={12} fill="var(--info)" opacity={0.15} />
+            
+            {/* Main circle */}
+            <circle cx={0} cy={0} r={9} fill="var(--background)" stroke="var(--info)" strokeWidth={1.2} opacity={0.9} />
+            
+            {/* symbol */}
+            <text textAnchor="middle" dy="3.5" fontSize="10" fill="var(--info)" fontWeight="900">ลั</text>
           </g>
         );
       })()}
