@@ -62,6 +62,8 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
             transitPlanets={transitData?.planets || null}
             natalLagna={chartData?.lagna || null}
             transitLagna={transitData?.lagna || null}
+            natalHouses={chartData?.houses || null}
+            transitHouses={transitData?.houses || null}
             enabledAspects={enabled} 
             selectedPlanet={selectedPlanet}
             onSelectPlanet={onSelectPlanet}

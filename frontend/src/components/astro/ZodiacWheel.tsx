@@ -9,6 +9,8 @@ type Props = {
   transitPlanets: { [key: string]: Planet } | null;
   natalLagna: Lagna | null;
   transitLagna: Lagna | null;
+  natalHouses: { [key: string]: number } | null;
+  transitHouses: { [key: string]: number } | null;
   enabledAspects: string[];
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
@@ -22,6 +24,11 @@ const R_TRANSITS = 225; // Clearly outside the house grid
 const R_HOUSES = 200;
 const R_PLANETS = 160; // Natal planets
 const R_INNER = 110;
+
+const HOUSE_NAMES_TH = [
+  "ตนุ", "กฎุมพะ", "สหัชชะ", "พันธุ", "ปุตตะ", "อริ", 
+  "ปัตนิ", "มรณะ", "ศุภะ", "กัมมะ", "ลาภะ", "วินาศ"
+];
 
 const getPlanetColor = (name: string) => {
   return name === "Sun" ? "var(--warning)" : 
@@ -40,7 +47,7 @@ const polar = (deg: number, r: number) => {
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 
-export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
+export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, natalHouses, transitHouses, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
   const natalList = useMemo(() => {
     if (!planets) return [];
     return Object.entries(planets).map(([name, p]) => ({
@@ -133,15 +140,42 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
         return <line key={deg} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke="var(--muted-foreground)" strokeOpacity={deg % 10 === 0 ? 0.55 : 0.25} strokeWidth={0.5} />;
       })}
 
-      {/* House cusps (equal house for now) */}
+      {/* House cusps and labels (aligned with signs for Whole Sign) */}
       {Array.from({ length: 12 }).map((_, i) => {
-        const a = polar(i * 30, R_HOUSES);
-        const b = polar(i * 30, R_INNER);
-        return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--border)" strokeDasharray="3 3" />;
-      })}
-      {Array.from({ length: 12 }).map((_, i) => {
-        const p = polar(i * 30 + 15, (R_HOUSES + R_INNER) / 2 + 8);
-        return <text key={i} x={p.x} y={p.y} textAnchor="middle" fontSize="10" fill="var(--muted-foreground)">{i + 1}</text>;
+        const signNum = i + 1;
+        // Find which house number this sign represents in the natal chart
+        let houseNum = 0;
+        if (natalHouses) {
+          const entry = Object.entries(natalHouses).find(([h, s]) => s === signNum);
+          if (entry) houseNum = parseInt(entry[0]);
+        }
+
+        const cuspAngle = i * 30;
+        const a = polar(cuspAngle, R_HOUSES);
+        const b = polar(cuspAngle, R_INNER);
+        
+        // House label position
+        const labelAngle = i * 30 + 15;
+        const pNumber = polar(labelAngle, (R_HOUSES + R_INNER) / 2 + 12);
+        const pName = polar(labelAngle, (R_HOUSES + R_INNER) / 2 - 4);
+
+        return (
+          <g key={i}>
+            {/* Cusp line */}
+            <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
+            
+            {houseNum > 0 && (
+              <g opacity={0.6}>
+                <text x={pNumber.x} y={pNumber.y} textAnchor="middle" fontSize="11" fontWeight="bold" fill="var(--primary)">
+                  {houseNum}
+                </text>
+                <text x={pName.x} y={pName.y} textAnchor="middle" fontSize="9" fill="var(--muted-foreground)">
+                  {HOUSE_NAMES_TH[houseNum - 1]}
+                </text>
+              </g>
+            )}
+          </g>
+        );
       })}
 
       {/* Aspect lines */}
