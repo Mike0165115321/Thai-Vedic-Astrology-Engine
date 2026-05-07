@@ -50,6 +50,16 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
     }
   }) : [];
 
+  const lagna = chartData?.lagna ? {
+    name: "ลัคนา",
+    symbol: "ลั",
+    lon: chartData.lagna.longitude,
+    nakshatra: chartData.lunar_data.lagna_nakshatra 
+      ? `${chartData.lunar_data.lagna_nakshatra.name} (${chartData.lunar_data.lagna_nakshatra.pada})` 
+      : "—",
+    color: "var(--warning)"
+  } : null;
+
   return (
     <aside className="flex flex-col border-l border-border bg-card/40 overflow-hidden">
       <div className="flex border-b border-border bg-muted/30">
@@ -81,6 +91,30 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                   </tr>
                 </thead>
                 <tbody>
+                  {lagna && (
+                    <tr className="border-b border-border bg-primary/5">
+                      <td className="px-2 py-1.5">
+                        <span className="mr-1.5 font-bold" style={{ color: lagna.color }}>{lagna.symbol}</span>
+                        <span className="text-foreground font-bold">{lagna.name}</span>
+                      </td>
+                      <td className="px-2 py-1.5">
+                        {(() => {
+                          const d = degToSign(lagna.lon);
+                          return (
+                            <>
+                              <div className="text-foreground font-bold">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
+                              <div className="text-[9px] text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</div>
+                            </>
+                          );
+                        })()}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <div className="text-foreground">{lagna.nakshatra}</div>
+                        <div className="text-[9px] text-muted-foreground">ตนุลัคน์</div>
+                      </td>
+                      <td className="px-2 py-1.5">—</td>
+                    </tr>
+                  )}
                   {planets.map((p, idx) => {
                     const d = degToSign(p.lon);
                     const nameInEng = Object.keys(chartData.planets)[idx];

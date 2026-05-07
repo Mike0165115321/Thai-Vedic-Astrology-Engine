@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { motion } from "framer-motion";
 import { SIGNS, ASPECTS } from "./data";
 import { Planet, Lagna } from "@/types/chart";
 
@@ -270,9 +271,17 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
         const pos = polar(p.lon, p.visualRadius);
         
         return (
-          <g key={p.id} 
-             transform={`translate(${pos.x}, ${pos.y})`}
-             className="cursor-pointer transition-all duration-300" 
+          <motion.g 
+             key={p.id} 
+             initial={false}
+             animate={{ x: pos.x, y: pos.y }}
+             transition={{ 
+                type: "spring", 
+                stiffness: 80, 
+                damping: 15, 
+                mass: 1 
+             }}
+             className="cursor-pointer" 
              onClick={(e) => { 
                 e.stopPropagation(); 
                 if (!p.isLagna) onSelectPlanet(p.name); 
@@ -312,7 +321,7 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
                   <circle cx="6" cy="6" r="2" fill="var(--primary)" />
                 )}
               </g>
-          </g>
+          </motion.g>
         );
       })}
 
