@@ -138,8 +138,6 @@ export default function Home() {
     }, 400);
   }, []);
 
-  if (!hasMounted) return null;
-
   // Helper to get divisional longitudes for rendering
   const getDivisionalData = useCallback((data: ChartData | null, type: string) => {
     if (!data) return null;
@@ -235,6 +233,8 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  if (!hasMounted) return null;
 
   return (
     <div className="dark flex h-screen flex-col overflow-hidden bg-background text-foreground font-sans">
