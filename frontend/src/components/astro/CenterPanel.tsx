@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Play, Pause, SkipBack, SkipForward, Filter } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
 import { ASPECTS } from "./data";
@@ -35,6 +35,38 @@ export function CenterPanel({
   const [playing, setPlaying] = useState(false);
   const [showTransit, setShowTransit] = useState(true);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
+  const [tDay, setTDay] = useState("");
+  const [tMonth, setTMonth] = useState("");
+  const [tYear, setTYear] = useState("");
+  const [isEditingDate, setIsEditingDate] = useState(false);
+
+  // Sync date string when transit data changes
+  useEffect(() => {
+    if (transitData && !isEditingDate) {
+      const d = new Date(transitData.julian_date * 86400000 - 210866803200000);
+      setTDay(d.getDate().toString().padStart(2, '0'));
+      setTMonth((d.getMonth() + 1).toString().padStart(2, '0'));
+      setTYear((d.getFullYear() + 543).toString());
+    }
+  }, [transitData, isEditingDate]);
+
+  const handleDateSubmit = () => {
+    setIsEditingDate(false);
+    if (!chartData) return;
+    const day = parseInt(tDay);
+    const month = parseInt(tMonth);
+    const year = parseInt(tYear) - 543; // Convert BE to CE
+    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+      // Assume transit at 12:00 PM for simple date entry
+      const targetDate = new Date(year, month - 1, day, 12, 0);
+      const targetMs = targetDate.getTime();
+      const birthMs = chartData.julian_date * 86400000 - 210866803200000;
+      const diffDays = (targetMs - birthMs) / (1000 * 3600 * 24);
+      const newAge = Math.max(0, diffDays / 365.2422); // Prevent negative age
+      setAge(newAge);
+      onAgeChange(newAge);
+    }
+  };
 
   const toggle = (t: string) =>
     setEnabled((e) => (e.includes(t) ? e.filter((x) => x !== t) : [...e, t]));
@@ -212,12 +244,40 @@ export function CenterPanel({
             </div>
             <span className="mx-2 text-border">|</span>
             <span className="text-muted-foreground">วันที่: </span>
-            <span className="bg-muted/30 px-2 py-0.5 rounded border border-border/50">
-                {transitData ? (() => {
-                    const d = new Date(transitData.julian_date * 86400000 - 210866803200000);
-                    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear() + 543}`;
-                })() : "..."}
-            </span>
+            <div className="flex gap-1 items-center bg-primary/10 border border-primary/30 rounded px-1 py-0.5">
+              <input 
+                type="text" 
+                value={tDay}
+                onFocus={() => setIsEditingDate(true)}
+                onChange={(e) => setTDay(e.target.value)}
+                onBlur={handleDateSubmit}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
+                placeholder="วว"
+                className="bg-transparent text-primary font-bold text-center w-6 outline-none"
+              />
+              <span className="text-primary/50">/</span>
+              <input 
+                type="text" 
+                value={tMonth}
+                onFocus={() => setIsEditingDate(true)}
+                onChange={(e) => setTMonth(e.target.value)}
+                onBlur={handleDateSubmit}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
+                placeholder="ดด"
+                className="bg-transparent text-primary font-bold text-center w-6 outline-none"
+              />
+              <span className="text-primary/50">/</span>
+              <input 
+                type="text" 
+                value={tYear}
+                onFocus={() => setIsEditingDate(true)}
+                onChange={(e) => setTYear(e.target.value)}
+                onBlur={handleDateSubmit}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
+                placeholder="ปปปป"
+                className="bg-transparent text-primary font-bold text-center w-10 outline-none"
+              />
+            </div>
           </div>
           <div className="flex gap-1 text-[10px] text-muted-foreground">
             <button 
