@@ -121,7 +121,10 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
             <span className="mx-2 text-border">|</span>
             <span className="text-muted-foreground">วันที่: </span>
             <span className="bg-muted/30 px-2 py-0.5 rounded border border-border/50">
-                {transitData ? new Date(transitData.julian_date * 86400000 - 210866803200000).toISOString().slice(0, 10) : "..."}
+                {transitData ? (() => {
+                    const d = new Date(transitData.julian_date * 86400000 - 210866803200000);
+                    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear() + 543}`;
+                })() : "..."}
             </span>
           </div>
           <div className="flex gap-1 text-[10px] text-muted-foreground">

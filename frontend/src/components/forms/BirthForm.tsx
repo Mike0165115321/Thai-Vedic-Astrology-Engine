@@ -65,11 +65,11 @@ export default function BirthForm({ onCalculate }: BirthFormProps) {
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-zinc-400 uppercase mb-1">Year</label>
+            <label className="text-xs text-zinc-400 uppercase mb-1">Year (พ.ศ.)</label>
             <input 
               type="number" 
-              value={formData.year} 
-              onChange={e => setFormData({...formData, year: parseInt(e.target.value)})}
+              value={parseInt(formData.year) + 543} 
+              onChange={e => setFormData({...formData, year: parseInt(e.target.value) - 543})}
               className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
             />
           </div>

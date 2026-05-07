@@ -71,8 +71,13 @@ export function LeftPanel({ mode, setMode, onCalculate, loading }: Props) {
                     <input type="number" value={formData.month} onChange={e => handleInputChange("month", e.target.value)} className="w-full bg-input/50 border border-border rounded px-2 py-1 font-mono text-xs" />
                 </div>
                 <div>
-                    <label className="text-[9px] uppercase text-muted-foreground">ปี (ค.ศ.)</label>
-                    <input type="number" value={formData.year} onChange={e => handleInputChange("year", e.target.value)} className="w-full bg-input/50 border border-border rounded px-2 py-1 font-mono text-xs" />
+                    <label className="text-[9px] uppercase text-muted-foreground">ปี (พ.ศ.)</label>
+                    <input 
+                        type="number" 
+                        value={parseInt(formData.year) + 543} 
+                        onChange={e => handleInputChange("year", (parseInt(e.target.value) - 543).toString())} 
+                        className="w-full bg-input/50 border border-border rounded px-2 py-1 font-mono text-xs" 
+                    />
                 </div>
              </div>
 
