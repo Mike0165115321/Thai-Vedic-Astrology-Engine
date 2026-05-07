@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 import swisseph as swe
 from models.birth_data import BirthData
 from models.chart import BirthChart
-from core.time_utils import get_julian_date
+from core.time_utils import get_julian_date, to_utc
 from planets.calculator import get_all_planets
 from chart.lagna import calculate_lagna
 from chart.house_system import calculate_whole_sign_houses
@@ -19,8 +19,15 @@ router = APIRouter()
 @router.post("/", response_model=BirthChart)
 def calculate_chart_endpoint(data: BirthData):
     try:
-        jd = get_julian_date(data.year, data.month, data.day, data.hour, data.minute, data.second)
-        birth_dt = datetime(data.year, data.month, data.day, data.hour, data.minute, data.second or 0)
+        # 0. Handle Timezone (Convert Local to UTC)
+        birth_dt_local = datetime(data.year, data.month, data.day, data.hour, data.minute, data.second or 0)
+        birth_dt_utc = to_utc(birth_dt_local, data.timezone)
+        
+        # 1. Calculate Julian Date from UTC
+        jd = get_julian_date(
+            birth_dt_utc.year, birth_dt_utc.month, birth_dt_utc.day, 
+            birth_dt_utc.hour, birth_dt_utc.minute, birth_dt_utc.second
+        )
 
         
         # 1. Set Ayanamsa for all subsequent calculations
@@ -63,7 +70,7 @@ def calculate_chart_endpoint(data: BirthData):
         
         # 9. Layer 1G: Dasha System
         moon_lon = planets_with_houses.get("Moon", {}).get("longitude", 0)
-        dasha_timeline = calculate_vimshottari_dasha(moon_lon, birth_dt)
+        dasha_timeline = calculate_vimshottari_dasha(moon_lon, birth_dt_local)
         
         return {
             "julian_date": jd,

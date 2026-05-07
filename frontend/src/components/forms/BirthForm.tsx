@@ -8,19 +8,35 @@ interface BirthFormProps {
 }
 
 export default function BirthForm({ onCalculate }: BirthFormProps) {
-  const [formData, setFormData] = useState<BirthFormData>({
+  const [formData, setFormData] = useState<any>({
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     day: new Date().getDate(),
     hour: new Date().getHours(),
     minute: new Date().getMinutes(),
-    lat: 13.7367, // Bangkok
-    lon: 100.5231
+    lat: "",
+    lon: "",
+    timezone: "Asia/Bangkok"
   });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onCalculate(formData);
+    const data: BirthFormData = {
+        ...formData,
+        year: parseInt(formData.year) || 0,
+        month: parseInt(formData.month) || 0,
+        day: parseInt(formData.day) || 0,
+        hour: parseInt(formData.hour) || 0,
+        minute: parseInt(formData.minute) || 0,
+        lat: parseFloat(formData.lat) || 0,
+        lon: parseFloat(formData.lon) || 0,
+    };
+    onCalculate(data);
   };
 
   return (

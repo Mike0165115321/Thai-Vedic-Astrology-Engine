@@ -13,7 +13,7 @@ class BirthChart(BaseModel):
     ayanamsa_value: float
     lagna: Dict[str, Any]
     planets: Dict[str, Any]
-    houses: Dict[int, int] # House Number → Sign (1-12)
+    houses: Dict[str, int] # House Number (str) → Sign (1-12)
     western_aspects: List[Dict[str, Any]]
     vedic_aspects: List[Dict[str, Any]]
     d3: Dict[str, Any]

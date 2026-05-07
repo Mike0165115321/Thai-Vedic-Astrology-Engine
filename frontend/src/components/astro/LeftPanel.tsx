@@ -17,18 +17,19 @@ type Props = {
 
 export function LeftPanel({ mode, setMode, onCalculate, loading }: Props) {
   const [openForm, setOpenForm] = useState(true);
-  const [formData, setFormData] = useState<BirthFormData>({
-    year: 1990,
-    month: 1,
-    day: 1,
-    hour: 12,
-    minute: 0,
-    lat: 13.7367,
-    lon: 100.5231
+  const [formData, setFormData] = useState<any>({
+    year: 2006,
+    month: 8,
+    day: 6,
+    hour: 17,
+    minute: 15,
+    lat: "",
+    lon: "",
+    timezone: "Asia/Bangkok"
   });
 
-  const handleInputChange = (key: keyof BirthFormData, val: string) => {
-    setFormData(prev => ({ ...prev, [key]: parseFloat(val) || 0 }));
+  const handleInputChange = (key: string, val: string) => {
+    setFormData((prev: any) => ({ ...prev, [key]: val }));
   };
 
   return (
@@ -87,8 +88,8 @@ export function LeftPanel({ mode, setMode, onCalculate, loading }: Props) {
              </div>
 
              <LocationSearch 
-                onSelect={(lat, lon) => {
-                    setFormData(prev => ({ ...prev, lat, lon }));
+                onSelect={(lat, lon, name) => {
+                    setFormData((prev: any) => ({ ...prev, lat, lon }));
                 }} 
              />
 
@@ -104,7 +105,19 @@ export function LeftPanel({ mode, setMode, onCalculate, loading }: Props) {
              </div>
 
             <button 
-                onClick={() => onCalculate(formData)}
+                onClick={() => {
+                    const data: BirthFormData = {
+                        ...formData,
+                        year: parseFloat(formData.year) || 0,
+                        month: parseFloat(formData.month) || 0,
+                        day: parseFloat(formData.day) || 0,
+                        hour: parseFloat(formData.hour) || 0,
+                        minute: parseFloat(formData.minute) || 0,
+                        lat: parseFloat(formData.lat) || 0,
+                        lon: parseFloat(formData.lon) || 0,
+                    };
+                    onCalculate(data);
+                }}
                 disabled={loading}
                 className="mt-2 w-full rounded bg-primary py-2 text-[10px] font-bold uppercase tracking-widest text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
             >

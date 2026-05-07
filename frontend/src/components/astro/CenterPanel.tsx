@@ -12,11 +12,11 @@ type Props = {
   loading: boolean;
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
-  onTransitOffsetChange: (days: number) => void;
+  onTransitDateChange: (dateOrAge: Date | number) => void;
 };
 
-export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet, onTransitOffsetChange }: Props) {
-  const [offset, setOffset] = useState(0);
+export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet, onTransitDateChange }: Props) {
+  const [age, setAge] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
 
@@ -101,29 +101,56 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
             </button>
             <button className="rounded border border-border bg-muted/40 p-1 hover:bg-muted"><SkipForward className="h-3.5 w-3.5" /></button>
           </div>
-          <div className="font-mono text-xs text-foreground">
-            <span className="text-muted-foreground">การโคจร (TRANSIT) · </span>
-            {new Date(Date.now() + offset * 24 * 3600 * 1000).toISOString().slice(0, 10)}
-            <span className="ml-2 text-primary">+{offset.toFixed(0)} วัน</span>
+          <div className="font-mono text-xs text-foreground flex items-center gap-3">
+            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">อายุ (Age):</span>
+            <div className="flex items-center gap-1">
+                <input 
+                    type="number" 
+                    value={Math.floor(age)} 
+                    onChange={(e) => {
+                        const v = Math.max(0, Math.min(120, parseFloat(e.target.value) || 0));
+                        setAge(v + (age % 1));
+                        onTransitDateChange(v + (age % 1));
+                    }}
+                    className="w-10 bg-primary/10 border border-primary/30 rounded px-1 py-0.5 text-center text-primary font-bold"
+                />
+                <span className="text-muted-foreground">ปี</span>
+                <span className="text-primary font-bold ml-1">{Math.floor((age % 1) * 12)}</span>
+                <span className="text-muted-foreground">ด.</span>
+            </div>
+            <span className="mx-2 text-border">|</span>
+            <span className="text-muted-foreground">วันที่: </span>
+            <span className="bg-muted/30 px-2 py-0.5 rounded border border-border/50">
+                {transitData ? new Date(transitData.julian_date * 86400000 - 210866803200000).toISOString().slice(0, 10) : "..."}
+            </span>
           </div>
           <div className="flex gap-1 text-[10px] text-muted-foreground">
-            {["1 ชม.", "1 วัน", "1 สัป.", "1 ด.", "1 ปี"].map((s) => (
-              <button key={s} className="rounded border border-border px-1.5 py-0.5 hover:text-foreground">{s}</button>
-            ))}
+            <button 
+                onClick={() => { const v = age + (1/365.25); setAge(v); onTransitDateChange(v); }}
+                className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
+            >+1 วัน</button>
+            <button 
+                onClick={() => { const v = age + (1/12); setAge(v); onTransitDateChange(v); }}
+                className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
+            >+1 ด.</button>
+            <button 
+                onClick={() => { const v = age + 1; setAge(v); onTransitDateChange(v); }}
+                className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
+            >+1 ปี</button>
           </div>
         </div>
         <input
-          type="range" min={-365} max={365} step={1}
-          value={offset}
+          type="range" min={0} max={120} step={0.1}
+          value={age}
           onChange={(e) => {
             const v = parseFloat(e.target.value);
-            setOffset(v);
-            onTransitOffsetChange(v);
+            setAge(v);
+            onTransitDateChange(v);
           }}
           className="w-full accent-[var(--primary)]"
         />
-        <div className="mt-1 flex justify-between font-mono text-[9px] text-muted-foreground">
-          <span>−1 ปี</span><span>−6 เดือน</span><span className="text-primary">ปัจจุบัน</span><span>+6 เดือน</span><span>+1 ปี</span>
+        <div className="mt-1 flex justify-between font-mono text-[9px] text-muted-foreground uppercase tracking-tighter">
+          <span>0 ปี (แรกเกิด)</span><span>30 ปี</span><span>60 ปี</span><span>90 ปี</span><span>120 ปี</span>
         </div>
       </div>
     </section>

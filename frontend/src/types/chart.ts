@@ -42,8 +42,8 @@ export interface ChartData {
   houses: { [key: string]: number };
   western_aspects: any[];
   vedic_aspects: any[];
-  d3: { [key: string]: Planet };
-  d9: { [key: string]: Planet };
+  d3: { [key: string]: { sign: number; longitude: number } };
+  d9: { [key: string]: { sign: number; longitude: number } };
   lunar_data: {
     moon_nakshatra: NakshatraInfo;
     lagna_nakshatra: NakshatraInfo;
@@ -60,4 +60,5 @@ export interface BirthFormData {
   minute: number;
   lat: number;
   lon: number;
+  timezone: string;
 }

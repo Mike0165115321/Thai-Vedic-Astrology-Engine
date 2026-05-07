@@ -17,6 +17,8 @@ export default function Home() {
   const [settings, setSettings] = useState(false);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
+  const currentBirthData = useRef<BirthFormData | null>(null);
+  const transitTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setHasMounted(true);
@@ -29,7 +31,8 @@ export default function Home() {
       hour: now.getHours(),
       minute: now.getMinutes(),
       lat: 13.7563, // Bangkok default
-      lon: 100.5018
+      lon: 100.5018,
+      timezone: "Asia/Bangkok"
     };
     calculateInitialTransits(initData);
   }, []);
@@ -44,27 +47,38 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         setTransitData(data);
+        currentBirthData.current = formData;
       }
     } catch (e) {
       console.warn("Initial transit fetch failed. Is backend running?");
     }
   };
 
-  // Real transit recalculation (debounced)
-  const transitTimer = useRef<NodeJS.Timeout | null>(null);
-  const handleTransitOffset = useCallback((days: number) => {
+  // Age-based transit recalculation (debounced)
+  const handleTransitAgeChange = useCallback((age: number) => {
     if (transitTimer.current) clearTimeout(transitTimer.current);
     transitTimer.current = setTimeout(async () => {
-      const target = new Date(Date.now() + days * 24 * 3600 * 1000);
+      const birth = currentBirthData.current;
+      if (!birth) return;
+
+      // Calculate target date: Birth Date + Age (Years)
+      // Note: Using a simple year addition. For high precision, we could use a library, 
+      // but simple year addition is usually what's expected for Age transits.
+      const targetDate = new Date(birth.year, birth.month - 1, birth.day, birth.hour, birth.minute);
+      
+      // Add age in years (handling float for partial years)
+      const daysToAdd = age * 365.25; 
+      targetDate.setTime(targetDate.getTime() + daysToAdd * 24 * 3600 * 1000);
+
       const formData: BirthFormData = {
-        day: target.getDate(),
-        month: target.getMonth() + 1,
-        year: target.getFullYear(),
-        hour: target.getHours(),
-        minute: target.getMinutes(),
-        lat: 13.7563,
-        lon: 100.5018
+        ...birth,
+        day: targetDate.getDate(),
+        month: targetDate.getMonth() + 1,
+        year: targetDate.getFullYear(),
+        hour: targetDate.getHours(),
+        minute: targetDate.getMinutes(),
       };
+      
       try {
         const response = await fetch("http://localhost:8000/calculate/chart", {
           method: "POST",
@@ -76,9 +90,9 @@ export default function Home() {
           setTransitData(data);
         }
       } catch (e) {
-        console.warn("Transit recalculation failed");
+        console.warn("Age transit recalculation failed");
       }
-    }, 300); // 300ms debounce
+    }, 400);
   }, []);
 
   if (!hasMounted) return null;
@@ -96,6 +110,7 @@ export default function Home() {
       if (!response.ok) throw new Error("API Error");
       const data = await response.json();
       setChartData(data);
+      currentBirthData.current = formData;
     } catch (error) {
       console.error("Error calculating chart:", error);
       alert("Backend not connected? Make sure to run start-backend.bat");
@@ -122,7 +137,11 @@ export default function Home() {
           loading={loading}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
-          onTransitOffsetChange={handleTransitOffset}
+          onTransitDateChange={(dateOrAge) => {
+             if (typeof dateOrAge === "number") {
+                handleTransitAgeChange(dateOrAge);
+             }
+          }}
         />
         
         <RightPanel 
