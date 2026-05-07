@@ -19,5 +19,7 @@ class BirthData(BaseModel):
     custom_ayanamsa_offset: Optional[float] = None
     node_type: Optional[str] = DEFAULT_NODE_TYPE  # MEAN or TRUE
     ketu_mode: Optional[str] = DEFAULT_KETU_MODE  # vedic or thai
+    house_system: Optional[str] = "Whole Sign"
+    aspect_orb: Optional[float] = 5.0
 
 

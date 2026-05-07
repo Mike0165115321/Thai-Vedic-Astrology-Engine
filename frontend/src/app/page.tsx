@@ -19,6 +19,12 @@ export default function Home() {
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [globalSettings, setGlobalSettings] = useState<Partial<BirthFormData>>({
+    ayanamsa_mode: "LAHIRI",
+    node_type: "TRUE",
+    house_system: "Whole Sign",
+    aspect_orb: 5
+  });
   const currentBirthData = useRef<BirthFormData | null>(null);
   const transitTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -134,13 +140,63 @@ export default function Home() {
 
   if (!hasMounted) return null;
 
+  // Helper to get divisional longitudes for rendering
+  const getDivisionalData = useCallback((data: ChartData | null, type: string) => {
+    if (!data) return null;
+    if (type === "D1" || type === "CAL") return data;
+    
+    const divKey = type.toLowerCase() as "d3" | "d9";
+    const divSource = data[divKey];
+    if (!divSource) return data;
+
+    const divPlanets: any = {};
+    const multiplier = (type === "D3" ? 3 : 9);
+    const divSize = 30 / multiplier;
+    
+    Object.keys(data.planets).forEach(name => {
+        const divInfo = divSource[name];
+        if (divInfo) {
+            const signBase = (divInfo.sign - 1) * 30;
+            const rawLon = data.planets[name].longitude;
+            const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
+            divPlanets[name] = { ...data.planets[name], longitude: (signBase + relativeDegree) % 360 };
+        } else {
+            divPlanets[name] = data.planets[name];
+        }
+    });
+
+    const lagnaKey = type.toLowerCase() + "_lagna" as "d3_lagna" | "d9_lagna";
+    const divLagnaRaw = (data as any)[lagnaKey];
+    let divLagna = data.lagna;
+    
+    if (divLagnaRaw) {
+        const signBase = (divLagnaRaw.sign - 1) * 30;
+        const rawLon = data.lagna.longitude;
+        const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
+        divLagna = { ...data.lagna, sign: divLagnaRaw.sign, longitude: (signBase + relativeDegree) % 360 };
+    }
+
+    return { ...data, planets: divPlanets, lagna: divLagna };
+  }, []);
+
+  const displayChartData = useMemo(() => getDivisionalData(chartData, chartType), [chartData, chartType, getDivisionalData]);
+  const displayTransitData = useMemo(() => getDivisionalData(transitData, chartType), [transitData, chartType, getDivisionalData]);
+
   const calculateChart = async (formData: BirthFormData) => {
     setLoading(true);
     try {
+      const payload = {
+        ...formData,
+        ayanamsa_mode: formData.ayanamsa_mode || globalSettings.ayanamsa_mode,
+        node_type: formData.node_type || globalSettings.node_type,
+        house_system: formData.house_system || globalSettings.house_system,
+        aspect_orb: formData.aspect_orb || globalSettings.aspect_orb
+      };
+
       const response = await fetch("http://localhost:8000/calculate/chart/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       if (!response.ok) throw new Error("API Error");
       const data = await response.json();
@@ -205,21 +261,20 @@ export default function Home() {
         />
         
         <CenterPanel 
-          chartData={chartData} 
+          chartData={chartData}
           transitData={transitData}
-          chartType={chartType}
+          displayChartData={displayChartData}
+          displayTransitData={displayTransitData}
+          getDivisionalData={getDivisionalData}
           loading={loading}
+          chartType={chartType}
+          onAgeChange={handleTransitAgeChange}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
-          onTransitDateChange={(dateOrAge) => {
-             if (typeof dateOrAge === "number") {
-                handleTransitAgeChange(dateOrAge);
-             }
-          }}
         />
         
         <RightPanel 
-          chartData={chartData}
+          chartData={displayChartData}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
         />
@@ -228,7 +283,15 @@ export default function Home() {
 
       <AIAssistant />
       
-      {settings && <SettingsModal onClose={() => setSettings(false)} />}
+      {settings && (
+        <SettingsModal 
+          onClose={() => setSettings(false)} 
+          settings={globalSettings}
+          onUpdate={(newSettings) => {
+            setGlobalSettings(prev => ({ ...prev, ...newSettings }));
+          }}
+        />
+      )}
       
       {/* Global Loading Overlay (Optional, or handled inside panels) */}
       {loading && (

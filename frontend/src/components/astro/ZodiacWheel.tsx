@@ -44,8 +44,9 @@ const getPlanetColor = (name: string) => {
 };
 
 const polar = (deg: number, r: number) => {
+  // Rotate by -15° so that the center of Aries (15°) is at the top (90°)
   // 0° (Aries) = 90° (Top), Counter-Clockwise
-  const rad = ((90 + deg) * Math.PI) / 180;
+  const rad = ((90 + deg - 15) * Math.PI) / 180;
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 

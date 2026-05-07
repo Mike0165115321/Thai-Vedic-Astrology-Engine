@@ -133,6 +133,17 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                     const d = degToSign(p.lon);
                     const nameInEng = Object.keys(chartData.planets)[idx];
                     const isSelected = selectedPlanet === nameInEng;
+                    
+                    const getDignityStyle = (dignity: string) => {
+                        if (dignity.includes("มหาอุจจ์")) return "bg-primary text-primary-foreground font-bold shadow-[0_0_8px_oklch(var(--primary)/0.4)]";
+                        if (dignity.includes("อุจจ์")) return "bg-primary/20 text-primary border border-primary/30";
+                        if (dignity.includes("เกษตร")) return "bg-success/20 text-success border border-success/30";
+                        if (dignity.includes("มหาจักร")) return "bg-accent/20 text-accent border border-accent/30";
+                        if (dignity.includes("ราชาโชค") || dignity.includes("เทวีโชค")) return "bg-warning/20 text-warning border border-warning/30";
+                        if (dignity.includes("ประ") || dignity.includes("นิจ")) return "bg-destructive/10 text-destructive/70 border border-destructive/20";
+                        return "bg-muted/50 text-muted-foreground border border-border/50";
+                    };
+
                     return (
                       <tr key={p.name} 
                           onClick={() => onSelectPlanet(isSelected ? null : nameInEng)}
@@ -154,11 +165,7 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                             </div>
                         </td>
                         <td className="px-2 py-1.5">
-                          <span className={`rounded px-1.5 py-0.5 text-[9px] ${
-                            p.dignity === "Exalted" ? "bg-success/20 text-[color:var(--success)]" :
-                            p.dignity === "Debilitated" ? "bg-destructive/20 text-destructive" :
-                            p.dignity === "Own" ? "bg-primary/20 text-primary" :
-                            "bg-muted text-muted-foreground"}`}>
+                          <span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[9px] transition-all ${getDignityStyle(p.dignity)}`}>
                             {p.dignity}
                           </span>
                         </td>

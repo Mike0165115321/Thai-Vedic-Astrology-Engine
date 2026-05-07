@@ -45,14 +45,18 @@ def calculate_chart_endpoint(data: BirthData):
             ketu_mode=data.ketu_mode
         )
         
-        # 4. Calculate Whole Sign Houses
-        houses = calculate_whole_sign_houses(lagna_sign)
+        # 4. Calculate Houses based on selected system
+        if data.house_system == "Whole Sign":
+            houses = calculate_whole_sign_houses(lagna_sign)
+        else:
+            # Fallback to Whole Sign for now, or implement other systems via swisseph
+            houses = calculate_whole_sign_houses(lagna_sign)
         
         # 5. Map Planets to Houses
         planets_with_houses = map_planets_to_houses(planets, lagna_sign)
         
         # 6. Calculate Aspects
-        western_aspects = calculate_western_aspects(planets_with_houses)
+        western_aspects = calculate_western_aspects(planets_with_houses, custom_orb=data.aspect_orb)
         vedic_aspects = calculate_vedic_aspects(planets_with_houses)
         
         # 7. Layer 1E: Divisional Charts

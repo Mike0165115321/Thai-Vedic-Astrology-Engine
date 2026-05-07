@@ -1,6 +1,6 @@
 from core.constants import WESTERN_ASPECTS
 
-def calculate_western_aspects(planets_data):
+def calculate_western_aspects(planets_data, custom_orb=None):
     """
     Calculates Western aspects between planets.
     Returns a list of aspects.
@@ -22,7 +22,8 @@ def calculate_western_aspects(planets_data):
                 
             for aspect_name, config in WESTERN_ASPECTS.items():
                 angle = config["angle"]
-                orb = config["orb"]
+                # Use custom orb if provided, otherwise use the default for the aspect type
+                orb = custom_orb if custom_orb is not None else config["orb"]
                 
                 if abs(diff - angle) <= orb:
                     aspect_list.append({

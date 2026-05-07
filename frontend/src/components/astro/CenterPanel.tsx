@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Play, Pause, SkipBack, SkipForward, Filter } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
 import { ASPECTS } from "./data";
@@ -9,14 +9,28 @@ import { ChartData } from "@/types/chart";
 type Props = {
   chartData: ChartData | null;
   transitData: ChartData | null;
+  displayChartData: ChartData | null;
+  displayTransitData: ChartData | null;
   loading: boolean;
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
-  onTransitDateChange: (dateOrAge: Date | number) => void;
+  onAgeChange: (age: number) => void;
   chartType: "D1" | "D3" | "D9" | "CAL";
+  getDivisionalData: (data: ChartData | null, type: string) => ChartData | null;
 };
 
-export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet, onTransitDateChange, chartType }: Props) {
+export function CenterPanel({ 
+  chartData, 
+  transitData, 
+  displayChartData, 
+  displayTransitData, 
+  loading, 
+  selectedPlanet, 
+  onSelectPlanet, 
+  onAgeChange,
+  chartType,
+  getDivisionalData
+}: Props) {
   const [age, setAge] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [showTransit, setShowTransit] = useState(true);
@@ -25,65 +39,8 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
   const toggle = (t: string) =>
     setEnabled((e) => (e.includes(t) ? e.filter((x) => x !== t) : [...e, t]));
 
-  // Helper to get divisional longitudes for rendering
-  const getDivisionalData = useMemo(() => {
-    return (data: ChartData | null, type: string) => {
-        if (!data) return null;
-        if (type === "D1") return data;
-        
-        const divKey = type.toLowerCase() as "d3" | "d9";
-        const divSource = data[divKey];
-
-        if (!divSource) return data;
-
-        // Create a new planets object with divisional positions
-        const divPlanets: any = {};
-        const multiplier = (type === "D3" ? 3 : 9);
-        const divSize = 30 / multiplier;
-        
-        Object.keys(data.planets).forEach(name => {
-            const divInfo = divSource[name];
-            if (divInfo) {
-                const signBase = (divInfo.sign - 1) * 30;
-                // Calculate precise degree within the divisional sign
-                // Using floor/math to avoid floating point modulo issues
-                const rawLon = data.planets[name].longitude;
-                const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
-                
-                divPlanets[name] = {
-                    ...data.planets[name],
-                    longitude: (signBase + relativeDegree) % 360
-                };
-            } else {
-                divPlanets[name] = data.planets[name];
-            }
-        });
-
-        // Adjust Lagna for the wheel
-        const lagnaKey = type.toLowerCase() + "_lagna" as "d3_lagna" | "d9_lagna";
-        const divLagnaRaw = (data as any)[lagnaKey];
-        let divLagna = data.lagna;
-        
-        if (divLagnaRaw) {
-            const signBase = (divLagnaRaw.sign - 1) * 30;
-            const rawLon = data.lagna.longitude;
-            const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
-            divLagna = {
-                ...data.lagna,
-                sign: divLagnaRaw.sign,
-                longitude: (signBase + relativeDegree) % 360
-            };
-        }
-
-        return { ...data, planets: divPlanets, lagna: divLagna };
-    };
-  }, []);
-
-  const displayChartData = useMemo(() => getDivisionalData(chartData, chartType), [chartData, chartType, getDivisionalData]);
-  const displayTransitData = useMemo(() => getDivisionalData(transitData, chartType), [transitData, chartType, getDivisionalData]);
-
   return (
-    <section className="flex flex-col bg-(image:--gradient-cosmic) relative">
+    <section className="flex flex-col h-full bg-(image:--gradient-cosmic) relative overflow-hidden">
       {/* Aspect controls */}
       <div className="flex items-center justify-between gap-2 border-b border-border bg-card/40 px-3 py-2 text-xs">
         <div className="flex items-center gap-1.5">
@@ -123,21 +80,91 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
         </div>
       </div>
 
-      {/* Wheel */}
-      <div className="relative flex flex-1 items-center justify-center p-4">
-        <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
-          <ZodiacWheel 
-            planets={displayChartData?.planets || null} 
-            transitPlanets={showTransit ? (displayTransitData?.planets || null) : null}
-            natalLagna={displayChartData?.lagna || null}
-            transitLagna={showTransit ? (displayTransitData?.lagna || null) : null}
-            natalHouses={displayChartData?.houses || null}
-            transitHouses={showTransit ? (displayTransitData?.houses || null) : null}
-            enabledAspects={enabled} 
-            selectedPlanet={selectedPlanet}
-            onSelectPlanet={onSelectPlanet}
-          />
+      {/* Wheel Area */}
+      <div className="relative flex-1 overflow-y-auto custom-scrollbar">
+        {chartType === "CAL" ? (
+          <div className="grid grid-cols-1 gap-12 w-full max-w-5xl mx-auto py-10 px-4">
+             {/* D1 Top Center */}
+             <div className="flex flex-col items-center">
+                <div className="mb-2 flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 backdrop-blur-sm">
+                   <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                   <span className="text-[10px] font-bold uppercase tracking-widest text-primary">ดวงราศีจักร (Natal - D1)</span>
+                </div>
+                <div className="aspect-square h-[420px] w-[420px]">
+                  <ZodiacWheel 
+                    planets={getDivisionalData(chartData, "D1")?.planets || null} 
+                    transitPlanets={showTransit ? (getDivisionalData(transitData, "D1")?.planets || null) : null}
+                    natalLagna={getDivisionalData(chartData, "D1")?.lagna || null}
+                    transitLagna={showTransit ? (getDivisionalData(transitData, "D1")?.lagna || null) : null}
+                    natalHouses={getDivisionalData(chartData, "D1")?.houses || null}
+                    transitHouses={showTransit ? (getDivisionalData(transitData, "D1")?.houses || null) : null}
+                    enabledAspects={enabled} 
+                    selectedPlanet={selectedPlanet}
+                    onSelectPlanet={onSelectPlanet}
+                  />
+                </div>
+             </div>
+
+             {/* D3 and D9 Bottom Row */}
+             <div className="flex flex-wrap justify-center gap-12 mt-2">
+                {/* D9 */}
+                <div className="flex flex-col items-center group">
+                   <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">นวางศ์จักร (Navamsa - D9)</span>
+                   </div>
+                   <div className="aspect-square h-[280px] w-[280px]">
+                     <ZodiacWheel 
+                        planets={getDivisionalData(chartData, "D9")?.planets || null} 
+                        transitPlanets={showTransit ? (getDivisionalData(transitData, "D9")?.planets || null) : null}
+                        natalLagna={getDivisionalData(chartData, "D9")?.lagna || null}
+                        transitLagna={showTransit ? (getDivisionalData(transitData, "D9")?.lagna || null) : null}
+                        natalHouses={getDivisionalData(chartData, "D9")?.houses || null}
+                        transitHouses={showTransit ? (getDivisionalData(transitData, "D9")?.houses || null) : null}
+                        enabledAspects={enabled} 
+                        selectedPlanet={selectedPlanet}
+                        onSelectPlanet={onSelectPlanet}
+                     />
+                   </div>
+                </div>
+
+                {/* D3 */}
+                <div className="flex flex-col items-center group">
+                   <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">ตรียางศ์จักร (Drekkana - D3)</span>
+                   </div>
+                   <div className="aspect-square h-[280px] w-[280px]">
+                     <ZodiacWheel 
+                        planets={getDivisionalData(chartData, "D3")?.planets || null} 
+                        transitPlanets={showTransit ? (getDivisionalData(transitData, "D3")?.planets || null) : null}
+                        natalLagna={getDivisionalData(chartData, "D3")?.lagna || null}
+                        transitLagna={showTransit ? (getDivisionalData(transitData, "D3")?.lagna || null) : null}
+                        natalHouses={getDivisionalData(chartData, "D3")?.houses || null}
+                        transitHouses={showTransit ? (getDivisionalData(transitData, "D3")?.houses || null) : null}
+                        enabledAspects={enabled} 
+                        selectedPlanet={selectedPlanet}
+                        onSelectPlanet={onSelectPlanet}
+                     />
+                   </div>
+                </div>
+             </div>
+          </div>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center p-4">
+            <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
+            <ZodiacWheel 
+              planets={displayChartData?.planets || null} 
+              transitPlanets={showTransit ? (displayTransitData?.planets || null) : null}
+              natalLagna={displayChartData?.lagna || null}
+              transitLagna={showTransit ? (displayTransitData?.lagna || null) : null}
+              natalHouses={displayChartData?.houses || null}
+              transitHouses={showTransit ? (displayTransitData?.houses || null) : null}
+              enabledAspects={enabled} 
+              selectedPlanet={selectedPlanet}
+              onSelectPlanet={onSelectPlanet}
+            />
+          </div>
         </div>
+      )}
 
         {chartData && (
           <>
@@ -175,7 +202,7 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
                     onChange={(e) => {
                         const v = Math.max(0, Math.min(120, parseFloat(e.target.value) || 0));
                         setAge(v + (age % 1));
-                        onTransitDateChange(v + (age % 1));
+                        onAgeChange(v + (age % 1));
                     }}
                     className="w-10 bg-primary/10 border border-primary/30 rounded px-1 py-0.5 text-center text-primary font-bold"
                 />
@@ -194,15 +221,15 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
           </div>
           <div className="flex gap-1 text-[10px] text-muted-foreground">
             <button 
-                onClick={() => { const v = age + (1/365.25); setAge(v); onTransitDateChange(v); }}
+                onClick={() => { const v = age + (1/365.25); setAge(v); onAgeChange(v); }}
                 className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
             >+1 วัน</button>
             <button 
-                onClick={() => { const v = age + (1/12); setAge(v); onTransitDateChange(v); }}
+                onClick={() => { const v = age + (1/12); setAge(v); onAgeChange(v); }}
                 className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
             >+1 ด.</button>
             <button 
-                onClick={() => { const v = age + 1; setAge(v); onTransitDateChange(v); }}
+                onClick={() => { const v = age + 1; setAge(v); onAgeChange(v); }}
                 className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
             >+1 ปี</button>
           </div>
@@ -213,7 +240,7 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
           onChange={(e) => {
             const v = parseFloat(e.target.value);
             setAge(v);
-            onTransitDateChange(v);
+            onAgeChange(v);
           }}
           className="w-full accent-[var(--primary)]"
         />

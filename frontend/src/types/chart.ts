@@ -66,4 +66,7 @@ export interface BirthFormData {
   timezone: string;
   ayanamsa_mode?: string;
   custom_ayanamsa_offset?: number;
+  node_type?: "MEAN" | "TRUE";
+  house_system?: string;
+  aspect_orb?: number;
 }
