@@ -191,13 +191,15 @@ def get_dignity(planet_id, longitude):
     if sign_index in rules.get('ราชาโชค', []): status_list.append("ราชาโชค")
     if sign_index in rules.get('เทวีโชค', []): status_list.append("เทวีโชค")
 
-    # 3. ตรวจสอบตรียางศ์/นวางศ์ (ถ้ามีข้อมูลเพิ่มจะคำนวณ วรโคตมนวางศ์ ได้ที่นี่)
-    
+    # 3. เกษตรจากเจ้าเรือน (SIGN_LORDS fallback) - ตรวจเสมอ ไม่ใช่แค่ตอน status ว่าง
     SIGN_LORDS = [2, 5, 3, 1, 0, 3, 5, 2, 4, 6, 6, 4]
     lord_id = SIGN_LORDS[sign_index]
     
+    # เพิ่ม เกษตร เฉพาะถ้ายังไม่มีใน list (เช่น บางตำราระบุชัดใน rules['เกษตร'] แล้ว)
+    if planet_id == lord_id and "เกษตร" not in status_list:
+        status_list.append("เกษตร")
+
     if not status_list:
-        if planet_id == lord_id: return "เกษตร"
         return "ปกติ"
 
     return " · ".join(status_list)
