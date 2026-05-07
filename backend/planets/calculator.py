@@ -26,12 +26,18 @@ def calculate_planet_position(jd, planet_id, ayanamsa_mode="LAHIRI", custom_ayan
     latitude = res[1]
     speed = res[3]
     
+    sign = int(longitude / 30) + 1
+    degree_in_sign = longitude % 30
+    
     return {
         "longitude": longitude,
         "latitude": latitude,
+        "sign": sign,
+        "degree_in_sign": degree_in_sign,
         "speed": speed,
         "is_retrograde": speed < 0
     }
+
 
 def get_all_planets(jd, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, node_type="MEAN", ketu_mode="vedic"):
     """Calculates positions for all 9 planets (including Ketu)."""
@@ -58,9 +64,12 @@ def get_all_planets(jd, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, nod
         results["Ketu"] = {
             "longitude": ketu_lon,
             "latitude": -results["Rahu"]["latitude"], # Traditionally opposite latitude
+            "sign": int(ketu_lon / 30) + 1,
+            "degree_in_sign": ketu_lon % 30,
             "speed": results["Rahu"]["speed"],
             "is_retrograde": results["Rahu"]["is_retrograde"]
         }
+
     elif ketu_mode.lower() == "thai":
         # Thai Ketu (9) has a completely different calculation method 
         # (usually based on a specific daily motion from a reference date).

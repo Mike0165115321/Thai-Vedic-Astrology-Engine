@@ -46,18 +46,19 @@ Week 12+  → Chat UI + Model Selector
 
 
 Layer 0 — Foundation
-□ Julian Day Number (JDN)
-□ Delta T
-□ Timezone + Lat/Lng
-□ Custom Ayanamsa (กำหนดค่าเอง)
+[x] Julian Day Number (JDN)
+[x] Delta T
+[x] Timezone + Lat/Lng
+[x] Custom Ayanamsa (กำหนดค่าเอง)
 
 Layer 1A — Planet Positions
-□ นพเคราะห์ 9 ดวง (Swiss Ephemeris grade)
-□ ลองจิจูด Sidereal
-□ ราศีที่อยู่ (1-12)
-□ องศาในราศี
-□ Direct / Retrograde
-□ Angular Velocity
+[x] นพเคราะห์ 9 ดวง (Swiss Ephemeris grade)
+[x] ลองจิจูด Sidereal
+[x] ราศีที่อยู่ (1-12)
+[x] องศาในราศี
+[x] Direct / Retrograde
+[x] Angular Velocity
+
 
 Layer 1B — Chart Structure
 □ ลัคนา (Thai standard Oblique Ascension)
