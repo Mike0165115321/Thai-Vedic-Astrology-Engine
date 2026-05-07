@@ -1,17 +1,35 @@
 from fastapi import APIRouter, HTTPException
 import swisseph as swe
 from models.birth_data import BirthData
+from models.chart import BirthChart
 from core.time_utils import get_julian_date
 from planets.calculator import get_all_planets
 from chart.lagna import calculate_lagna
+from chart.house_system import calculate_whole_sign_houses
+from chart.zodiac_wheel import map_planets_to_houses
+from core.ayanamsa import set_ayanamsa
 
 router = APIRouter()
 
-@router.post("/")
+
+@router.post("/", response_model=BirthChart)
 def calculate_chart_endpoint(data: BirthData):
     try:
         jd = get_julian_date(data.year, data.month, data.day, data.hour, data.minute, data.second)
         
+        # 1. Set Ayanamsa for all subsequent calculations
+        set_ayanamsa(data.ayanamsa_mode, data.custom_ayanamsa_offset)
+        ayanamsa_val = swe.get_ayanamsa_ut(jd)
+        
+        # 2. Calculate Lagna
+        lagna = calculate_lagna(
+            jd, data.lat, data.lon, 
+            ayanamsa_mode=data.ayanamsa_mode, 
+            custom_ayanamsa_offset=data.custom_ayanamsa_offset
+        )
+        lagna_sign = lagna["sign"]
+        
+        # 3. Calculate Planets
         planets = get_all_planets(
             jd, 
             ayanamsa_mode=data.ayanamsa_mode, 
@@ -19,20 +37,21 @@ def calculate_chart_endpoint(data: BirthData):
             node_type=data.node_type,
             ketu_mode=data.ketu_mode
         )
-
         
-        # Ensure correct ayanamsa is set for lagna as well
-        from core.ayanamsa import set_ayanamsa
-        set_ayanamsa(data.ayanamsa_mode, data.custom_ayanamsa_offset)
+        # 4. Calculate Whole Sign Houses
+        houses = calculate_whole_sign_houses(lagna_sign)
         
-        lagna = calculate_lagna(jd, data.lat, data.lon)
+        # 5. Map Planets to Houses
+        planets_with_houses = map_planets_to_houses(planets, lagna_sign)
         
         return {
             "julian_date": jd,
             "ayanamsa_name": data.ayanamsa_mode,
-            "ayanamsa_value": swe.get_ayanamsa_ut(jd),
-            "planets": planets,
-            "lagna": lagna
+            "ayanamsa_value": ayanamsa_val,
+            "lagna": lagna,
+            "planets": planets_with_houses,
+            "houses": houses
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

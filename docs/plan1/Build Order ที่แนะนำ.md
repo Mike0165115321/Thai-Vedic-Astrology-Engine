@@ -61,10 +61,11 @@ Layer 1A — Planet Positions
 
 
 Layer 1B — Chart Structure
-□ ลัคนา (Thai standard Oblique Ascension)
-□ ราศีจักร Sidereal 12 ราศี
-□ เรือน 12 (Whole Sign House)
-□ Map ดาว → เรือน
+[x] ลัคนา (Thai standard Oblique Ascension)
+[x] ราศีจักร Sidereal 12 ราศี
+[x] เรือน 12 (Whole Sign House)
+[x] Map ดาว → เรือน
+
 
 Layer 1C — Planet Status & Relationships
 □ Dignity (อุจจ์/มูลตรีโกณ/เกษตร/มิตร/กลาง/ศัตรู/นิจ)
