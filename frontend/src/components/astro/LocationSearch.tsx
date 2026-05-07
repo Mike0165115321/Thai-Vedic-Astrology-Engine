@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Search, MapPin, Loader2, ChevronDown, X } from "lucide-react";
+import { Search, MapPin, Loader2, ChevronDown, X, Crosshair } from "lucide-react";
 import { THAI_PROVINCES } from "./thai_provinces";
 import { THAI_DISTRICTS } from "./thai_data";
 
@@ -111,6 +111,28 @@ export function LocationSearch({ onSelect }: Props) {
     }
   }, [province, provinceEn, onSelect, localSuggestions.length]);
 
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง");
+      return;
+    }
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        onSelect(latitude, longitude, "ตำแหน่งปัจจุบัน (Current Location)");
+        setLoading(false);
+        setProvince("ตำแหน่งปัจจุบัน");
+        setAmphoe("");
+      },
+      (err) => {
+        console.error(err);
+        alert("ไม่สามารถเข้าถึงตำแหน่งได้ กรุณาตรวจสอบการอนุญาต");
+        setLoading(false);
+      }
+    );
+  };
+
   useEffect(() => {
     if (amphoe.length < 2) {
         setResults([]);
@@ -125,6 +147,16 @@ export function LocationSearch({ onSelect }: Props) {
 
   return (
     <div className="space-y-3 relative" ref={containerRef}>
+      {/* Current Location Button */}
+      <button
+        onClick={getCurrentLocation}
+        disabled={loading}
+        className="flex w-full items-center justify-center gap-2 rounded border border-primary/30 bg-primary/5 py-1.5 text-[9px] font-bold uppercase tracking-widest text-primary hover:bg-primary/10 transition-all disabled:opacity-50"
+      >
+        {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Crosshair className="h-3 w-3" />}
+        ใช้ตำแหน่งปัจจุบัน (Current Location)
+      </button>
+
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
           <label className="text-[9px] uppercase text-muted-foreground mb-1 block font-bold">จังหวัด (Province)</label>

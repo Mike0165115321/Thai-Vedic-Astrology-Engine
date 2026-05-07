@@ -156,8 +156,7 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
         
         // House label position
         const labelAngle = i * 30 + 15;
-        const pNumber = polar(labelAngle, (R_HOUSES + R_INNER) / 2 + 12);
-        const pName = polar(labelAngle, (R_HOUSES + R_INNER) / 2 - 4);
+        const pName = polar(labelAngle, (R_HOUSES + R_INNER) / 2 + 4);
 
         return (
           <g key={i}>
@@ -165,11 +164,8 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
             <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
             
             {houseNum > 0 && (
-              <g opacity={0.6}>
-                <text x={pNumber.x} y={pNumber.y} textAnchor="middle" fontSize="11" fontWeight="bold" fill="var(--primary)">
-                  {houseNum}
-                </text>
-                <text x={pName.x} y={pName.y} textAnchor="middle" fontSize="9" fill="var(--muted-foreground)">
+              <g opacity={0.65}>
+                <text x={pName.x} y={pName.y} textAnchor="middle" fontSize="10" fontWeight="600" fill="var(--muted-foreground)">
                   {HOUSE_NAMES_TH[houseNum - 1]}
                 </text>
               </g>
@@ -288,7 +284,7 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
       {/* Center crest */}
       <circle cx={CENTER} cy={CENTER} r={56} fill="oklch(0.18 0.03 270)" stroke="var(--primary)" strokeOpacity={0.4} />
       <text x={CENTER} y={CENTER - 4} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" letterSpacing="2">
-        {planets ? "NATAL" : "LIVE"}
+        {planets ? "พื้นดวง" : "ดวงจร"}
       </text>
       <text x={CENTER} y={CENTER + 14} textAnchor="middle" fontSize="14" fill="var(--primary)" fontWeight={600}>
         {(natalLagna && natalLagna.sign && SIGNS[natalLagna.sign - 1]) ? `${SIGNS[natalLagna.sign - 1].name_th} ${(natalLagna.longitude % 30).toFixed(1)}°` : "SKY MAP"}

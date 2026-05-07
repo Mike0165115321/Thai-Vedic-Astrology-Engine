@@ -44,6 +44,8 @@ export interface ChartData {
   vedic_aspects: any[];
   d3: { [key: string]: { sign: number; longitude: number } };
   d9: { [key: string]: { sign: number; longitude: number } };
+  d3_lagna?: Lagna;
+  d9_lagna?: Lagna;
   lunar_data: {
     moon_nakshatra: NakshatraInfo;
     lagna_nakshatra: NakshatraInfo;

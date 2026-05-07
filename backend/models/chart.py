@@ -18,6 +18,8 @@ class BirthChart(BaseModel):
     vedic_aspects: List[Dict[str, Any]]
     d3: Dict[str, Any]
     d9: Dict[str, Any]
+    d3_lagna: Dict[str, Any] | None = None
+    d9_lagna: Dict[str, Any] | None = None
     lunar_data: Dict[str, Any]
     dasha_timeline: List[Dict[str, Any]]
 

@@ -121,15 +121,25 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
             {tab === "กำลังดาว" && (
               <div className="p-4 space-y-4">
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest border-b border-border pb-1">Divisional Charts (D3 / D9)</div>
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded border border-border bg-muted/20 p-2">
-                        <div className="text-[9px] text-muted-foreground mb-1">D3 (Drekkana)</div>
-                        <div className="text-[10px] font-mono">Sign {Math.floor(chartData.d3["Sun"].longitude / 30) + 1} Sun</div>
-                    </div>
-                    <div className="rounded border border-border bg-muted/20 p-2">
-                        <div className="text-[9px] text-muted-foreground mb-1">D9 (Navamsa)</div>
-                        <div className="text-[10px] font-mono">Sign {Math.floor(chartData.d9["Sun"].longitude / 30) + 1} Sun</div>
-                    </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-1.5">
+                    <div className="text-[10px] font-bold text-primary border-l-2 border-primary pl-2 mb-1">D3 (ตรียางค์)</div>
+                    {Object.entries(chartData.d3).map(([name, p]) => (
+                      <div key={name} className="flex items-center justify-between text-[10px] font-mono bg-muted/20 px-2 py-1 rounded border border-border/40">
+                        <span style={{ color: planetColors[name] || "var(--accent)" }}>{planetThaiNames[name] || name}</span>
+                        <span className="text-muted-foreground">{SIGNS[Math.floor(p.longitude / 30)].symbol}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="text-[10px] font-bold text-accent border-l-2 border-accent pl-2 mb-1">D9 (นวางค์)</div>
+                    {Object.entries(chartData.d9).map(([name, p]) => (
+                      <div key={name} className="flex items-center justify-between text-[10px] font-mono bg-muted/20 px-2 py-1 rounded border border-border/40">
+                        <span style={{ color: planetColors[name] || "var(--accent)" }}>{planetThaiNames[name] || name}</span>
+                        <span className="text-muted-foreground">{SIGNS[Math.floor(p.longitude / 30)].symbol}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div className="text-[10px] text-muted-foreground italic text-center py-4">
                     กำลังดาว (Shadbala) กำลังถูกคำนวณ...

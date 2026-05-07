@@ -56,8 +56,8 @@ def calculate_chart_endpoint(data: BirthData):
         vedic_aspects = calculate_vedic_aspects(planets_with_houses)
         
         # 7. Layer 1E: Divisional Charts
-        d3 = get_divisional_positions(planets_with_houses, division="D3")
-        d9 = get_divisional_positions(planets_with_houses, division="D9")
+        d3_planets, d3_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D3")
+        d9_planets, d9_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D9")
         
         # 8. Layer 1F: Lunar / Nakshatra
         lunar_data = get_lunar_data(planets_with_houses, lagna["longitude"])
@@ -75,8 +75,10 @@ def calculate_chart_endpoint(data: BirthData):
             "houses": houses,
             "western_aspects": western_aspects,
             "vedic_aspects": vedic_aspects,
-            "d3": d3,
-            "d9": d9,
+            "d3": d3_planets,
+            "d9": d9_planets,
+            "d3_lagna": d3_lagna,
+            "d9_lagna": d9_lagna,
             "lunar_data": lunar_data,
             "dasha_timeline": dasha_timeline
         }

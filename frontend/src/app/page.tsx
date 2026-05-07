@@ -11,6 +11,7 @@ import { ChartData, BirthFormData } from "@/types/chart";
 
 export default function Home() {
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [chartType, setChartType] = useState<"D1" | "D3" | "D9" | "CAL">("D1");
   const [transitData, setTransitData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"Natal" | "Synastry" | "Transit">("Natal");
@@ -179,7 +180,11 @@ export default function Home() {
 
   return (
     <div className="dark flex h-screen flex-col overflow-hidden bg-background text-foreground font-sans">
-      <TopBar onSettings={() => setSettings(true)} />
+      <TopBar 
+        onSettings={() => setSettings(true)} 
+        currentChartType={chartType}
+        onChartTypeChange={setChartType}
+      />
       
       <main className="grid flex-1 overflow-hidden" style={{ gridTemplateColumns: "20% 55% 25%" }}>
         <LeftPanel 
@@ -201,6 +206,7 @@ export default function Home() {
           key={chartData?.julian_date || 'initial'}
           chartData={chartData} 
           transitData={transitData}
+          chartType={chartType}
           loading={loading}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Play, Pause, SkipBack, SkipForward, Filter } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
 import { ASPECTS } from "./data";
@@ -13,9 +13,10 @@ type Props = {
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
   onTransitDateChange: (dateOrAge: Date | number) => void;
+  chartType: "D1" | "D3" | "D9" | "CAL";
 };
 
-export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet, onTransitDateChange }: Props) {
+export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet, onTransitDateChange, chartType }: Props) {
   const [age, setAge] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
@@ -23,8 +24,56 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
   const toggle = (t: string) =>
     setEnabled((e) => (e.includes(t) ? e.filter((x) => x !== t) : [...e, t]));
 
+  // Helper to get divisional longitudes for rendering
+  const getDivisionalData = (data: ChartData | null, type: string) => {
+    if (!data) return null;
+    if (type === "D1") return data;
+    
+    const divKey = type.toLowerCase() as "d3" | "d9";
+    const divPlanets = { ...data.planets };
+    const divSource = data[divKey];
+
+    if (!divSource) return data;
+
+    Object.keys(divPlanets).forEach(name => {
+        const divInfo = divSource[name];
+        if (divInfo) {
+            // For visualization, we map to the center of the sign + a small offset based on original degree
+            // to keep the planets from stacking perfectly and show relative position
+            const signBase = (divInfo.sign - 1) * 30;
+            const originalOffset = (data.planets[name].longitude % (30 / (type === "D3" ? 3 : 9)));
+            const multiplier = (type === "D3" ? 3 : 9);
+            divPlanets[name] = {
+                ...divPlanets[name],
+                longitude: signBase + (originalOffset * multiplier)
+            };
+        }
+    });
+
+    // Adjust Lagna for the wheel
+    const lagnaKey = type.toLowerCase() + "_lagna" as "d3_lagna" | "d9_lagna";
+    const divLagnaRaw = (data as any)[lagnaKey];
+    let divLagna = data.lagna;
+    
+    if (divLagnaRaw) {
+        const signBase = (divLagnaRaw.sign - 1) * 30;
+        const originalOffset = (data.lagna.longitude % (30 / (type === "D3" ? 3 : 9)));
+        const multiplier = (type === "D3" ? 3 : 9);
+        divLagna = {
+            ...data.lagna,
+            sign: divLagnaRaw.sign,
+            longitude: signBase + (originalOffset * multiplier)
+        };
+    }
+
+    return { ...data, planets: divPlanets, lagna: divLagna };
+  };
+
+  const displayChartData = useMemo(() => getDivisionalData(chartData, chartType), [chartData, chartType]);
+  const displayTransitData = useMemo(() => getDivisionalData(transitData, chartType), [transitData, chartType]);
+
   return (
-    <section className="flex flex-col bg-[image:var(--gradient-cosmic)] relative">
+    <section className="flex flex-col bg-(image:--gradient-cosmic) relative">
       {/* Aspect controls */}
       <div className="flex items-center justify-between gap-2 border-b border-border bg-card/40 px-3 py-2 text-xs">
         <div className="flex items-center gap-1.5">
@@ -58,12 +107,12 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
       <div className="relative flex flex-1 items-center justify-center p-4">
         <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
           <ZodiacWheel 
-            planets={chartData?.planets || null} 
-            transitPlanets={transitData?.planets || null}
-            natalLagna={chartData?.lagna || null}
-            transitLagna={transitData?.lagna || null}
-            natalHouses={chartData?.houses || null}
-            transitHouses={transitData?.houses || null}
+            planets={displayChartData?.planets || null} 
+            transitPlanets={displayTransitData?.planets || null}
+            natalLagna={displayChartData?.lagna || null}
+            transitLagna={displayTransitData?.lagna || null}
+            natalHouses={displayChartData?.houses || null}
+            transitHouses={displayTransitData?.houses || null}
             enabledAspects={enabled} 
             selectedPlanet={selectedPlanet}
             onSelectPlanet={onSelectPlanet}
@@ -73,17 +122,17 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
         {chartData && (
           <>
             <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
-              BIRTH · {chartData.julian_date.toFixed(4)}
+              วันกำเนิด · {chartData.julian_date.toFixed(4)}
             </div>
             <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
-              ASC · {chartData.lagna.longitude.toFixed(2)}°
+              ลัคนา · {chartData.lagna.longitude.toFixed(2)}°
             </div>
           </>
         )}
 
         {transitData && !chartData && (
           <div className="pointer-events-none absolute left-3 top-3 rounded border border-primary/20 bg-primary/10 px-2 py-1 font-mono text-[10px] text-primary backdrop-blur animate-pulse">
-            LIVE TRANSIT · {(transitData.julian_date).toFixed(4)}
+            ดวงจรปัจจุบัน · {(transitData.julian_date).toFixed(4)}
           </div>
         )}
 

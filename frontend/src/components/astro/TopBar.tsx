@@ -1,10 +1,18 @@
 import { Download, Settings, FileJson } from "lucide-react";
 
-export function TopBar({ onSettings }: { onSettings: () => void }) {
+export function TopBar({ 
+  onSettings, 
+  currentChartType, 
+  onChartTypeChange 
+}: { 
+  onSettings: () => void,
+  currentChartType: string,
+  onChartTypeChange: (type: 'D1' | 'D3' | 'D9' | 'CAL') => void
+}) {
   return (
     <header className="flex items-center justify-between gap-4 border-b border-border bg-card/70 px-4 py-2 backdrop-blur">
       <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded bg-[image:var(--gradient-gold)] font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
+        <div className="flex h-7 w-7 items-center justify-center rounded bg-(image:--gradient-gold) font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
           A
         </div>
         <span className="text-sm font-bold tracking-widest text-foreground">
@@ -17,20 +25,20 @@ export function TopBar({ onSettings }: { onSettings: () => void }) {
 
       <nav className="hidden items-center gap-6 md:flex">
         {[
-          { n: "หน้าหลัก", a: true },
-          { n: "ฐานข้อมูล", a: false },
-          { n: "ปฏิทินดาว", a: false },
-          { n: "คู่มือการใช้งาน", a: false },
+          { id: "D1", n: "ราศีจักร (D1)" },
+          { id: "D3", n: "ตรียางค์ (D3)" },
+          { id: "D9", n: "นวางค์จักร (D9)" },
+          { id: "CAL", n: "ปฏิทินดาว" },
         ].map((item) => (
-          <a
-            key={item.n}
-            href="#"
+          <button
+            key={item.id}
+            onClick={() => onChartTypeChange?.(item.id as any)}
             className={`text-[11px] font-medium uppercase tracking-wider transition ${
-              item.a ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              currentChartType === item.id ? "text-primary border-b-2 border-primary pb-0.5" : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {item.n}
-          </a>
+          </button>
         ))}
       </nav>
 
