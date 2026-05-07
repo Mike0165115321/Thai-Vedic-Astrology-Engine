@@ -26,55 +26,61 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
     setEnabled((e) => (e.includes(t) ? e.filter((x) => x !== t) : [...e, t]));
 
   // Helper to get divisional longitudes for rendering
-  const getDivisionalData = (data: ChartData | null, type: string) => {
-    if (!data) return null;
-    if (type === "D1") return data;
-    
-    const divKey = type.toLowerCase() as "d3" | "d9";
-    const divSource = data[divKey];
+  const getDivisionalData = useMemo(() => {
+    return (data: ChartData | null, type: string) => {
+        if (!data) return null;
+        if (type === "D1") return data;
+        
+        const divKey = type.toLowerCase() as "d3" | "d9";
+        const divSource = data[divKey];
 
-    if (!divSource) return data;
+        if (!divSource) return data;
 
-    // Create a new planets object with divisional positions
-    const divPlanets: any = {};
-    const multiplier = (type === "D3" ? 3 : 9);
-    
-    Object.keys(data.planets).forEach(name => {
-        const divInfo = divSource[name];
-        if (divInfo) {
-            const signBase = (divInfo.sign - 1) * 30;
-            // Calculate precise degree within the divisional sign
-            const relativeDegree = (data.planets[name].longitude % (30 / multiplier)) * multiplier;
-            divPlanets[name] = {
-                ...data.planets[name],
-                longitude: signBase + relativeDegree
-            };
-        } else {
-            divPlanets[name] = data.planets[name];
-        }
-    });
-
-    // Adjust Lagna for the wheel
-    const lagnaKey = type.toLowerCase() + "_lagna" as "d3_lagna" | "d9_lagna";
-    const divLagnaRaw = (data as any)[lagnaKey];
-    let divLagna = data.lagna;
-    
-    if (divLagnaRaw) {
-        const signBase = (divLagnaRaw.sign - 1) * 30;
+        // Create a new planets object with divisional positions
+        const divPlanets: any = {};
         const multiplier = (type === "D3" ? 3 : 9);
-        const relativeDegree = (data.lagna.longitude % (30 / multiplier)) * multiplier;
-        divLagna = {
-            ...data.lagna,
-            sign: divLagnaRaw.sign,
-            longitude: signBase + relativeDegree
-        };
-    }
+        const divSize = 30 / multiplier;
+        
+        Object.keys(data.planets).forEach(name => {
+            const divInfo = divSource[name];
+            if (divInfo) {
+                const signBase = (divInfo.sign - 1) * 30;
+                // Calculate precise degree within the divisional sign
+                // Using floor/math to avoid floating point modulo issues
+                const rawLon = data.planets[name].longitude;
+                const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
+                
+                divPlanets[name] = {
+                    ...data.planets[name],
+                    longitude: (signBase + relativeDegree) % 360
+                };
+            } else {
+                divPlanets[name] = data.planets[name];
+            }
+        });
 
-    return { ...data, planets: divPlanets, lagna: divLagna };
-  };
+        // Adjust Lagna for the wheel
+        const lagnaKey = type.toLowerCase() + "_lagna" as "d3_lagna" | "d9_lagna";
+        const divLagnaRaw = (data as any)[lagnaKey];
+        let divLagna = data.lagna;
+        
+        if (divLagnaRaw) {
+            const signBase = (divLagnaRaw.sign - 1) * 30;
+            const rawLon = data.lagna.longitude;
+            const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
+            divLagna = {
+                ...data.lagna,
+                sign: divLagnaRaw.sign,
+                longitude: (signBase + relativeDegree) % 360
+            };
+        }
 
-  const displayChartData = useMemo(() => getDivisionalData(chartData, chartType), [chartData, chartType]);
-  const displayTransitData = useMemo(() => getDivisionalData(transitData, chartType), [transitData, chartType]);
+        return { ...data, planets: divPlanets, lagna: divLagna };
+    };
+  }, []);
+
+  const displayChartData = useMemo(() => getDivisionalData(chartData, chartType), [chartData, chartType, getDivisionalData]);
+  const displayTransitData = useMemo(() => getDivisionalData(transitData, chartType), [transitData, chartType, getDivisionalData]);
 
   return (
     <section className="flex flex-col bg-(image:--gradient-cosmic) relative">

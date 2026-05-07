@@ -52,18 +52,20 @@ const polar = (deg: number, r: number) => {
 const resolveOverlaps = (list: any[], baseRadius: number) => {
     if (list.length === 0) return [];
     
-    // Sort by longitude to detect neighbors
+    // Sort a copy to detect neighbors
     const sorted = [...list].sort((a, b) => a.lon - b.lon);
-    const threshold = 7.5; // Degree threshold for overlap
-    const step = 24;      // Distance to stagger radially
+    const threshold = 8; // Degree threshold for overlap
+    const step = 22;    // Distance to stagger radially
     
-    const results = [];
+    const radiusMap: { [key: string]: number } = {};
     let stackLevel = 0;
     
     for (let i = 0; i < sorted.length; i++) {
         const p = sorted[i];
         if (i > 0) {
-            const diff = p.lon - sorted[i-1].lon;
+            let diff = p.lon - sorted[i-1].lon;
+            if (diff < 0) diff += 360; // Should not happen with sort but just in case
+            
             if (diff < threshold) {
                 stackLevel += 1;
             } else {
@@ -71,17 +73,25 @@ const resolveOverlaps = (list: any[], baseRadius: number) => {
             }
         }
         
-        // Alternating pattern: 0, -1, 1, -2, 2...
-        let offset = 0;
-        if (stackLevel > 0) {
-            const dir = stackLevel % 2 === 0 ? 1 : -1;
-            const depth = Math.ceil(stackLevel / 2);
-            offset = dir * depth * step;
+        // Check wrap-around overlap (last vs first)
+        if (i === 0 && sorted.length > 1) {
+            const last = sorted[sorted.length - 1];
+            const wrapDiff = (360 - last.lon + p.lon) % 360;
+            if (wrapDiff < threshold) {
+                stackLevel = 1; // Start with offset if it overlaps with the end
+            }
         }
         
-        results.push({ ...p, visualRadius: baseRadius + offset });
+        // Alternating pattern: 0, -1, 1, -2, 2...
+        const dir = stackLevel % 2 === 0 ? 1 : -1;
+        const depth = Math.ceil(stackLevel / 2);
+        const offset = depth > 0 ? dir * depth * step : 0;
+        
+        radiusMap[p.id] = baseRadius + offset;
     }
-    return results;
+    
+    // Return original list with updated visualRadius to maintain stable DOM order
+    return list.map(p => ({ ...p, visualRadius: radiusMap[p.id] || baseRadius }));
 };
 
 export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, natalHouses, transitHouses, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
@@ -286,13 +296,13 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
         return (
           <motion.g 
              key={p.id} 
-             initial={false}
+             layout
              animate={{ x: pos.x, y: pos.y }}
              transition={{ 
                 type: "spring", 
-                stiffness: 80, 
-                damping: 15, 
-                mass: 1 
+                stiffness: 100, 
+                damping: 20, 
+                mass: 0.8
              }}
              className="cursor-pointer" 
              onClick={(e) => { 
