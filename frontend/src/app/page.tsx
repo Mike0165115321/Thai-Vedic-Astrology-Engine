@@ -62,12 +62,11 @@ export default function Home() {
       if (!birth) return;
 
       // Calculate target date: Birth Date + Age (Years)
-      // Note: Using a simple year addition. For high precision, we could use a library, 
-      // but simple year addition is usually what's expected for Age transits.
+      // Strictly anchored to Birth Date
       const targetDate = new Date(birth.year, birth.month - 1, birth.day, birth.hour, birth.minute);
       
       // Add age in years (handling float for partial years)
-      const daysToAdd = age * 365.25; 
+      const daysToAdd = age * 365.2422; // Using tropical year for better accuracy
       targetDate.setTime(targetDate.getTime() + daysToAdd * 24 * 3600 * 1000);
 
       const formData: BirthFormData = {
@@ -111,6 +110,7 @@ export default function Home() {
       const data = await response.json();
       setChartData(data);
       currentBirthData.current = formData;
+      setTransitData(data); // Initially show birth transits (Age 0)
     } catch (error) {
       console.error("Error calculating chart:", error);
       alert("Backend not connected? Make sure to run start-backend.bat");
@@ -132,6 +132,7 @@ export default function Home() {
         />
         
         <CenterPanel 
+          key={chartData?.julian_date || 'initial'}
           chartData={chartData} 
           transitData={transitData}
           loading={loading}
