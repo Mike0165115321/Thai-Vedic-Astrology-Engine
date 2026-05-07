@@ -154,10 +154,12 @@ export default function Home() {
     Object.keys(data.planets).forEach(name => {
         const divInfo = divSource[name];
         if (divInfo) {
-            const signBase = (divInfo.sign - 1) * 30;
-            const rawLon = data.planets[name].longitude;
-            const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
-            divPlanets[name] = { ...data.planets[name], longitude: (signBase + relativeDegree) % 360 };
+            divPlanets[name] = { 
+                ...data.planets[name], 
+                sign: divInfo.sign,
+                longitude: divInfo.longitude,
+                dignity: divInfo.dignity || data.planets[name].dignity
+            };
         } else {
             divPlanets[name] = data.planets[name];
         }
@@ -168,10 +170,11 @@ export default function Home() {
     let divLagna = data.lagna;
     
     if (divLagnaRaw) {
-        const signBase = (divLagnaRaw.sign - 1) * 30;
-        const rawLon = data.lagna.longitude;
-        const relativeDegree = ((rawLon % divSize + divSize) % divSize) * multiplier;
-        divLagna = { ...data.lagna, sign: divLagnaRaw.sign, longitude: (signBase + relativeDegree) % 360 };
+        divLagna = { 
+            ...data.lagna, 
+            sign: divLagnaRaw.sign, 
+            longitude: divLagnaRaw.longitude 
+        };
     }
 
     return { ...data, planets: divPlanets, lagna: divLagna };
