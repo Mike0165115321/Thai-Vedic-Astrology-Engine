@@ -1,9 +1,17 @@
+"use client";
+
 import { useState } from "react";
 import { Play, Pause, SkipBack, SkipForward, Filter } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
 import { ASPECTS } from "./data";
+import { ChartData } from "@/types/chart";
 
-export function CenterPanel() {
+type Props = {
+  chartData: ChartData | null;
+  loading: boolean;
+};
+
+export function CenterPanel({ chartData, loading }: Props) {
   const [offset, setOffset] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
@@ -12,7 +20,7 @@ export function CenterPanel() {
     setEnabled((e) => (e.includes(t) ? e.filter((x) => x !== t) : [...e, t]));
 
   return (
-    <section className="flex flex-col bg-[image:var(--gradient-cosmic)]">
+    <section className="flex flex-col bg-[image:var(--gradient-cosmic)] relative">
       {/* Aspect controls */}
       <div className="flex items-center justify-between gap-2 border-b border-border bg-card/40 px-3 py-2 text-xs">
         <div className="flex items-center gap-1.5">
@@ -38,22 +46,37 @@ export function CenterPanel() {
           })}
         </div>
         <div className="hidden font-mono text-[10px] text-muted-foreground md:block">
-          Orb ≤ 5°  ·  Whole Sign  ·  Lahiri
+          Orb ≤ 5°  ·  Sidereal  ·  Lahiri
         </div>
       </div>
 
       {/* Wheel */}
       <div className="relative flex flex-1 items-center justify-center p-4">
         <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
-          <ZodiacWheel transitOffset={offset} enabledAspects={enabled} />
+          <ZodiacWheel 
+            planets={chartData?.planets || null} 
+            lagna={chartData?.lagna || null}
+            transitOffset={offset} 
+            enabledAspects={enabled} 
+          />
         </div>
 
-        <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
-          AYANAMSA · LAHIRI 24°09′
-        </div>
-        <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
-          ASC · ♈ 12°26′ · MC · ♑ 08°11′
-        </div>
+        {chartData && (
+          <>
+            <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
+              JD · {chartData.julian_date.toFixed(4)}
+            </div>
+            <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
+              ASC · {chartData.lagna.longitude.toFixed(2)}°
+            </div>
+          </>
+        )}
+
+        {!chartData && !loading && (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/40 italic font-mono uppercase tracking-widest">
+            Celestial Data Awaiting Input
+          </div>
+        )}
       </div>
 
       {/* Transit scrubber */}

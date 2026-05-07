@@ -1,7 +1,12 @@
+"use client";
+
 import { useMemo } from "react";
-import { SIGNS, PLANETS, ASPECTS, type Planet } from "./data";
+import { SIGNS, ASPECTS } from "./data";
+import { Planet, Lagna } from "@/types/chart";
 
 type Props = {
+  planets: { [key: string]: Planet } | null;
+  lagna: Lagna | null;
   transitOffset: number; // degrees added to all planets for transit scrub
   enabledAspects: string[];
 };
@@ -20,27 +25,44 @@ const polar = (deg: number, r: number) => {
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 
-export function ZodiacWheel({ transitOffset, enabledAspects }: Props) {
-  const planets = useMemo<Planet[]>(
-    () => PLANETS.map((p) => ({ ...p, lon: (p.lon + transitOffset) % 360 })),
-    [transitOffset]
-  );
+export function ZodiacWheel({ planets, lagna, transitOffset, enabledAspects }: Props) {
+  const planetList = useMemo(() => {
+    if (!planets) return [];
+    return Object.entries(planets).map(([name, p]) => ({
+      name,
+      symbol: p.symbol || name.substring(0, 2),
+      lon: (p.longitude + transitOffset) % 360,
+      retro: p.is_retrograde,
+      color: name === "Sun" ? "var(--warning)" : 
+             name === "Moon" ? "#cfd6e4" : 
+             name === "Mars" ? "var(--destructive)" :
+             name === "Jupiter" ? "var(--primary)" :
+             name === "Venus" ? "#f5b8e0" :
+             name === "Mercury" ? "var(--info)" :
+             name === "Saturn" ? "#94a3b8" :
+             "var(--accent)"
+    }));
+  }, [planets, transitOffset]);
 
   const aspectLines = useMemo(() => {
-    const lines: { a: Planet; b: Planet; type: string; color: string }[] = [];
-    for (let i = 0; i < planets.length; i++) {
-      for (let j = i + 1; j < planets.length; j++) {
-        const diff = Math.abs(planets[i].lon - planets[j].lon);
+    const lines: { a: any; b: any; type: string; color: string }[] = [];
+    if (planetList.length < 2) return lines;
+
+    for (let i = 0; i < planetList.length; i++) {
+      for (let j = i + 1; j < planetList.length; j++) {
+        const diff = Math.abs(planetList[i].lon - planetList[j].lon);
         const d = diff > 180 ? 360 - diff : diff;
         for (const a of ASPECTS) {
           if (Math.abs(d - a.angle) <= 5 && enabledAspects.includes(a.type)) {
-            lines.push({ a: planets[i], b: planets[j], type: a.type, color: a.color });
+            lines.push({ a: planetList[i], b: planetList[j], type: a.type, color: a.color });
           }
         }
       }
     }
     return lines;
-  }, [planets, enabledAspects]);
+  }, [planetList, enabledAspects]);
+
+  const ascDeg = lagna?.longitude || 0;
 
   return (
     <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full">
@@ -86,7 +108,7 @@ export function ZodiacWheel({ transitOffset, enabledAspects }: Props) {
         return <line key={deg} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke="var(--muted-foreground)" strokeOpacity={deg % 10 === 0 ? 0.55 : 0.25} strokeWidth={0.5} />;
       })}
 
-      {/* House cusps (equal house from 0° Aries demo) */}
+      {/* House cusps (equal house for now) */}
       {Array.from({ length: 12 }).map((_, i) => {
         const a = polar(i * 30, R_HOUSES);
         const b = polar(i * 30, R_INNER);
@@ -107,7 +129,7 @@ export function ZodiacWheel({ transitOffset, enabledAspects }: Props) {
       </g>
 
       {/* Planets */}
-      {planets.map((p) => {
+      {planetList.map((p) => {
         const pos = polar(p.lon, R_PLANETS);
         const tick1 = polar(p.lon, R_SIGNS - 2);
         const tick2 = polar(p.lon, R_HOUSES + 2);
@@ -121,10 +143,26 @@ export function ZodiacWheel({ transitOffset, enabledAspects }: Props) {
         );
       })}
 
+      {/* Lagna marker */}
+      {lagna && (
+        <g>
+            <line 
+                x1={polar(ascDeg, R_SIGNS).x} 
+                y1={polar(ascDeg, R_SIGNS).y} 
+                x2={polar(ascDeg, R_INNER).x} 
+                y2={polar(ascDeg, R_INNER).y} 
+                stroke="var(--warning)" 
+                strokeWidth={2} 
+            />
+        </g>
+      )}
+
       {/* Center crest */}
       <circle cx={CENTER} cy={CENTER} r={56} fill="oklch(0.18 0.03 270)" stroke="var(--primary)" strokeOpacity={0.4} />
       <text x={CENTER} y={CENTER - 4} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" letterSpacing="2">NATAL</text>
-      <text x={CENTER} y={CENTER + 14} textAnchor="middle" fontSize="14" fill="var(--primary)" fontWeight={600}>♈ 12°26′</text>
+      <text x={CENTER} y={CENTER + 14} textAnchor="middle" fontSize="14" fill="var(--primary)" fontWeight={600}>
+        {lagna ? `${SIGNS[lagna.sign_index].symbol} ${(lagna.longitude % 30).toFixed(1)}°` : "—"}
+      </text>
     </svg>
   );
 }
