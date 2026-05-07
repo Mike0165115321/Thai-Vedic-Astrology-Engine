@@ -37,16 +37,17 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
 
     // Create a new planets object with divisional positions
     const divPlanets: any = {};
+    const multiplier = (type === "D3" ? 3 : 9);
+    
     Object.keys(data.planets).forEach(name => {
         const divInfo = divSource[name];
         if (divInfo) {
-            // Map sign (1-12) to degree (0-360)
-            // sign 1 (Aries) = 0°, sign 2 (Taurus) = 30°, etc.
             const signBase = (divInfo.sign - 1) * 30;
-            // Add a small offset based on the divisional degree to show relative position within the sign
+            // Calculate precise degree within the divisional sign
+            const relativeDegree = (data.planets[name].longitude % (30 / multiplier)) * multiplier;
             divPlanets[name] = {
                 ...data.planets[name],
-                longitude: signBase + (divInfo.degree || 15) // Use 15 as center if degree missing
+                longitude: signBase + relativeDegree
             };
         } else {
             divPlanets[name] = data.planets[name];
@@ -60,10 +61,12 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
     
     if (divLagnaRaw) {
         const signBase = (divLagnaRaw.sign - 1) * 30;
+        const multiplier = (type === "D3" ? 3 : 9);
+        const relativeDegree = (data.lagna.longitude % (30 / multiplier)) * multiplier;
         divLagna = {
             ...data.lagna,
             sign: divLagnaRaw.sign,
-            longitude: signBase + (divLagnaRaw.degree || 15)
+            longitude: signBase + relativeDegree
         };
     }
 

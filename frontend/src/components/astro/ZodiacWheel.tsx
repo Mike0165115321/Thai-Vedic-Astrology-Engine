@@ -44,8 +44,8 @@ const getPlanetColor = (name: string) => {
 };
 
 const polar = (deg: number, r: number) => {
-  // Center Aries (15°) at the TOP (12 o'clock), counter-clockwise
-  const rad = ((75 + deg) * Math.PI) / 180;
+  // 0° (Aries) = 90° (Top), Counter-Clockwise
+  const rad = ((90 + deg) * Math.PI) / 180;
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 
@@ -338,13 +338,13 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
         );
       })}
 
-      {/* Center crest */}
-      <circle cx={CENTER} cy={CENTER} r={56} fill="oklch(0.18 0.03 270)" stroke="var(--primary)" strokeOpacity={0.4} />
-      <text x={CENTER} y={CENTER - 4} textAnchor="middle" fontSize="11" fill="var(--muted-foreground)" letterSpacing="2">
+      {/* Center Label */}
+      <circle cx={CENTER} cy={CENTER} r={45} fill="var(--card)" stroke="var(--primary)" strokeWidth="2" />
+      <text x={CENTER} y={CENTER - 5} textAnchor="middle" className="text-[10px] uppercase tracking-tighter text-muted-foreground">
         {planets ? "พื้นดวง" : "ดวงจร"}
       </text>
-      <text x={CENTER} y={CENTER + 14} textAnchor="middle" fontSize="14" fill="var(--primary)" fontWeight={600}>
-        {(natalLagna && natalLagna.sign && SIGNS[natalLagna.sign - 1]) ? `${SIGNS[natalLagna.sign - 1].name_th} ${(natalLagna.longitude % 30).toFixed(1)}°` : "SKY MAP"}
+      <text x={CENTER} y={CENTER + 15} textAnchor="middle" className="text-[14px] font-bold fill-foreground">
+        {natalLagna ? `${SIGNS[Math.floor(natalLagna.longitude / 30)].name_th} ${Math.floor(natalLagna.longitude % 30)}°${Math.floor(((natalLagna.longitude % 30) % 1) * 60)}′` : "SKY MAP"}
       </text>
     </svg>
   );
