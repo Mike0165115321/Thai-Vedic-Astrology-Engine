@@ -205,7 +205,6 @@ export default function Home() {
         />
         
         <CenterPanel 
-          key={chartData?.julian_date || 'initial'}
           chartData={chartData} 
           transitData={transitData}
           chartType={chartType}

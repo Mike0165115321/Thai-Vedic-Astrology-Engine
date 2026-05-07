@@ -31,23 +31,25 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
     if (type === "D1") return data;
     
     const divKey = type.toLowerCase() as "d3" | "d9";
-    const divPlanets = { ...data.planets };
     const divSource = data[divKey];
 
     if (!divSource) return data;
 
-    Object.keys(divPlanets).forEach(name => {
+    // Create a new planets object with divisional positions
+    const divPlanets: any = {};
+    Object.keys(data.planets).forEach(name => {
         const divInfo = divSource[name];
         if (divInfo) {
-            // For visualization, we map to the center of the sign + a small offset based on original degree
-            // to keep the planets from stacking perfectly and show relative position
+            // Map sign (1-12) to degree (0-360)
+            // sign 1 (Aries) = 0°, sign 2 (Taurus) = 30°, etc.
             const signBase = (divInfo.sign - 1) * 30;
-            const originalOffset = (data.planets[name].longitude % (30 / (type === "D3" ? 3 : 9)));
-            const multiplier = (type === "D3" ? 3 : 9);
+            // Add a small offset based on the divisional degree to show relative position within the sign
             divPlanets[name] = {
-                ...divPlanets[name],
-                longitude: signBase + (originalOffset * multiplier)
+                ...data.planets[name],
+                longitude: signBase + (divInfo.degree || 15) // Use 15 as center if degree missing
             };
+        } else {
+            divPlanets[name] = data.planets[name];
         }
     });
 
@@ -58,12 +60,10 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
     
     if (divLagnaRaw) {
         const signBase = (divLagnaRaw.sign - 1) * 30;
-        const originalOffset = (data.lagna.longitude % (30 / (type === "D3" ? 3 : 9)));
-        const multiplier = (type === "D3" ? 3 : 9);
         divLagna = {
             ...data.lagna,
             sign: divLagnaRaw.sign,
-            longitude: signBase + (originalOffset * multiplier)
+            longitude: signBase + (divLagnaRaw.degree || 15)
         };
     }
 
