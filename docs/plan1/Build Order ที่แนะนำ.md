@@ -25,6 +25,11 @@ Week 7-9  → Frontend (React / Next.js)
             Zodiac Wheel (ดาวเคลื่อนจริง) · Planet Table
             D1/D3/D9 Tabs · Dasha Timeline · Synastry View
 
+Plan 1 เพิ่มเติม — Strength System
+└── Shadbala / Vimshopaka Bala
+    เปลี่ยน Dignity จาก label → score
+    AI ตีความได้ฉลาดขึ้นมาก
+
 ---
 
 ## Plan 2 — Data Output
@@ -44,66 +49,15 @@ Week 12+  → Chat UI + Model Selector
             เลือกได้จาก Settings · ถามผ่านหน้าเว็บได้เลย
 
 
+Plan 4 — Strength System        ← ใหม่ (อาจารย์แนะนำ)
+└── Shadbala / Vimshopaka Bala
+    Dignity → Numerical Score
 
-Layer 0 — Foundation
-[x] Julian Day Number (JDN)
-[x] Delta T
-[x] Timezone + Lat/Lng
-[x] Custom Ayanamsa (กำหนดค่าเอง)
+Plan 5 — Yogas Engine           ← ใหม่ (อาจารย์แนะนำ)
+└── Raj Yoga / Dhana Yoga
+    Neecha Bhanga / Gajakesari ฯลฯ
 
-Layer 1A — Planet Positions
-[x] นพเคราะห์ 9 ดวง (Swiss Ephemeris grade)
-[x] ลองจิจูด Sidereal
-[x] ราศีที่อยู่ (1-12)
-[x] องศาในราศี
-[x] Direct / Retrograde
-[x] Angular Velocity
-
-
-Layer 1B — Chart Structure
-[x] ลัคนา (Thai standard Oblique Ascension)
-[x] ราศีจักร Sidereal 12 ราศี
-[x] เรือน 12 (Whole Sign House)
-[x] Map ดาว → เรือน
-
-
-Layer 1C — Planet Status & Relationships
-□ Dignity (อุจจ์/มูลตรีโกณ/เกษตร/มิตร/กลาง/ศัตรู/นิจ)
-□ Aspects (180/120/90/60°)
-□ Special Vedic Aspects (อังคาร/พฤหัส/เสาร์)
-□ Conjunction
-
-Layer 1D — Divisional Charts
-□ D1 Rasi
-□ D3 Drekkana (10° ต่อส่วน)
-□ D9 Navamsa (3°20' ต่อส่วน)
-
-Layer 1E — Lunar
-□ นักษัตร 27 ครบทุกดวง
-□ นักษัตรลัคนา
-□ นักษัตรจันทร์ (สำคัญสุด)
-
-Layer 1F — Dasha
-□ Vimshottari 120 ปี
-□ Mahadasha
-□ Antardasha
-□ Pratyantardasha
-□ Timeline วันเริ่ม-สิ้นสุดแต่ละทศา
-□ ดาวครองอยู่ตอนนี้ (ปัจจุบัน)
-
-API Layer
-□ POST /calculate/chart
-□ POST /calculate/compare (ดวงคู่ Synastry)
-□ GET /calculate/transit
-□ GET /sky/realtime (WebSocket)
-
-Frontend
-□ Birth Input Form
-□ Zodiac Wheel SVG (ดาวเคลื่อนจริง)
-□ เส้น Aspects บนวงล้อ
-□ Planet Table (องศา/ราศี/เรือน/สถานะ/นักษัตร)
-□ D1/D3/D9 Tabs
-□ Dasha Timeline (visual + ไฮไลต์ปัจจุบัน)
-□ Synastry View
-□ Transit View
-□ Settings (Ayanamsa / House System)
+Plan 6 — Prediction Engine      ← ใหม่ (อาจารย์แนะนำ)
+└── Dasha + Transit + Natal Promise
+    Aspect Activation
+    → ระบบทำนายเหตุการณ์จริง

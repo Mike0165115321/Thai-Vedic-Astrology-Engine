@@ -19,18 +19,17 @@ PLANETS = {
     8: {"name": "Ketu", "thai_name": "เกตุ", "symbol": "๙"},
 }
 
-# Ayanamsa Types (Swiss Ephemeris)
-# 1 = Lahiri
-# 3 = Raman
-# 5 = Krishnamurti
-DEFAULT_AYANAMSA = 1 
+# Ayanamsa — default mode (must match keys in core/ayanamsa.py AYANAMSA_MODES)
+DEFAULT_AYANAMSA = "LAHIRI"
 
 # House System
 # 'W' = Whole Sign
 DEFAULT_HOUSE_SYSTEM = 'W'
 
-# Ketu Mode
-# "vedic" = (Rahu + 180) % 360
-# "thai" = Thai Ketu (9) - Requires separate calculation
+# Node type for Rahu: MEAN (traditional Vedic) or TRUE
+DEFAULT_NODE_TYPE = "MEAN"
+
+# Ketu calculation mode: "vedic" = Rahu + 180°, "thai" = not yet implemented
 DEFAULT_KETU_MODE = "vedic"
+
 

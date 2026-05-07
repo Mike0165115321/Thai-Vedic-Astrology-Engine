@@ -1,10 +1,17 @@
-from pydantic import BaseModel
-from typing import Dict, Any, List
+from pydantic import BaseModel, ConfigDict
+from typing import Dict, Any
 
 class BirthChart(BaseModel):
+    """
+    Immutable snapshot of a natal chart.
+    Rule: Once created, this object must not be mutated.
+    """
+    model_config = ConfigDict(frozen=True)
+
     julian_date: float
     ayanamsa_name: str
     ayanamsa_value: float
     lagna: Dict[str, Any]
     planets: Dict[str, Any]
-    houses: Dict[int, int] # House Number -> Sign Index
+    houses: Dict[int, int] # House Number → Sign (1-12)
+

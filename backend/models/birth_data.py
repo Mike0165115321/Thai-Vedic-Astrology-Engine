@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from core.constants import DEFAULT_AYANAMSA, DEFAULT_NODE_TYPE, DEFAULT_KETU_MODE
 
 class BirthData(BaseModel):
     year: int
@@ -11,10 +12,11 @@ class BirthData(BaseModel):
     lat: float
     lon: float
     timezone: Optional[str] = "UTC"
-    
-    # Settings
-    ayanamsa_mode: Optional[str] = "LAHIRI"
+
+    # Calculation settings — defaults pulled from core/constants.py
+    ayanamsa_mode: Optional[str] = DEFAULT_AYANAMSA
     custom_ayanamsa_offset: Optional[float] = None
-    node_type: Optional[str] = "MEAN" # MEAN or TRUE
-    ketu_mode: Optional[str] = "vedic" # vedic or thai
+    node_type: Optional[str] = DEFAULT_NODE_TYPE  # MEAN or TRUE
+    ketu_mode: Optional[str] = DEFAULT_KETU_MODE  # vedic or thai
+
 
