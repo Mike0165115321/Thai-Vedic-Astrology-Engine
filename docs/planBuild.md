@@ -21,11 +21,12 @@ Layer 1B — Chart Structure
 
 
 Layer 1C — Planet Status (สภาพดาว)
-□ Dignity        อุจจ์/มูลตรีโกณ/เกษตร/มิตร/กลาง/ศัตรู/นิจ
-□ Combust        ดาวถูกเผา (ใกล้อาทิตย์เกินไป)
-□ Retrograde     เดินถอยหลัง
-□ Planetary War  ดาว 2 ดวงอยู่ใกล้กันมาก (<1°) แพ้/ชนะ
-□ Speed/Motion   เร็ว/ช้า/หยุด เทียบกับความเร็วเฉลี่ย
+[x] Dignity        อุจจ์/มูลตรีโกณ/เกษตร/มิตร/กลาง/ศัตรู/นิจ
+[x] Combust        ดาวถูกเผา (ใกล้อาทิตย์เกินไป)
+[x] Retrograde     เดินถอยหลัง
+[x] Planetary War  ดาว 2 ดวงอยู่ใกล้กันมาก (<1°) แพ้/ชนะ
+[x] Speed/Motion   เร็ว/ช้า/หยุด เทียบกับความเร็วเฉลี่ย
+
 
 Layer 1D — Planet Relationships (ปฏิสัมพันธ์ดาว)
 

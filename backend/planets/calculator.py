@@ -71,13 +71,39 @@ def get_all_planets(jd, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, nod
         }
 
     elif ketu_mode.lower() == "thai":
-        # Thai Ketu (9) has a completely different calculation method 
-        # (usually based on a specific daily motion from a reference date).
-        # We will implement this later when reliable reference data is available.
         raise NotImplementedError("Thai Ketu (9) calculation is not yet implemented.")
     else:
         raise ValueError(f"Unknown Ketu mode: {ketu_mode}")
     
+    # --- Layer 1C: Planet Status ---
+    from planets.dignity import get_dignity
+    from planets.status import calculate_combustion, calculate_planetary_war, get_speed_status
+    
+    # 1. Dignity & Speed Status
+    for name, data in results.items():
+        # Get Planet ID for dignity lookup (Sun=0, ..., Ketu=8)
+        name_to_id = {"Sun": 0, "Moon": 1, "Mars": 2, "Mercury": 3, "Jupiter": 4, "Venus": 5, "Saturn": 6, "Rahu": 7, "Ketu": 8}
+        p_id = name_to_id.get(name)
+        
+        data["dignity"] = get_dignity(p_id, data["longitude"])
+        data["speed_status"] = get_speed_status(name, data["speed"])
+        data["is_combust"] = False # Default
+        data["planetary_war"] = False # Default
+
+    # 2. Combustion
+    combust_map = calculate_combustion(results)
+    for name in combust_map:
+        results[name]["is_combust"] = True
+        
+    # 3. Planetary War
+    wars = calculate_planetary_war(results)
+    for war in wars:
+        for name in war["planets"]:
+            results[name]["planetary_war"] = True
+            # Optional: store war details
+            results[name]["war_opponent"] = [p for p in war["planets"] if p != name][0]
+
     return results
+
 
 

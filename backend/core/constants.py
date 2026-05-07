@@ -32,4 +32,39 @@ DEFAULT_NODE_TYPE = "MEAN"
 # Ketu calculation mode: "vedic" = Rahu + 180°, "thai" = not yet implemented
 DEFAULT_KETU_MODE = "vedic"
 
+# Mean Daily Motion (degrees per day)
+PLANET_MEAN_SPEEDS = {
+    0: 0.9856,    # Sun
+    1: 13.1764,   # Moon
+    2: 0.5241,    # Mars
+    3: 1.3833,    # Mercury
+    4: 0.0831,    # Jupiter
+    5: 1.2000,    # Venus
+    6: 0.0335,    # Saturn
+    7: 0.0529,    # Rahu/Ketu (Mean)
+}
+
+# Combustion Orbs (degrees) - Traditional Vedic
+COMBUSTION_ORBS = {
+    1: 12,    # Moon
+    2: 17,    # Mars
+    3: 13,    # Mercury (12 if Retrograde)
+    4: 11,    # Jupiter
+    5: 9,     # Venus (8 if Retrograde)
+    6: 15,    # Saturn
+}
+
+# Natural Relationships (Vedic)
+# Planet: { 'friends': [], 'enemies': [], 'neutrals': [] }
+PLANET_RELATIONSHIPS = {
+    0: {'friends': [1, 2, 4], 'enemies': [5, 6], 'neutrals': [3]}, # Sun
+    1: {'friends': [0, 3], 'enemies': [], 'neutrals': [2, 4, 5, 6]}, # Moon
+    2: {'friends': [0, 1, 4], 'enemies': [3], 'neutrals': [5, 6]}, # Mars
+    3: {'friends': [0, 5], 'enemies': [1], 'neutrals': [2, 4, 6]}, # Mercury
+    4: {'friends': [0, 1, 2], 'enemies': [3, 5], 'neutrals': [6]}, # Jupiter
+    5: {'friends': [3, 6], 'enemies': [0, 1], 'neutrals': [2, 4]}, # Venus
+    6: {'friends': [3, 5], 'enemies': [0, 1, 2], 'neutrals': [4]}, # Saturn
+}
+
+
 
