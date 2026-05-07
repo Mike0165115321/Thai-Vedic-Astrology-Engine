@@ -17,6 +17,8 @@ class HistoryCreate(BaseModel):
     lat: float
     lon: float
     timezone: str
+    ayanamsa_mode: str = "LAHIRI"
+    custom_ayanamsa_offset: float = 0.0
 
 class HistoryResponse(HistoryCreate):
     id: int
@@ -41,6 +43,8 @@ def create_history(data: HistoryCreate, db: Session = Depends(get_db)):
         existing.minute = data.minute
         existing.lat = data.lat
         existing.lon = data.lon
+        existing.ayanamsa_mode = data.ayanamsa_mode
+        existing.custom_ayanamsa_offset = data.custom_ayanamsa_offset
         existing.created_at = datetime.utcnow()
         db.commit()
         db.refresh(existing)

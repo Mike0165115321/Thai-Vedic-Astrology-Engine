@@ -64,4 +64,6 @@ export interface BirthFormData {
   lat: number;
   lon: number;
   timezone: string;
+  ayanamsa_mode?: string;
+  custom_ayanamsa_offset?: number;
 }

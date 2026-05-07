@@ -46,7 +46,9 @@ export default function Home() {
                         minute: item.minute,
                         lat: item.lat,
                         lon: item.lon,
-                        timezone: item.timezone
+                        timezone: item.timezone,
+                        ayanamsa_mode: item.ayanamsa_mode,
+                        custom_ayanamsa_offset: item.custom_ayanamsa_offset
                     }
                 }));
                 setHistory(mapped);
@@ -194,7 +196,7 @@ export default function Home() {
           loading={loading}
           history={history}
           onSelectHistory={(item) => {
-              // History selection handled in LeftPanel
+              calculateChart(item.formData);
           }}
           onDeleteHistory={async (id) => {
               await fetch(`http://localhost:8000/history/${id}`, { method: "DELETE" });
