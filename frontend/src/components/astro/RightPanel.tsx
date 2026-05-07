@@ -96,7 +96,7 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                         </td>
                         <td className="px-2 py-1.5">
                             <div className="text-foreground">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
-                            <div className="text-[9px] text-muted-foreground">{d.sign.symbol} {d.sign.name}</div>
+                            <div className="text-[9px] text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</div>
                         </td>
                         <td className="px-2 py-1.5">
                             <div className="text-foreground">{p.nakshatra}</div>
