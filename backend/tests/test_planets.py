@@ -2,6 +2,7 @@ import pytest
 import json
 import os
 from core.time_utils import get_julian_date
+from core.ayanamsa import set_ayanamsa
 from planets.calculator import get_all_planets
 import swisseph as swe
 
@@ -30,7 +31,8 @@ def test_accuracy_against_known_charts(chart):
     ayanamsa_mode = chart["ayanamsa_name"]
     expected_planets = chart["planets"]
     
-    calculated_planets = get_all_planets(jd, ayanamsa_mode=ayanamsa_mode)
+    set_ayanamsa(ayanamsa_mode)
+    calculated_planets = get_all_planets(jd)
     
     for planet_name, expected_lon in expected_planets.items():
         calculated_lon = calculated_planets[planet_name]["longitude"]
@@ -42,11 +44,13 @@ def test_custom_ayanamsa():
     jd = get_julian_date(2000, 1, 1, 12, 0)
     
     # Calculate with LAHIRI (~23.857)
-    lahiri_results = get_all_planets(jd, ayanamsa_mode="LAHIRI")
+    set_ayanamsa("LAHIRI")
+    lahiri_results = get_all_planets(jd)
     
     # Calculate with CUSTOM offset (e.g., 20.0)
     custom_offset = 20.0
-    custom_results = get_all_planets(jd, ayanamsa_mode="CUSTOM", custom_ayanamsa_offset=custom_offset)
+    set_ayanamsa("CUSTOM", custom_offset)
+    custom_results = get_all_planets(jd)
     
     # The difference in longitude should be (Lahiri_Ayanamsa - Custom_Offset)
     # Tropical_Lon = Sidereal_Lon + Ayanamsa

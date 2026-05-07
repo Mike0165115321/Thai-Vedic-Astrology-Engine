@@ -2,9 +2,8 @@ import swisseph as swe
 from core.constants import DEFAULT_AYANAMSA, DEFAULT_HOUSE_SYSTEM
 from core.ayanamsa import set_ayanamsa
 
-def calculate_lagna(jd, lat, lon, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, house_system=DEFAULT_HOUSE_SYSTEM):
+def calculate_lagna(jd, lat, lon, house_system=DEFAULT_HOUSE_SYSTEM):
     """Calculates the Ascendant (Lagna) and House cusps."""
-    set_ayanamsa(ayanamsa_mode, custom_ayanamsa_offset)
     
     # Calculate houses
     # cusps: 13 elements (index 1 to 12 are houses)

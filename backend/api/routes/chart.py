@@ -35,18 +35,12 @@ def calculate_chart_endpoint(data: BirthData):
         ayanamsa_val = swe.get_ayanamsa_ut(jd)
         
         # 2. Calculate Lagna
-        lagna = calculate_lagna(
-            jd, data.lat, data.lon, 
-            ayanamsa_mode=data.ayanamsa_mode, 
-            custom_ayanamsa_offset=data.custom_ayanamsa_offset
-        )
+        lagna = calculate_lagna(jd, data.lat, data.lon)
         lagna_sign = lagna["sign"]
         
         # 3. Calculate Planets
         planets = get_all_planets(
             jd, 
-            ayanamsa_mode=data.ayanamsa_mode, 
-            custom_ayanamsa_offset=data.custom_ayanamsa_offset,
             node_type=data.node_type,
             ketu_mode=data.ketu_mode
         )
@@ -70,7 +64,7 @@ def calculate_chart_endpoint(data: BirthData):
         
         # 9. Layer 1G: Dasha System
         moon_lon = planets_with_houses.get("Moon", {}).get("longitude", 0)
-        dasha_timeline = calculate_vimshottari_dasha(moon_lon, birth_dt_local)
+        dasha_timeline = calculate_vimshottari_dasha(moon_lon, birth_dt_utc)
         
         return {
             "julian_date": jd,

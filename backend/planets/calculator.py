@@ -14,9 +14,8 @@ PLANET_IDS = {
     "Rahu": swe.MEAN_NODE, # Default to Mean Node as per Vedic tradition
 }
 
-def calculate_planet_position(jd, planet_id, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None):
+def calculate_planet_position(jd, planet_id):
     """Calculates the sidereal position of a planet."""
-    set_ayanamsa(ayanamsa_mode, custom_ayanamsa_offset)
     
     # Calculate position (Longitude, Latitude, Distance, Speed)
     # Using SEFLG_SPEED to get velocity (needed for retrograde check)
@@ -39,7 +38,7 @@ def calculate_planet_position(jd, planet_id, ayanamsa_mode="LAHIRI", custom_ayan
     }
 
 
-def get_all_planets(jd, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, node_type="MEAN", ketu_mode="vedic"):
+def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
     """Calculates positions for all 9 planets (including Ketu)."""
     results = {}
     
@@ -50,10 +49,10 @@ def get_all_planets(jd, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, nod
     standard_planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
     for name in standard_planets:
         p_id = PLANET_IDS[name]
-        results[name] = calculate_planet_position(jd, p_id, ayanamsa_mode, custom_ayanamsa_offset)
+        results[name] = calculate_planet_position(jd, p_id)
         
     # Calculate Rahu
-    results["Rahu"] = calculate_planet_position(jd, rahu_id, ayanamsa_mode, custom_ayanamsa_offset)
+    results["Rahu"] = calculate_planet_position(jd, rahu_id)
     
     # Calculate Ketu based on mode
     if ketu_mode.lower() == "vedic":

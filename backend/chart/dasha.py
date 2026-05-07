@@ -7,10 +7,12 @@ DASHA_YEARS = {
     "Rahu": 18, "Jupiter": 16, "Saturn": 19, "Mercury": 17
 }
 
+import pytz
+
 def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
     """
     Calculates the Vimshottari Dasha timeline from birth.
-    birth_datetime: python datetime object
+    birth_datetime: python datetime object (should be timezone-aware, preferably UTC)
     """
     # 13°20' = 800 minutes
     # Total cycle = 120 years
@@ -18,12 +20,9 @@ def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
     degree_in_naks = moon_longitude % (13 + 1/3)
     
     # Starting planet based on Nakshatra index (0-26)
-    # 0, 9, 18 = Ketu
-    # 1, 10, 19 = Venus, etc.
     start_planet_idx = naks_index % 9
     
     # Proportion of the first dasha remaining
-    # (Total years * remaining distance) / Total distance
     total_naks_deg = 13 + 1/3
     start_planet = DASHA_ORDER[start_planet_idx]
     total_years = DASHA_YEARS[start_planet]
@@ -32,10 +31,13 @@ def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
     remaining_years = total_years - consumed_years
     
     timeline = []
+    # Ensure comparison uses aware datetimes
+    now_utc = datetime.now(pytz.UTC)
+    
+    # Start from the beginning of the first dasha in the cycle
     current_date = birth_datetime - timedelta(days=int(consumed_years * 365.25))
     
     # Generate the 120-year cycle
-    # We might want to just start from birth for the UI
     temp_date = current_date
     for i in range(9):
         planet = DASHA_ORDER[(start_planet_idx + i) % 9]
@@ -49,9 +51,10 @@ def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
                 "planet": planet,
                 "start": temp_date.isoformat(),
                 "end": end_date.isoformat(),
-                "is_current": temp_date <= datetime.now() <= end_date
+                "is_current": temp_date <= now_utc <= end_date
             })
             
         temp_date = end_date
         
     return timeline
+

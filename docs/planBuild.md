@@ -69,15 +69,15 @@ API Layer
 
 
 Frontend
-□ Birth Input Form
-□ Zodiac Wheel SVG (ดาวเคลื่อนจริง)
-□ เส้น Aspects บนวงล้อ
-□ Planet Table (องศา/ราศี/เรือน/สถานะ/นักษัตร)
-□ D1/D3/D9 Tabs
-□ Dasha Timeline (visual + ไฮไลต์ปัจจุบัน)
-□ Synastry View
-□ Transit View
-□ Settings (Ayanamsa / House System)
+[x] Birth Input Form
+[x] Zodiac Wheel SVG (ดาวเคลื่อนจริง)
+[x] เส้น Aspects บนวงล้อ
+[x] Planet Table (องศา/ราศี/เรือน/สถานะ/นักษัตร)
+[x] D1/D3/D9 Tabs
+[x] Dasha Timeline (visual + ไฮไลต์ปัจจุบัน)
+[ ] Synastry View
+[x] Transit View
+[x] Settings (Ayanamsa / House System)
 
 ───────────────────────────────────────────────
 Architecture Rules
