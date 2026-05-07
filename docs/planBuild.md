@@ -44,28 +44,29 @@ Layer 1D — Planet Relationships (ปฏิสัมพันธ์ดาว)
 
 
 Layer 1E — Divisional Charts
-□ D1 Rasi
-□ D3 Drekkana (10° ต่อส่วน)
-□ D9 Navamsa (3°20' ต่อส่วน)
+[x] D1 Rasi
+[x] D3 Drekkana (10° ต่อส่วน)
+[x] D9 Navamsa (3°20' ต่อส่วน)
 
 Layer 1F — Lunar / Nakshatra
-□ นักษัตร 27 ครบทุกดวง
-□ นักษัตรลัคนา
-□ นักษัตรจันทร์ (สำคัญสุด)
+[x] นักษัตร 27 ครบทุกดวง
+[x] นักษัตรลัคนา
+[x] นักษัตรจันทร์ (สำคัญสุด)
 
 Layer 1G — Dasha System
-□ Vimshottari 120 ปี
-□ Mahadasha
-□ Antardasha
-□ Pratyantardasha
-□ Timeline วันเริ่ม-สิ้นสุดแต่ละทศา
-□ ดาวครองอยู่ตอนนี้ (ปัจจุบัน)
+[x] Vimshottari 120 ปี
+[x] Mahadasha
+[x] Antardasha
+[x] Pratyantardasha
+[x] Timeline วันเริ่ม-สิ้นสุดแต่ละทศา
+[x] ดาวครองอยู่ตอนนี้ (ปัจจุบัน)
 
 API Layer
-□ POST /calculate/chart
-□ POST /calculate/compare (ดวงคู่ Synastry)
-□ GET /calculate/transit
-□ GET /sky/realtime (WebSocket)
+[x] POST /calculate/chart
+[ ] POST /calculate/compare (ดวงคู่ Synastry)
+[ ] GET /calculate/transit
+[ ] GET /sky/realtime (WebSocket)
+
 
 Frontend
 □ Birth Input Form

@@ -16,5 +16,10 @@ class BirthChart(BaseModel):
     houses: Dict[int, int] # House Number → Sign (1-12)
     western_aspects: List[Dict[str, Any]]
     vedic_aspects: List[Dict[str, Any]]
+    d3: Dict[str, Any]
+    d9: Dict[str, Any]
+    lunar_data: Dict[str, Any]
+    dasha_timeline: List[Dict[str, Any]]
+
 
 
