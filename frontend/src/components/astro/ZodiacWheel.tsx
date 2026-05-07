@@ -47,30 +47,99 @@ const polar = (deg: number, r: number) => {
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 
+const resolveOverlaps = (list: any[], baseRadius: number) => {
+    if (list.length === 0) return [];
+    
+    // Sort by longitude to detect neighbors
+    const sorted = [...list].sort((a, b) => a.lon - b.lon);
+    const threshold = 7.5; // Degree threshold for overlap
+    const step = 24;      // Distance to stagger radially
+    
+    const results = [];
+    let stackLevel = 0;
+    
+    for (let i = 0; i < sorted.length; i++) {
+        const p = sorted[i];
+        if (i > 0) {
+            const diff = p.lon - sorted[i-1].lon;
+            if (diff < threshold) {
+                stackLevel += 1;
+            } else {
+                stackLevel = 0;
+            }
+        }
+        
+        // Alternating pattern: 0, -1, 1, -2, 2...
+        let offset = 0;
+        if (stackLevel > 0) {
+            const dir = stackLevel % 2 === 0 ? 1 : -1;
+            const depth = Math.ceil(stackLevel / 2);
+            offset = dir * depth * step;
+        }
+        
+        results.push({ ...p, visualRadius: baseRadius + offset });
+    }
+    return results;
+};
+
 export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, natalHouses, transitHouses, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
   const natalList = useMemo(() => {
-    if (!planets) return [];
-    return Object.entries(planets).map(([name, p]) => ({
-      name,
-      symbol: p.symbol || name.substring(0, 2),
-      lon: p.longitude,
-      retro: p.is_retrograde,
-      color: getPlanetColor(name),
-      isTransit: false
-    }));
-  }, [planets]);
+    let list: any[] = [];
+    if (planets) {
+        list = Object.entries(planets).map(([name, p]) => ({
+            id: `n-${name}`,
+            name,
+            symbol: p.symbol || name.substring(0, 2),
+            lon: p.longitude,
+            retro: p.is_retrograde,
+            color: getPlanetColor(name),
+            isTransit: false,
+            isLagna: false
+        }));
+    }
+    if (natalLagna) {
+        list.push({
+            id: 'n-lagna',
+            name: 'Lagna',
+            symbol: 'ลั',
+            lon: natalLagna.longitude,
+            retro: false,
+            color: 'var(--warning)',
+            isTransit: false,
+            isLagna: true
+        });
+    }
+    return resolveOverlaps(list, R_PLANETS);
+  }, [planets, natalLagna]);
 
   const transitList = useMemo(() => {
-    if (!transitPlanets) return [];
-    return Object.entries(transitPlanets).map(([name, p]) => ({
-      name,
-      symbol: p.symbol || name.substring(0, 2),
-      lon: p.longitude, // Real positions from backend
-      retro: p.is_retrograde,
-      color: getPlanetColor(name),
-      isTransit: true
-    }));
-  }, [transitPlanets]);
+    let list: any[] = [];
+    if (transitPlanets) {
+        list = Object.entries(transitPlanets).map(([name, p]) => ({
+            id: `t-${name}`,
+            name,
+            symbol: p.symbol || name.substring(0, 2),
+            lon: p.longitude,
+            retro: p.is_retrograde,
+            color: getPlanetColor(name),
+            isTransit: true,
+            isLagna: false
+        }));
+    }
+    if (transitLagna) {
+        list.push({
+            id: 't-lagna',
+            name: 'TransitLagna',
+            symbol: 'ลั',
+            lon: transitLagna.longitude,
+            retro: false,
+            color: 'var(--info)',
+            isTransit: true,
+            isLagna: true
+        });
+    }
+    return resolveOverlaps(list, R_TRANSITS);
+  }, [transitPlanets, transitLagna]);
 
   const combinedList = useMemo(() => [...natalList, ...transitList], [natalList, transitList]);
 
@@ -195,37 +264,39 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
       {/* Transit planets outer ring path */}
       <circle cx={CENTER} cy={CENTER} r={R_TRANSITS} fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.3" />
 
-      {/* Planets */}
+      {/* Planets and Lagnas (Stacked) */}
       {combinedList.map((p) => {
         const isSelected = selectedPlanet === p.name;
-        const radius = p.isTransit ? R_TRANSITS : R_PLANETS;
-        const pos = polar(p.lon, radius);
+        const pos = polar(p.lon, p.visualRadius);
         
         return (
-          <g key={`${p.isTransit ? 't-' : 'n-'}${p.name}`} 
+          <g key={p.id} 
              transform={`translate(${pos.x}, ${pos.y})`}
              className="cursor-pointer transition-all duration-300" 
-             onClick={(e) => { e.stopPropagation(); onSelectPlanet(p.name); }}>
+             onClick={(e) => { 
+                e.stopPropagation(); 
+                if (!p.isLagna) onSelectPlanet(p.name); 
+             }}>
               <g style={{ filter: isSelected ? "drop-shadow(0 0 8px var(--primary))" : "none" }}>
-                {/* Planet background glow */}
-                <circle cx={0} cy={0} r={p.isTransit ? 10 : 14} fill={p.color} opacity={isSelected ? 0.3 : 0.1} />
+                {/* Background glow */}
+                <circle cx={0} cy={0} r={p.isTransit ? 10 : 14} fill={p.color} opacity={isSelected || p.isLagna ? 0.3 : 0.1} />
                 
-                {/* Planet icon circle */}
+                {/* Icon circle */}
                 <circle 
                   cx={0} cy={0} r={p.isTransit ? 8 : 12} 
                   fill="var(--background)" 
                   stroke={p.color} 
-                  strokeWidth={isSelected ? 2 : 1}
+                  strokeWidth={isSelected || p.isLagna ? 2 : 1}
                   opacity={p.isTransit ? 0.8 : 1}
                 />
                 
-                {/* Planet symbol/number */}
+                {/* Symbol */}
                 <text
                   textAnchor="middle"
-                  dy={p.isTransit ? "3" : "4"}
-                  fontSize={p.isTransit ? "9" : "13"}
+                  dy={p.isTransit ? "3.5" : "4.5"}
+                  fontSize={p.isTransit ? "10" : "13"}
                   fill={p.color}
-                  fontWeight={700}
+                  fontWeight={p.isLagna ? 900 : 700}
                   className="select-none"
                 >
                   {p.symbol}
@@ -237,49 +308,13 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
                 )}
 
                 {/* Transit badge */}
-                {p.isTransit && (
+                {p.isTransit && !p.isLagna && (
                   <circle cx="6" cy="6" r="2" fill="var(--primary)" />
                 )}
               </g>
           </g>
         );
       })}
-
-      {/* Natal Lagna marker */}
-      {natalLagna && (() => {
-        const lon = natalLagna.longitude;
-        const pos = polar(lon, R_PLANETS);
-        return (
-          <g transform={`translate(${pos.x}, ${pos.y})`} className="transition-all duration-300">
-            {/* Background glow */}
-            <circle cx={0} cy={0} r={16} fill="var(--warning)" opacity={0.15} />
-            
-            {/* Main circle */}
-            <circle cx={0} cy={0} r={12} fill="var(--background)" stroke="var(--warning)" strokeWidth={1.5} />
-            
-            {/* symbol */}
-            <text textAnchor="middle" dy="4.5" fontSize="13" fill="var(--warning)" fontWeight="900">ลั</text>
-          </g>
-        );
-      })()}
-
-      {/* Transit Lagna marker */}
-      {transitLagna && (() => {
-        const lon = transitLagna.longitude;
-        const pos = polar(lon, R_TRANSITS);
-        return (
-          <g transform={`translate(${pos.x}, ${pos.y})`} className="transition-all duration-300">
-            {/* Background glow */}
-            <circle cx={0} cy={0} r={12} fill="var(--info)" opacity={0.15} />
-            
-            {/* Main circle */}
-            <circle cx={0} cy={0} r={9} fill="var(--background)" stroke="var(--info)" strokeWidth={1.2} opacity={0.9} />
-            
-            {/* symbol */}
-            <text textAnchor="middle" dy="3.5" fontSize="10" fill="var(--info)" fontWeight="900">ลั</text>
-          </g>
-        );
-      })()}
 
       {/* Center crest */}
       <circle cx={CENTER} cy={CENTER} r={56} fill="oklch(0.18 0.03 270)" stroke="var(--primary)" strokeOpacity={0.4} />

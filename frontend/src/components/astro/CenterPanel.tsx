@@ -19,6 +19,7 @@ type Props = {
 export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet, onTransitDateChange, chartType }: Props) {
   const [age, setAge] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [showTransit, setShowTransit] = useState(true);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
 
   const toggle = (t: string) =>
@@ -81,6 +82,16 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
           <span className="font-semibold uppercase tracking-wider text-muted-foreground">องศาเล็ง (Aspects)</span>
         </div>
         <div className="flex flex-wrap gap-1">
+          <button
+            onClick={() => setShowTransit(!showTransit)}
+            className={`flex items-center gap-1.5 rounded border px-2 py-1 transition ${
+              showTransit ? "border-primary/50 bg-primary/10 text-primary" : "border-border/50 bg-transparent text-muted-foreground/60"
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${showTransit ? "bg-primary animate-pulse" : "bg-muted-foreground/40"}`} />
+            <span>ดาวจร</span>
+          </button>
+          <div className="mx-1 h-6 w-px bg-border/40" />
           {ASPECTS.map((a) => {
             const on = enabled.includes(a.type);
             return (
@@ -108,11 +119,11 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
         <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
           <ZodiacWheel 
             planets={displayChartData?.planets || null} 
-            transitPlanets={displayTransitData?.planets || null}
+            transitPlanets={showTransit ? (displayTransitData?.planets || null) : null}
             natalLagna={displayChartData?.lagna || null}
-            transitLagna={displayTransitData?.lagna || null}
+            transitLagna={showTransit ? (displayTransitData?.lagna || null) : null}
             natalHouses={displayChartData?.houses || null}
-            transitHouses={displayTransitData?.houses || null}
+            transitHouses={showTransit ? (displayTransitData?.houses || null) : null}
             enabledAspects={enabled} 
             selectedPlanet={selectedPlanet}
             onSelectPlanet={onSelectPlanet}
