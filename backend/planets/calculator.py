@@ -78,8 +78,9 @@ def get_all_planets(jd, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, nod
     # --- Layer 1C: Planet Status ---
     from planets.dignity import get_dignity
     from planets.status import calculate_combustion, calculate_planetary_war, get_speed_status
+    from core.constants import PLANETS as PLANET_META
     
-    # 1. Dignity & Speed Status
+    # 1. Dignity & Speed Status + Thai Names
     for name, data in results.items():
         # Get Planet ID for dignity lookup (Sun=0, ..., Ketu=8)
         name_to_id = {"Sun": 0, "Moon": 1, "Mars": 2, "Mercury": 3, "Jupiter": 4, "Venus": 5, "Saturn": 6, "Rahu": 7, "Ketu": 8}
@@ -89,6 +90,11 @@ def get_all_planets(jd, ayanamsa_mode="LAHIRI", custom_ayanamsa_offset=None, nod
         data["speed_status"] = get_speed_status(name, data["speed"])
         data["is_combust"] = False # Default
         data["planetary_war"] = False # Default
+        
+        # Attach Thai names and symbols from constants
+        if p_id is not None and p_id in PLANET_META:
+            data["thai_name"] = PLANET_META[p_id]["thai_name"]
+            data["symbol"] = PLANET_META[p_id]["symbol"]
 
     # 2. Combustion
     combust_map = calculate_combustion(results)

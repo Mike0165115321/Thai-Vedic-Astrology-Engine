@@ -8,7 +8,6 @@ type Props = {
   planets: { [key: string]: Planet } | null;
   transitPlanets: { [key: string]: Planet } | null;
   lagna: Lagna | null;
-  transitOffset: number; 
   enabledAspects: string[];
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
@@ -40,7 +39,7 @@ const polar = (deg: number, r: number) => {
   return { x: CENTER + r * Math.cos(rad), y: CENTER - r * Math.sin(rad) };
 };
 
-export function ZodiacWheel({ planets, transitPlanets, lagna, transitOffset, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
+export function ZodiacWheel({ planets, transitPlanets, lagna, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
   const natalList = useMemo(() => {
     if (!planets) return [];
     return Object.entries(planets).map(([name, p]) => ({
@@ -58,12 +57,12 @@ export function ZodiacWheel({ planets, transitPlanets, lagna, transitOffset, ena
     return Object.entries(transitPlanets).map(([name, p]) => ({
       name,
       symbol: p.symbol || name.substring(0, 2),
-      lon: (p.longitude + transitOffset) % 360,
+      lon: p.longitude, // Real positions from backend
       retro: p.is_retrograde,
       color: getPlanetColor(name),
       isTransit: true
     }));
-  }, [transitPlanets, transitOffset]);
+  }, [transitPlanets]);
 
   const combinedList = useMemo(() => [...natalList, ...transitList], [natalList, transitList]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { TopBar } from "@/components/astro/TopBar";
 import { LeftPanel } from "@/components/astro/LeftPanel";
 import { CenterPanel } from "@/components/astro/CenterPanel";
@@ -50,6 +50,37 @@ export default function Home() {
     }
   };
 
+  // Real transit recalculation (debounced)
+  const transitTimer = useRef<NodeJS.Timeout | null>(null);
+  const handleTransitOffset = useCallback((days: number) => {
+    if (transitTimer.current) clearTimeout(transitTimer.current);
+    transitTimer.current = setTimeout(async () => {
+      const target = new Date(Date.now() + days * 24 * 3600 * 1000);
+      const formData: BirthFormData = {
+        day: target.getDate(),
+        month: target.getMonth() + 1,
+        year: target.getFullYear(),
+        hour: target.getHours(),
+        minute: target.getMinutes(),
+        lat: 13.7563,
+        lon: 100.5018
+      };
+      try {
+        const response = await fetch("http://localhost:8000/calculate/chart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setTransitData(data);
+        }
+      } catch (e) {
+        console.warn("Transit recalculation failed");
+      }
+    }, 300); // 300ms debounce
+  }, []);
+
   if (!hasMounted) return null;
 
   const calculateChart = async (formData: BirthFormData) => {
@@ -91,6 +122,7 @@ export default function Home() {
           loading={loading}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
+          onTransitOffsetChange={handleTransitOffset}
         />
         
         <RightPanel 

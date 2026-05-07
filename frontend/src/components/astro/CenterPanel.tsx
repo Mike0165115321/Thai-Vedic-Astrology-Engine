@@ -12,9 +12,10 @@ type Props = {
   loading: boolean;
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
+  onTransitOffsetChange: (days: number) => void;
 };
 
-export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet }: Props) {
+export function CenterPanel({ chartData, transitData, loading, selectedPlanet, onSelectPlanet, onTransitOffsetChange }: Props) {
   const [offset, setOffset] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
@@ -60,7 +61,6 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
             planets={chartData?.planets || null} 
             transitPlanets={transitData?.planets || null}
             lagna={chartData?.lagna || transitData?.lagna || null}
-            transitOffset={offset} 
             enabledAspects={enabled} 
             selectedPlanet={selectedPlanet}
             onSelectPlanet={onSelectPlanet}
@@ -115,7 +115,11 @@ export function CenterPanel({ chartData, transitData, loading, selectedPlanet, o
         <input
           type="range" min={-365} max={365} step={1}
           value={offset}
-          onChange={(e) => setOffset(parseFloat(e.target.value))}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value);
+            setOffset(v);
+            onTransitOffsetChange(v);
+          }}
           className="w-full accent-[var(--primary)]"
         />
         <div className="mt-1 flex justify-between font-mono text-[9px] text-muted-foreground">

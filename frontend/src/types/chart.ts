@@ -3,8 +3,13 @@ export interface Planet {
   latitude: number;
   speed: number;
   is_retrograde: boolean;
+  sign?: number;           // 1-12
+  degree_in_sign?: number;
   house?: number;
   dignity?: string;
+  speed_status?: string;
+  is_combust?: boolean;
+  planetary_war?: boolean;
   thai_name?: string;
   symbol?: string;
 }

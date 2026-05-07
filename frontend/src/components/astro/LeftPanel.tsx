@@ -121,15 +121,21 @@ export function LeftPanel({ mode, setMode, onCalculate, loading }: Props) {
           <button className="text-primary hover:opacity-80"><Plus className="h-3.5 w-3.5" /></button>
         </div>
         <ul className="divide-y divide-border border-t border-border overflow-y-auto">
-          {RECENT_CHARTS.map((c, i) => (
-            <li key={c.name} className={`cursor-pointer px-3 py-2 text-[10px] hover:bg-muted/40 transition-colors ${i === 0 ? "bg-primary/5" : ""}`}>
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-foreground">{c.name}</span>
-                {i === 0 && <span className="rounded-sm bg-primary/20 px-1.5 py-0.5 text-[8px] font-bold text-primary">LIVE</span>}
-              </div>
-              <div className="mt-0.5 font-mono text-[9px] text-muted-foreground">{c.date} · {c.loc}</div>
-            </li>
-          ))}
+          {RECENT_CHARTS.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-[9px] text-muted-foreground/40 italic font-mono uppercase tracking-widest h-full">
+              ไม่มีข้อมูลในคลัง
+            </div>
+          ) : (
+            RECENT_CHARTS.map((c, i) => (
+              <li key={c.name} className={`cursor-pointer px-3 py-2 text-[10px] hover:bg-muted/40 transition-colors ${i === 0 ? "bg-primary/5" : ""}`}>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-foreground">{c.name}</span>
+                  {i === 0 && <span className="rounded-sm bg-primary/20 px-1.5 py-0.5 text-[8px] font-bold text-primary">LIVE</span>}
+                </div>
+                <div className="mt-0.5 font-mono text-[9px] text-muted-foreground">{c.date} · {c.loc}</div>
+              </li>
+            ))
+          )}
         </ul>
       </div>
     </aside>
