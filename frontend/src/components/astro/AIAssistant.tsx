@@ -10,14 +10,14 @@ export function AIAssistant() {
           onClick={() => setOpen(true)}
           className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-[image:var(--gradient-gold)] px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-glow)] transition hover:scale-105"
         >
-          <Sparkles className="h-4 w-4" /> AI Assistant
+          <Sparkles className="h-4 w-4" /> ผู้ช่วย AI
         </button>
       )}
       {open && (
         <div className="fixed bottom-5 right-5 z-40 flex h-[480px] w-[380px] flex-col rounded-lg border border-border bg-card shadow-[var(--shadow-panel)]">
           <div className="flex items-center justify-between border-b border-border bg-[image:var(--gradient-cosmic)] px-3 py-2">
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <Sparkles className="h-4 w-4 text-primary" /> Astro AI · Contextual
+              <Sparkles className="h-4 w-4 text-primary" /> ระบบวิเคราะห์ AI
             </div>
             <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
           </div>
@@ -34,15 +34,19 @@ export function AIAssistant() {
               the 12H, prone to fatigue.
             </Bubble>
           </div>
+          <div className="flex items-center gap-2 border-b border-border p-3">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">ผู้ช่วย AI โหราศาสตร์</span>
+          </div>
           <div className="flex gap-2 border-t border-border p-2">
             <input
-              placeholder="Ask about a planet, aspect, or transit…"
+              placeholder="สอบถามข้อมูลดาว หรือการทำนายดวงชะตา…"
               className="flex-1 rounded border border-border bg-input/60 px-2 py-1.5 text-xs focus:border-primary focus:outline-none"
             />
             <button className="rounded bg-primary px-2.5 text-primary-foreground"><Send className="h-3.5 w-3.5" /></button>
           </div>
           <div className="border-t border-border px-3 py-1.5 text-[9px] text-muted-foreground">
-            Context: Aria Volkov · Natal · Transit +0d
+            บริบท: ข้อมูล Natal · Transit +0 วัน
           </div>
         </div>
       )}

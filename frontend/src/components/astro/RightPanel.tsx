@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SIGNS, DASHA } from "./data";
 import { ChartData } from "@/types/chart";
 
-type Tab = "Planets" | "Shadbala" | "Yogas";
+type Tab = "ตำแหน่งดาว" | "กำลังดาว" | "เกณฑ์พิเศษ";
 
 function degToSign(lon: number) {
   const i = Math.floor(lon / 30);
@@ -18,18 +18,23 @@ type Props = {
 };
 
 export function RightPanel({ chartData }: Props) {
-  const [tab, setTab] = useState<Tab>("Planets");
+  const [tab, setTab] = useState<Tab>("ตำแหน่งดาว");
   const nowYear = new Date().getFullYear();
   const span = DASHA[DASHA.length - 1].end - DASHA[0].start;
   const nowPct = ((nowYear - DASHA[0].start) / span) * 100;
 
-  const planets = chartData ? Object.entries(chartData.planets).map(([name, p]) => ({
-    name,
+  const planets = chartData ? Object.entries(chartData.planets).map(([name, p]) => {
+    const planetThaiNames: { [key: string]: string } = {
+        Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
+        Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ"
+    };
+    return {
+    name: planetThaiNames[name] || name,
     symbol: p.symbol || name.substring(0, 2),
     lon: p.longitude,
     retro: p.is_retrograde,
     house: "?", // Backend should provide house
-    dignity: "Neutral", // Backend should provide dignity
+    dignity: "ปกติ", // Backend should provide dignity
     nakshatra: "—", // Backend should provide nakshatra
     color: name === "Sun" ? "var(--warning)" : 
            name === "Moon" ? "#cfd6e4" : 
@@ -39,12 +44,12 @@ export function RightPanel({ chartData }: Props) {
            name === "Mercury" ? "var(--info)" :
            name === "Saturn" ? "#94a3b8" :
            "var(--accent)"
-  })) : [];
+  }}) : [];
 
   return (
     <aside className="flex flex-col border-l border-border bg-card/40 overflow-hidden">
       <div className="flex border-b border-border bg-muted/30">
-        {(["Planets", "Shadbala", "Yogas"] as Tab[]).map((t) => (
+        {(["ตำแหน่งดาว", "กำลังดาว", "เกณฑ์พิเศษ"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition ${
               tab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
@@ -57,15 +62,15 @@ export function RightPanel({ chartData }: Props) {
       <div className="flex-1 overflow-auto">
         {!chartData ? (
           <div className="flex h-full items-center justify-center p-8 text-center text-xs text-muted-foreground/50 font-mono">
-            Waiting for natal chart calculation...
+            รอการคำนวณข้อมูลชะตา...
           </div>
         ) : (
           <>
-            {tab === "Planets" && (
+            {tab === "ตำแหน่งดาว" && (
               <table className="w-full border-collapse text-[11px] font-mono">
                 <thead className="sticky top-0 bg-card/95 backdrop-blur">
                   <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {["Planet", "Lon", "Sign", "Dignity"].map((h) => (
+                    {["ดาว", "องศา", "ราศี", "มาตรฐาน"].map((h) => (
                       <th key={h} className="border-b border-border px-2 py-1.5 font-semibold">{h}</th>
                     ))}
                   </tr>
@@ -98,15 +103,15 @@ export function RightPanel({ chartData }: Props) {
               </table>
             )}
 
-            {tab === "Shadbala" && (
+            {tab === "กำลังดาว" && (
               <div className="space-y-2 p-3 text-center py-10 text-muted-foreground/60 italic text-[10px]">
-                Shadbala computation layer coming soon in Layer 2.
+                ระบบคำนวณกำลังดาว (Shadbala) กำลังพัฒนาใน Layer 2
               </div>
             )}
 
-            {tab === "Yogas" && (
+            {tab === "เกณฑ์พิเศษ" && (
               <div className="p-3 text-center py-10 text-muted-foreground/60 italic text-[10px]">
-                Yoga analysis engine in Layer 2.
+                การวิเคราะห์โยคและเกณฑ์พิเศษ กำลังพัฒนาใน Layer 2
               </div>
             )}
           </>
@@ -116,8 +121,8 @@ export function RightPanel({ chartData }: Props) {
       {/* Dasha Gantt (Mock for now, will connect to Layer 1G) */}
       <div className="border-t border-border bg-card/60 p-3">
         <div className="mb-2 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          <span>Vimshottari Dasha</span>
-          <span className="font-mono text-primary">NOW · {nowYear}</span>
+          <span>วิมโชตตรีทศา (Vimshottari Dasha)</span>
+          <span className="font-mono text-primary">ปัจจุบัน · {nowYear}</span>
         </div>
         <div className="relative h-7 overflow-hidden rounded border border-border bg-muted/40">
           {DASHA.map((d) => {

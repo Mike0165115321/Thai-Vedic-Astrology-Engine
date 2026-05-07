@@ -25,7 +25,7 @@ export function CenterPanel({ chartData, loading }: Props) {
       <div className="flex items-center justify-between gap-2 border-b border-border bg-card/40 px-3 py-2 text-xs">
         <div className="flex items-center gap-1.5">
           <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-semibold uppercase tracking-wider text-muted-foreground">Aspects</span>
+          <span className="font-semibold uppercase tracking-wider text-muted-foreground">องศาเล็ง (Aspects)</span>
         </div>
         <div className="flex flex-wrap gap-1">
           {ASPECTS.map((a) => {
@@ -46,7 +46,7 @@ export function CenterPanel({ chartData, loading }: Props) {
           })}
         </div>
         <div className="hidden font-mono text-[10px] text-muted-foreground md:block">
-          Orb ≤ 5°  ·  Sidereal  ·  Lahiri
+          ระยะเอื้อม ≤ 5°  ·  ระบบนิรายนะ  ·  ลาหิรี
         </div>
       </div>
 
@@ -73,8 +73,8 @@ export function CenterPanel({ chartData, loading }: Props) {
         )}
 
         {!chartData && !loading && (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/40 italic font-mono uppercase tracking-widest">
-            Celestial Data Awaiting Input
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/40 italic font-mono uppercase tracking-widest text-center px-10">
+            ระบบพร้อมทำงาน กรุณากรอกข้อมูลเพื่อคำนวณตำแหน่งดาว
           </div>
         )}
       </div>
@@ -90,12 +90,12 @@ export function CenterPanel({ chartData, loading }: Props) {
             <button className="rounded border border-border bg-muted/40 p-1 hover:bg-muted"><SkipForward className="h-3.5 w-3.5" /></button>
           </div>
           <div className="font-mono text-xs text-foreground">
-            <span className="text-muted-foreground">TRANSIT · </span>
+            <span className="text-muted-foreground">การโคจร (TRANSIT) · </span>
             {new Date(Date.now() + offset * 24 * 3600 * 1000).toISOString().slice(0, 10)}
-            <span className="ml-2 text-primary">+{offset.toFixed(0)}d</span>
+            <span className="ml-2 text-primary">+{offset.toFixed(0)} วัน</span>
           </div>
           <div className="flex gap-1 text-[10px] text-muted-foreground">
-            {["1H", "1D", "1W", "1M", "1Y"].map((s) => (
+            {["1 ชม.", "1 วัน", "1 สัป.", "1 ด.", "1 ปี"].map((s) => (
               <button key={s} className="rounded border border-border px-1.5 py-0.5 hover:text-foreground">{s}</button>
             ))}
           </div>
@@ -107,7 +107,7 @@ export function CenterPanel({ chartData, loading }: Props) {
           className="w-full accent-[var(--primary)]"
         />
         <div className="mt-1 flex justify-between font-mono text-[9px] text-muted-foreground">
-          <span>−1Y</span><span>−6M</span><span className="text-primary">NOW</span><span>+6M</span><span>+1Y</span>
+          <span>−1 ปี</span><span>−6 เดือน</span><span className="text-primary">ปัจจุบัน</span><span>+6 เดือน</span><span>+1 ปี</span>
         </div>
       </div>
     </section>
