@@ -46,6 +46,8 @@ export interface ChartData {
   house_lords: { [key: number]: { planet: string; sign: number; name: string } };
   yogas: any[];
   western_aspects: any[];
+  d3_western_aspects?: any[];
+  d9_western_aspects?: any[];
   vedic_aspects: any[];
   d3: { [key: string]: { sign: number; longitude: number; dignity?: string; dignity_list?: string[] } };
   d9: { [key: string]: { sign: number; longitude: number; dignity?: string; dignity_list?: string[] } };

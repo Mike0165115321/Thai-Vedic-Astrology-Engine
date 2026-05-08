@@ -83,7 +83,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
   ];
 
   return (
-    <aside className="flex flex-col gap-3 border-r border-border bg-card/40 p-3 overflow-y-auto">
+    <aside className="flex h-full flex-col gap-3 border-r border-border bg-card/40 p-3 overflow-y-auto">
       <div className="grid grid-cols-3 gap-1 rounded-md border border-border bg-muted/40 p-1">
         {(["Natal", "Synastry", "Transit"] as Mode[]).map((m) => {
           const labels = { Natal: "ดวงกำเนิด", Synastry: "ดวงสมพงษ์", Transit: "ดวงจร" };

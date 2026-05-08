@@ -6,7 +6,7 @@ import { SIGNS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
 import { THAI_NAKSHATRAS } from "./nakshatra_data";
 
-type Tab = "ตำแหน่งดาว" | "ดาว" | "เจ้าเรือน";
+type Tab = "ตำแหน่งดาว" | "ดาว" | "เจ้าเรือน" | "การทำมุม";
 
 function degToSign(lon: number) {
   const i = Math.floor(lon / 30);
@@ -29,6 +29,16 @@ const HOUSE_NAMES_TH = [
     "ตนุ", "กดุมภะ", "สหัชชะ", "พันธุ", "ปุตตะ", "อริ", 
     "ปัตนิ", "มรณะ", "ศุภะ", "กัมมะ", "ลาภะ", "วินาศ"
 ];
+
+const ASPECT_LABELS: { [key: number]: { label: string; color: string; desc: string } } = {
+  0: { label: "กุม", color: "#fbbf24", desc: "รวมพลังงานเป็นหนึ่งเดียว" },
+  30: { label: "กึ่งมิตร", color: "#818cf8", desc: "เกื้อกูลกันแบบห่างๆ" },
+  60: { label: "โยค", color: "#22d3ee", desc: "ส่งเสริม โอกาสที่ดี" },
+  90: { label: "ฉาก", color: "#fb7185", desc: "ขัดแย้ง ท้าทาย ต้องฝ่าฟัน" },
+  120: { label: "ตรีโกณ", color: "#34d399", desc: "ราบรื่น โชคลาภ เกื้อหนุน" },
+  150: { label: "กึ่งศัตรู", color: "#a855f7", desc: "ปรับตัวเข้ากันยาก" },
+  180: { label: "เล็ง", color: "#f87171", desc: "เผชิญหน้า สมดุล หรือแตกหัก" }
+};
 
 export function RightPanel({ chartData: natalData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ตำแหน่งดาว");
@@ -118,11 +128,11 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
   } : null;
 
   return (
-    <aside className="flex flex-col border-l border-border bg-card/40 overflow-hidden">
+    <aside className="flex h-full flex-col border-l border-border bg-card/40 overflow-hidden">
       <div className="flex border-b border-border bg-muted/30">
-        {(["ตำแหน่งดาว", "ดาว", "เจ้าเรือน"] as Tab[]).map((t) => (
+        {(["ตำแหน่งดาว", "ดาว", "เจ้าเรือน", "การทำมุม"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition ${
+            className={`flex-1 px-2 py-2 text-[10px] font-semibold uppercase tracking-wider transition ${
               tab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
             }`}>
             {t}
@@ -268,7 +278,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                 </table>
                 
                 <div className="text-[12px] text-muted-foreground italic text-center py-8 opacity-40 border-t border-border/50">
-                    กำลังดาว (Shadbala) กำลังถูกคำนวณ...
+                    กำลังดาว กำลังถูกคำนวณ...
                 </div>
               </div>
             )}
@@ -314,6 +324,81 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                         })}
                     </tbody>
                 </table>
+              </div>
+            )}
+
+            {tab === "การทำมุม" && (
+              <div className="p-0 pb-10">
+                <div className="bg-primary/5 p-3 border-b border-border">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                        มุมสัมพันธ์ระหว่างดาว ({chartType})
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground mt-1">แสดงกระแสสัมพันธ์และมุมองศาที่ดาวส่งถึงกันในดวงชะตา</p>
+                </div>
+
+                {(() => {
+                  const currentAspects = chartType === "D3" ? chartData.d3_western_aspects : 
+                                       chartType === "D9" ? chartData.d9_western_aspects : 
+                                       chartData.western_aspects;
+                  
+                  if (!currentAspects || currentAspects.length === 0) {
+                    return (
+                        <div className="p-10 text-center text-[10px] text-muted-foreground italic uppercase tracking-widest">
+                            ไม่พบการทำมุมที่สำคัญใน {chartType}
+                        </div>
+                    );
+                  }
+
+                  return (
+                    <div className="divide-y divide-border/30">
+                        {[0, 180, 120, 90, 60, 30, 150].map(angle => {
+                            const group = currentAspects.filter(a => a.angle === angle);
+                            if (group.length === 0) return null;
+                            const info = ASPECT_LABELS[angle] || { label: `${angle}°`, color: "#fff", desc: "" };
+
+                            return (
+                                <div key={angle} className="p-4 hover:bg-white/5 transition-colors">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: info.color }} />
+                                            <span className="font-black text-[12px] uppercase tracking-tighter" style={{ color: info.color }}>
+                                                {info.label}
+                                            </span>
+                                        </div>
+                                        <span className="text-[9px] font-bold text-muted-foreground/60 px-1.5 py-0.5 rounded border border-border">
+                                            ระยะเอื้อม ≤ 5°
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground mb-3 font-medium leading-relaxed">{info.desc}</p>
+                                    <div className="space-y-1.5">
+                                        {group.map((a, i) => (
+                                            <div key={i} className="flex items-center justify-between bg-black/20 rounded p-2 border border-white/5 group/aspect">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="font-bold text-white text-[11px]">{planetThaiNames[a.p1] || a.p1}</span>
+                                                        <span className="text-muted-foreground/40 text-[10px]">+</span>
+                                                        <span className="font-bold text-white text-[11px]">{planetThaiNames[a.p2] || a.p2}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-[10px] font-mono text-primary/80 bg-primary/5 px-1.5 rounded">
+                                                    {a.actual_diff.toFixed(1)}°
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                  );
+                })()}
+                
+                <div className="mt-6 p-4 border-t border-border/50 text-center">
+                    <p className="text-[10px] text-muted-foreground italic opacity-60">
+                        * ข้อมูลนี้แสดงกระแสสัมพันธ์เชิงมุมแบบสากลและเวทผสมผสาน
+                    </p>
+                </div>
               </div>
             )}
           </>

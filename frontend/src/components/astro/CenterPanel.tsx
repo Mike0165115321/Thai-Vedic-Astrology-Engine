@@ -94,7 +94,7 @@ export function CenterPanel({
       <div className="flex items-center justify-between gap-2 border-b border-border bg-card/40 px-3 py-2 text-xs">
         <div className="flex items-center gap-1.5">
           <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-semibold uppercase tracking-wider text-muted-foreground">องศาเล็ง (Aspects)</span>
+          <span className="font-semibold uppercase tracking-wider text-muted-foreground">มุมสัมพันธ์</span>
         </div>
         <div className="flex flex-wrap gap-1">
           {ASPECTS.map((a) => {

@@ -15,6 +15,8 @@ class BirthChart(BaseModel):
     planets: Dict[str, Any]
     houses: Dict[str, int] # House Number (str) → Sign (1-12)
     western_aspects: List[Dict[str, Any]]
+    d3_western_aspects: List[Dict[str, Any]] | None = None
+    d9_western_aspects: List[Dict[str, Any]] | None = None
     vedic_aspects: List[Dict[str, Any]]
     d3: Dict[str, Any]
     d9: Dict[str, Any]

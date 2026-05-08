@@ -61,6 +61,10 @@ def calculate_birth_chart(data: BirthData):
     # 7. Layer 1E: Divisional Charts
     d3_planets, d3_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D3")
     d9_planets, d9_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D9")
+
+    # Calculate aspects for divisional charts
+    d3_western_aspects = calculate_western_aspects(d3_planets, custom_orb=data.aspect_orb)
+    d9_western_aspects = calculate_western_aspects(d9_planets, custom_orb=data.aspect_orb)
     
     # 8. Layer 1F: Lunar / Nakshatra
     lunar_data = get_lunar_data(planets_with_houses, lagna["longitude"])
@@ -88,6 +92,8 @@ def calculate_birth_chart(data: BirthData):
         "planets": planets_with_houses,
         "houses": houses,
         "western_aspects": western_aspects,
+        "d3_western_aspects": d3_western_aspects,
+        "d9_western_aspects": d9_western_aspects,
         "vedic_aspects": vedic_aspects,
         "d3": d3_planets,
         "d9": d9_planets,
