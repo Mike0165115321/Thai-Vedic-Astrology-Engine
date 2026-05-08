@@ -96,8 +96,9 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
     }
     
     // Filter out "ปกติ" if there are other meaningful statuses
-    if (allStatuses.length > 1) {
-        allStatuses = allStatuses.filter(s => s !== "ปกติ");
+    const isNormal = (s: string) => s.trim() === "ปกติ" || s.includes("ปกติ");
+    if (allStatuses.length > 1 && allStatuses.some(isNormal)) {
+        allStatuses = allStatuses.filter(s => !isNormal(s));
     }
 
     return {

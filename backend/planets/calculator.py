@@ -97,8 +97,8 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
             else:
                 dignity_list.append("วรโคตม")
 
-        data["dignity"] = " · ".join(dignity_list)
-        data["dignity_list"] = dignity_list
+        data["dignity_list"] = [s.strip() for s in dignity_list if s.strip()]
+        data["dignity"] = " · ".join(data["dignity_list"])
         data["speed_status"] = get_speed_status(name, data["speed"])
         data["is_combust"] = False # Default
         data["planetary_war"] = False # Default
