@@ -305,10 +305,13 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const firstName = birthData.name.split(" ")[0];
+        const fileName = `Scan_${firstName}_${startAge}-${endAge}.json`;
+        
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `astro_report_${birthData.name}_${startAge}_${endAge}.json`;
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         a.remove();
