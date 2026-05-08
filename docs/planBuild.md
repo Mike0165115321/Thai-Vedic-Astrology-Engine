@@ -80,50 +80,57 @@ Frontend
 [x] Settings (Ayanamsa / House System)
 
 ───────────────────────────────────────────────
-Architecture Rules
+Architecture Rules: The 3-Layer Framework
 ───────────────────────────────────────────────
 
-Rule 1 — Core Engine = Pure Computation Only
-  - core/ และ planets/ chart/ lunar/ dasha/ ต้องทำหน้าที่แค่คำนวณ
-  - ห้ามมี interpretation logic ใน core
-    (เช่น "ดาวนี้ดี/ร้าย", "ช่วงนี้จะ...") อยู่ใน layer เหล่านี้
-  - Interpretation ต้องอยู่ใน Plan 2+ เท่านั้น
-  - Unit test ทดสอบ computation เท่านั้น ไม่ test meaning
+Layer 1 — Astronomy Engine (Physics)
+  - หน้าที่: คำนวณค่าพิกัดดาราศาสตร์แม่นยำสูง
+  - ฐาน: Swiss Ephemeris + Sidereal Zodiac
+  - Output: Longitude, Speed, Navamsa, Nakshatras
 
-Rule 2 — Immutability of Natal Chart
-  - natal chart = immutable snapshot ณ วันเกิด
-  - ห้าม mutate หลัง save
-  - divisional charts (D3, D9, ...) ถูก precompute ตอน save ไม่ใช่ตอน request
+Layer 2 — Logic Engine (Mechanics)
+  - หน้าที่: ประมวลผลกฎเกณฑ์ทางโหราศาสตร์
+  - ระบบ: Rule-based IF-THEN Logic
+  - งาน: House Lord mapping, Yoga detection, Dasha activation, Aspect calculation
+  - Output: ข้อมูลดิบที่ผ่านการตีความเชิงตรรกะ (Machine-readable)
 
-───────────────────────────────────────────────
-Caching Layer
-───────────────────────────────────────────────
-
-Cache Key:
-  birth_date + birth_time + location (lat, lon) + ayanamsa_mode
-
-Strategy:
-  □ Natal chart → cache ถาวร (immutable, ไม่มี expire)
-  □ Divisional charts (D3/D9) → precompute ตอน save natal chart
-  □ Transit / Realtime → ไม่ cache (คำนวณใหม่ทุกครั้ง)
-
-Implementation (ทำทีหลัง ตอน API Layer):
-  □ Cache backend: Redis หรือ in-memory dict (สำหรับ dev)
-  □ Cache key hashing: SHA256(birth_date|birth_time|lat|lon|ayanamsa)
-  □ Cache miss → compute → store
-  □ Cache hit → return immediately
+Layer 3 — Narrative Engine (Semantics)
+  - หน้าที่: แปลงข้อมูลเป็นภาษามนุษย์และการมองเห็น (Visualization)
+  - ระบบ: Semantic Mapping & Scoring Engine
+  - งาน: แปลรหัส "มหาจักร/ราชาโชค", ระบบ Astro Score Dashboard, Life Timeline Visualization
+  - Output: คำทำนายและแนวโน้มชีวิต (Human-readable Dashboard)
 
 ───────────────────────────────────────────────
-Plan 2 — Interpretation & Analysis (Next Steps)
+Methodology: Thai-Vedic Hybrid (Astro OS Vision)
 ───────────────────────────────────────────────
 
-Computation & Logic:
-  [ ] Shadbala (กำลังดาว 6 ประการ) - คำนวณค่าตัวเลขจริง
-  [ ] Special Yogas (เกณฑ์พิเศษ) - ระบบ Rule Engine ตรวจสอบเกณฑ์ต่างๆ
-  [ ] Rashi Drishti (การเล็งระหว่างราศี)
-  [ ] Ashtakavarga (คะแนนความเข้มแข็งรายราศี)
+"สร้างระบบจัดระเบียบความซับซ้อน ไม่ใช่แค่แอปดูดวง"
 
-Persistence & System:
+1. Vedic for Calculation & Timeline:
+   - ใช้ความแม่นยำของอินเดียในการหา "เมื่อไหร่" (Vimshottari Dasha)
+   - ใช้ระบบกำลังดาว (Shadbala) เป็นตัวเลขวัดความเข้มแข็งเชิงคณิตศาสตร์
+
+2. Thai for Semantic & Quality:
+   - ใช้ความลุ่มลึกของไทยในการหา "อย่างไร/คุณภาพแค่ไหน" (มหาจักร, ราชาโชค)
+   - ใช้รหัสวิชาไทยในการบีบอัดข้อมูลที่ซับซ้อนให้เป็น Symbolic ที่ทรงพลัง
+
+3. Event Probability Layer:
+   - เปลี่ยนจากคำทำนายแบบข้อความนิ่งๆ เป็นระบบตรวจจับแนวโน้ม (Life Trend Detection)
+
+───────────────────────────────────────────────
+Plan 2 — Interpretation & Analysis (Building Layer 2 & 3)
+───────────────────────────────────────────────
+
+Phase 2.1: The Logic Core
+  [ ] House Lord Mapping - ระบบผูกดาวเจ้าเรือน 12 ภพ (พื้นฐาน Layer 2)
+  [ ] Yoga Rule Engine - ระบบตรวจจับเกณฑ์และโยคต่างๆ (เริ่มต้น)
+  [ ] Rahu/Ketu Dignity Update - เพิ่มมาตรฐานไทยของราหู-เกตุลง Backend
+
+Phase 2.2: The Narrative Dashboard
+  [ ] Astro Score Engine - ระบบคำนวณคะแนนแยกตามด้านชีวิต (Wealth, Career, Love)
+  [ ] RightPanel Redesign - รวมกำลังดาวและเกณฑ์พิเศษเข้าด้วยกัน
+  [ ] Proportional Dasha Bar - แถบทศาแสดงตามสัดส่วนเวลาจริง
+
+Phase 2.3: System & Persistence
   [ ] History Persistence (SQLite/PostgreSQL) - เก็บข้อมูลลง DB ถาวร
-  [ ] User Session / Multi-user support
-  [ ] PDF Export (ออกใบพยากรณ์)
+  [ ] PDF/Report Export - ระบบออกใบพยากรณ์สวยงาม
