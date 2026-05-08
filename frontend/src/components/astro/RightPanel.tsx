@@ -225,7 +225,7 @@ export function RightPanel({ chartData, chartType, selectedPlanet, onSelectPlane
                                     <span className="text-[9px] text-muted-foreground">{d.sign.symbol}</span>
                                 </div>
                                 <div className="flex gap-1">
-                                    {(p.dignity_list || [dignity]).map((s: string) => (
+                                    {(Array.isArray(p.dignity_list) ? p.dignity_list : [dignity]).map((s: string) => (
                                         <span key={s} className={`px-1 rounded-[2px] text-[8px] ${getDignityStyle(s)}`}>
                                             {s}
                                         </span>
@@ -251,7 +251,7 @@ export function RightPanel({ chartData, chartType, selectedPlanet, onSelectPlane
                                     <span className="text-[9px] text-muted-foreground">{d.sign.symbol}</span>
                                 </div>
                                 <div className="flex gap-1">
-                                    {(p.dignity_list || [dignity]).map((s: string) => (
+                                    {(Array.isArray(p.dignity_list) ? p.dignity_list : [dignity]).map((s: string) => (
                                         <span key={s} className={`px-1 rounded-[2px] text-[8px] ${getDignityStyle(s)}`}>
                                             {s}
                                         </span>
