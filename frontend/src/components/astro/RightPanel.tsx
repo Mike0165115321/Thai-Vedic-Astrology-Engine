@@ -266,14 +266,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                   </tbody>
                 </table>
                 
-                <div className="p-4 border-t border-border/50 bg-muted/10">
-                    <div className="text-[10px] uppercase font-bold text-muted-foreground mb-3 tracking-widest">เกณฑ์พิเศษ (Yogas)</div>
-                    <div className="p-6 text-center text-muted-foreground/40 italic text-[10px] border border-dashed border-border/50 rounded-lg">
-                        กำลังคำนวณเกณฑ์ดาวและโยค...
-                    </div>
-                </div>
-
-                <div className="text-[12px] text-muted-foreground italic text-center py-8 opacity-40">
+                <div className="text-[12px] text-muted-foreground italic text-center py-8 opacity-40 border-t border-border/50">
                     กำลังดาว (Shadbala) กำลังถูกคำนวณ...
                 </div>
               </div>
