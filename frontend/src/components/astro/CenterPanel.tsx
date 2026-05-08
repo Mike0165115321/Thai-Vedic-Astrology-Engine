@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Filter, Clock } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Filter, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
 import { ASPECTS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
@@ -45,7 +45,8 @@ export function CenterPanel({
   setSynastryFocus
 }: Props) {
   const [age, setAge] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [timelineScale, setTimelineScale] = useState<30 | 60 | 90 | 120>(120);
+  const [timelineOffset, setTimelineOffset] = useState(0);
   const [showTransit, setShowTransit] = useState(true);
   const [enabled, setEnabled] = useState<string[]>(ASPECTS.map((a) => a.type));
   const [tDay, setTDay] = useState("");
@@ -140,8 +141,7 @@ export function CenterPanel({
                 </div>
              </div>
 
-             {/* D3 and D9 Bottom Row */}
-             <div className="flex flex-wrap justify-center gap-12 mt-2">
+             <div className="flex flex-wrap justify-center gap-10">
                 {/* D9 */}
                 <div className="flex flex-col items-center group">
                    <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -335,6 +335,53 @@ export function CenterPanel({
                 className="bg-transparent text-primary font-bold text-center w-10 outline-none"
               />
             </div>
+            
+            {/* Scale Selector - Moved Here */}
+            <span className="mx-2 text-border">|</span>
+            <div className="flex gap-1 items-center bg-black/20 rounded-lg p-0.5 border border-white/5">
+                {timelineScale < 120 && (
+                   <button 
+                     onClick={() => {
+                        const nextOffset = Math.max(0, timelineOffset - timelineScale);
+                        setTimelineOffset(nextOffset);
+                        setAge(nextOffset);
+                        onAgeChange(nextOffset);
+                     }}
+                     className="px-1.5 py-0.5 text-muted-foreground hover:text-primary transition-colors"
+                   >
+                     <ChevronLeft className="h-3 w-3" />
+                   </button>
+                )}
+                {[30, 60, 90, 120].map((s) => (
+                    <button
+                        key={s}
+                        onClick={() => {
+                          setTimelineScale(s as any);
+                          setTimelineOffset(Math.floor(age / s) * s);
+                        }}
+                        className={`px-2 py-0.5 rounded text-[9px] font-black transition-all ${
+                        timelineScale === s 
+                        ? "bg-primary text-black shadow-[0_0_10px_rgba(var(--primary-rgb),0.4)]" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                        }`}
+                    >
+                        {s === 120 ? "ทั้งหมด" : `${s} ปี`}
+                    </button>
+                ))}
+                {timelineScale < 120 && (
+                   <button 
+                     onClick={() => {
+                        const nextOffset = Math.min(120 - timelineScale, timelineOffset + timelineScale);
+                        setTimelineOffset(nextOffset);
+                        setAge(nextOffset);
+                        onAgeChange(nextOffset);
+                     }}
+                     className="px-1.5 py-0.5 text-muted-foreground hover:text-primary transition-colors"
+                   >
+                     <ChevronRight className="h-3 w-3" />
+                   </button>
+                )}
+            </div>
           </div>
           <div className="flex gap-1 text-[10px] text-muted-foreground">
             <button 
@@ -351,66 +398,81 @@ export function CenterPanel({
             >+1 ปี</button>
           </div>
         </div>
-        {/* Dasha Scrubber Integration */}
+        {/* Dasha Scrubber Integration with Zoom */}
         {chartData?.dasha_timeline && (
-          <div className="relative mb-6 h-4 w-full rounded-full overflow-hidden border border-white/5 bg-black/40 shadow-inner group">
-             {(() => {
-                const tl = chartData.dasha_timeline;
-                const firstStart = new Date(tl[0].start).getTime();
-                const lastEnd = new Date(tl[tl.length - 1].end).getTime();
-                const totalDuration = lastEnd - firstStart;
-                let currentLeft = 0;
-
-                return tl.map((d) => {
-                    const start = new Date(d.start).getTime();
-                    const end = new Date(d.end).getTime();
-                    const width = ((end - start) / totalDuration) * 100;
-                    const left = currentLeft;
-                    currentLeft += width;
-
-                    const colors: any = { Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981", Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF" };
-                    const nums: any = { Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔", Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙" };
+          <div className="relative mb-6">
+             <div className="flex justify-end mb-1">
+                {/* Antardasha Micro-indicator */}
+                {(() => {
+                    const tl = chartData.dasha_timeline;
+                    const firstStart = new Date(tl[0].start).getTime();
+                    const targetMs = firstStart + (age * 31556926000);
+                    const currentM = tl.find(d => targetMs >= new Date(d.start).getTime() && targetMs < new Date(d.end).getTime()) || tl[0];
+                    if (!currentM || !currentM.antardashas) return null;
+                    const currentA = currentM.antardashas.find(a => targetMs >= new Date(a.start).getTime() && targetMs < new Date(a.end).getTime());
+                    if (!currentA) return null;
                     
-                    const targetMs = firstStart + (age * 31556926000); 
-                    const isActive = targetMs >= start && targetMs < end;
-
                     return (
-                        <div key={d.planet + d.start}
-                            className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[8px] font-black text-black transition-all ${isActive ? "opacity-100 ring-2 ring-white/50 z-10" : "opacity-30"}`}
-                            style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
-                        >
-                            {nums[d.planet]}
+                        <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                            <span className="text-[9px] font-black text-primary uppercase tracking-widest">
+                                {planetThaiNames[currentM.planet]} / {planetThaiNames[currentA.planet]}
+                            </span>
                         </div>
                     );
-                });
-             })()}
-             
-             {/* Antardasha Micro-indicator */}
-             {(() => {
-                const tl = chartData.dasha_timeline;
-                const firstStart = new Date(tl[0].start).getTime();
-                const targetMs = firstStart + (age * 31556926000);
-                const currentM = tl.find(d => targetMs >= new Date(d.start).getTime() && targetMs < new Date(d.end).getTime()) || tl[0];
-                
-                if (!currentM || !currentM.antardashas) return null;
-                const currentA = currentM.antardashas.find(a => targetMs >= new Date(a.start).getTime() && targetMs < new Date(a.end).getTime());
-                if (!currentA) return null;
-                
-                return (
-                    <div className="absolute top-0 left-0 w-full h-full pointer-events-none flex items-end justify-center pb-0.5">
-                        <span className="bg-black/80 text-white text-[7px] px-1 rounded-sm border border-white/20 uppercase font-black tracking-tighter">
-                            {planetThaiNames[currentM.planet]} / {planetThaiNames[currentA.planet]}
-                        </span>
-                    </div>
-                );
-             })()}
+                })()}
+             </div>
+
+             {/* The Bar */}
+             <div className="relative h-4 w-full rounded-full overflow-hidden border border-white/5 bg-black/40 shadow-inner group">
+                {(() => {
+                    const tl = chartData.dasha_timeline;
+                    const firstStart = new Date(tl[0].start).getTime();
+                    
+                    // Window Logic
+                    const windowStartAge = timelineOffset;
+                    const windowEndAge = Math.min(120, timelineOffset + timelineScale);
+                    
+                    const windowStartMs = firstStart + (windowStartAge * 31556926000);
+                    const windowEndMs = firstStart + (windowEndAge * 31556926000);
+                    const windowDuration = windowEndMs - windowStartMs;
+
+                    return tl.map((d) => {
+                        const start = new Date(d.start).getTime();
+                        const end = new Date(d.end).getTime();
+                        
+                        // Crop to window
+                        const displayStart = Math.max(start, windowStartMs);
+                        const displayEnd = Math.min(end, windowEndMs);
+                        
+                        if (displayStart >= displayEnd) return null;
+
+                        const width = ((displayEnd - displayStart) / windowDuration) * 100;
+                        const left = ((displayStart - windowStartMs) / windowDuration) * 100;
+
+                        const colors: any = { Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981", Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF" };
+                        const nums: any = { Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔", Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙" };
+                        
+                        const targetMs = firstStart + (age * 31556926000); 
+                        const isActive = targetMs >= start && targetMs < end;
+
+                        return (
+                            <div key={d.planet + d.start}
+                                className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[9px] font-black text-black transition-all ${isActive ? "opacity-100 ring-2 ring-white/50 z-10 scale-y-110" : "opacity-30"}`}
+                                style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
+                            >
+                                {nums[d.planet]}
+                            </div>
+                        );
+                    });
+                })()}
+             </div>
           </div>
         )}
 
         <input
           type="range"
-          min="0"
-          max="120"
+          min={timelineOffset}
+          max={Math.min(120, timelineOffset + timelineScale)}
           step="0.0001"
           value={age}
           onChange={(e) => {
@@ -421,26 +483,21 @@ export function CenterPanel({
           className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-border accent-primary transition-all hover:bg-muted focus:outline-none"
         />
         <div className="mt-2 flex justify-between px-1 text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">
-          <div className="flex flex-col items-start">
-             <span>0 ปี (แรกเกิด)</span>
-             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543}</span>}
-          </div>
-          <div className="flex flex-col items-center">
-             <span>30 ปี</span>
-             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+30}</span>}
-          </div>
-          <div className="flex flex-col items-center">
-             <span>60 ปี</span>
-             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+60}</span>}
-          </div>
-          <div className="flex flex-col items-center">
-             <span>90 ปี</span>
-             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+90}</span>}
-          </div>
-          <div className="flex flex-col items-end">
-             <span>120 ปี</span>
-             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+120}</span>}
-          </div>
+          {(() => {
+             const windowStartAge = timelineOffset;
+             const birthYear = chartData?.dasha_timeline ? new Date(chartData.dasha_timeline[0].start).getFullYear() + 543 : 2549;
+             
+             return [0, 1, 2, 3, 4].map(i => {
+                const markerAge = windowStartAge + (i * (timelineScale / 4));
+                if (markerAge > 120) return null;
+                return (
+                    <div key={i} className={`flex flex-col ${i === 0 ? "items-start" : i === 4 ? "items-end" : "items-center"}`}>
+                        <span>{markerAge} ปี</span>
+                        <span className="text-[7px] opacity-60">พ.ศ. {birthYear + Math.floor(markerAge)}</span>
+                    </div>
+                );
+             });
+          })()}
         </div>
       </div>
     </section>
