@@ -160,6 +160,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
             {t}
           </button>
         ))}
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto">
