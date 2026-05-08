@@ -89,8 +89,6 @@ def scan_transits(
                     if not p_details: continue
                     
                     event["timestamp"] = current_time.isoformat()
-                    event["jd"] = jd
-                    event["longitude"] = p_details["longitude"]
                     event["degree_text"] = f"{int(p_details['degree_in_sign'])}°{int((p_details['degree_in_sign'] % 1) * 60)}'"
                     event["dignity"] = p_details["dignity"]
                     event["dignity_list"] = p_details["dignity_list"]

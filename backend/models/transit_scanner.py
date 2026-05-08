@@ -23,10 +23,8 @@ class TransitEvent(BaseModel):
     from_sign: Optional[int] = None
     to_sign: Optional[int] = None
     status: Optional[str] = None
-    jd: float
     
     # Advanced Details
-    longitude: float
     degree_text: str
     dignity: str
     dignity_list: List[str]
@@ -39,6 +37,8 @@ class TransitEvent(BaseModel):
     yogas: List[str] = []
 
 class TransitScanResponse(BaseModel):
+    natal_chart: Optional[Dict[str, Any]] = None
+    initial_transits: Optional[Dict[str, Any]] = None
     events: List[TransitEvent]
     total_events: int
     scan_period_days: int

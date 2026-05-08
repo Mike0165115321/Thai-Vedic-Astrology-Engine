@@ -77,7 +77,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">Advanced Transit Scanner</h2>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ระบบวิเคราะห์ดาวจรเชิงลึก (150 ปี)</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ระบบวิเคราะห์ดาวจรเชิงลึก (120 ปี)</p>
             </div>
           </div>
           <button onClick={onClose} className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
@@ -107,25 +107,32 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Calendar className="h-4 w-4 text-primary" /> อายุเริ่มต้น
+                <Calendar className="h-4 w-4 text-primary" /> ช่วงอายุ
               </label>
               <input 
                 type="number" 
                 value={startAge}
+                min={0}
+                max={120}
                 onChange={(e) => setStartAge(parseInt(e.target.value) || 0)}
                 className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm focus:border-primary focus:outline-none"
               />
             </div>
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Calendar className="h-4 w-4 text-primary" /> อายุสิ้นสุด
+                <Calendar className="h-4 w-4 text-primary" /> ถึง
               </label>
               <input 
                 type="number" 
                 value={endAge}
+                min={0}
+                max={120}
                 onChange={(e) => setEndAge(parseInt(e.target.value) || 0)}
                 className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm focus:border-primary focus:outline-none"
               />
+              <p className="text-[10px] text-muted-foreground px-1 italic">
+                * สแกนได้สูงสุด 120 ปี ต่อการวิเคราะห์ 1 ครั้ง
+              </p>
             </div>
           </div>
 
