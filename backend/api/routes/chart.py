@@ -59,8 +59,12 @@ def calculate_birth_chart(data: BirthData):
     vedic_aspects = calculate_vedic_aspects(planets_with_houses)
     
     # 7. Layer 1E: Divisional Charts
-    d3_planets, d3_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D3")
-    d9_planets, d9_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D9")
+    d3_planets_raw, d3_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D3")
+    d9_planets_raw, d9_lagna = get_divisional_positions(planets_with_houses, lagna_data=lagna, division="D9")
+
+    # Map Divisional Planets to their respective Divisional Houses
+    d3_planets = map_planets_to_houses(d3_planets_raw, d3_lagna["sign"])
+    d9_planets = map_planets_to_houses(d9_planets_raw, d9_lagna["sign"])
 
     # Calculate aspects for divisional charts
     d3_western_aspects = calculate_western_aspects(d3_planets, custom_orb=data.aspect_orb)
@@ -77,12 +81,26 @@ def calculate_birth_chart(data: BirthData):
     house_lords = get_house_lords(lagna_sign)
     planet_lordships = get_planet_lordships(lagna_sign)
     
+    d3_house_lords = get_house_lords(d3_lagna["sign"])
+    d3_planet_lordships = get_planet_lordships(d3_lagna["sign"])
+
+    d9_house_lords = get_house_lords(d9_lagna["sign"])
+    d9_planet_lordships = get_planet_lordships(d9_lagna["sign"])
+    
     # Attach lordship to planets for easy frontend access
     for name, p_data in planets_with_houses.items():
         p_data["lordships"] = planet_lordships.get(name, [])
 
+    for name, p_data in d3_planets.items():
+        p_data["lordships"] = d3_planet_lordships.get(name, [])
+
+    for name, p_data in d9_planets.items():
+        p_data["lordships"] = d9_planet_lordships.get(name, [])
+
     # 11. Yoga Detection (Layer 2)
     detected_yogas = detect_yogas(planets_with_houses, lagna_sign, house_lords)
+    d3_detected_yogas = detect_yogas(d3_planets, d3_lagna["sign"], d3_house_lords)
+    d9_detected_yogas = detect_yogas(d9_planets, d9_lagna["sign"], d9_house_lords)
 
     return {
         "julian_date": jd,
@@ -102,7 +120,11 @@ def calculate_birth_chart(data: BirthData):
         "lunar_data": lunar_data,
         "dasha_timeline": dasha_timeline,
         "house_lords": house_lords,
-        "yogas": detected_yogas
+        "d3_house_lords": d3_house_lords,
+        "d9_house_lords": d9_house_lords,
+        "yogas": detected_yogas,
+        "d3_yogas": d3_detected_yogas,
+        "d9_yogas": d9_detected_yogas
     }
 
 @router.post("/", response_model=BirthChart)

@@ -44,13 +44,17 @@ export interface ChartData {
   planets: { [key: string]: Planet };
   houses: { [key: string]: number };
   house_lords: { [key: number]: { planet: string; sign: number; name: string } };
+  d3_house_lords?: { [key: number]: { planet: string; sign: number; name: string } };
+  d9_house_lords?: { [key: number]: { planet: string; sign: number; name: string } };
   yogas: any[];
+  d3_yogas?: any[];
+  d9_yogas?: any[];
   western_aspects: any[];
   d3_western_aspects?: any[];
   d9_western_aspects?: any[];
   vedic_aspects: any[];
-  d3: { [key: string]: { sign: number; longitude: number; dignity?: string; dignity_list?: string[] } };
-  d9: { [key: string]: { sign: number; longitude: number; dignity?: string; dignity_list?: string[] } };
+  d3: { [key: string]: Planet };
+  d9: { [key: string]: Planet };
   d3_lagna?: Lagna;
   d9_lagna?: Lagna;
   lunar_data: {

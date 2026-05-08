@@ -279,8 +279,9 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                       }
 
                       // Single Chart View Logic
-                      const currentPlanets = chartData ? Object.entries(chartData.planets).map(([name, p]: [string, any]) => {
-                        const naks = chartData.lunar_data?.planet_nakshatras?.[name];
+                      const currentPlanetDict = chartType === "D3" ? chartData?.d3 : chartType === "D9" ? chartData?.d9 : chartData?.planets;
+                      const currentPlanets = currentPlanetDict ? Object.entries(currentPlanetDict).map(([name, p]: [string, any]) => {
+                        const naks = chartData?.lunar_data?.planet_nakshatras?.[name];
                         const thaiNak = naks ? getThaiNak(naks.index) : null;
                         
                         let rawList = Array.isArray(p.dignity_list) ? p.dignity_list : (p.dignity ? [p.dignity] : []);
@@ -309,15 +310,16 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                           house: p.house,
                           dignity: p.dignity || "ปกติ",
                           dignityList: allStatuses,
-                          nakshatra: thaiNak ? `${thaiNak.name} (${naks.pada})` : "—",
+                          nakshatra: thaiNak ? `${thaiNak.name} (${naks?.pada})` : "—",
                           color: planetColors[name] || "var(--accent)",
                           cData: chartData
                         }
                       }) : [];
 
                       const combinedData = [];
-                      if (chartData?.lagna) {
-                          const n = chartData.lunar_data?.lagna_nakshatra;
+                      const currentLagnaData = chartType === "D3" ? chartData?.d3_lagna : chartType === "D9" ? chartData?.d9_lagna : chartData?.lagna;
+                      if (currentLagnaData) {
+                          const n = chartData?.lunar_data?.lagna_nakshatra;
                           const t = n ? getThaiNak(n.index) : null;
                           combinedData.push({
                               isLagna: true,
@@ -325,8 +327,8 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                               nameInEng: "Lagna",
                               symbol: "ลั",
                               color: "var(--warning)",
-                              lon: chartData.lagna.longitude,
-                              nakshatra: t ? `${t.name} (${n.pada})` : "—",
+                              lon: currentLagnaData.longitude,
+                              nakshatra: t ? `${t.name} (${n?.pada})` : "—",
                               house: 1,
                               dignityList: [],
                               retro: false,
@@ -340,13 +342,37 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                           const isSelected = selectedPlanet === p.nameInEng;
                           const houseName = typeof p.house === 'number' ? HOUSE_NAMES_TH[p.house - 1] : "—";
                           
-                          const lordOf = p.cData?.house_lords ? 
-                                         Object.entries(p.cData.house_lords)
+                          const currentLords = chartType === "D3" ? p.cData?.d3_house_lords : chartType === "D9" ? p.cData?.d9_house_lords : p.cData?.house_lords;
+                          const lordOf = currentLords ? 
+                                         Object.entries(currentLords)
                                                .filter(([_, data]) => (data as any).planet === p.nameInEng)
                                                .map(([hNum, _]) => HOUSE_NAMES_TH[parseInt(hNum) - 1]) 
                                          : [];
 
-                          const yogas = p.cData?.yogas ? p.cData.yogas.filter((y: any) => y.planet === p.nameInEng) : [];
+                          const currentYogas = chartType === "D3" ? p.cData?.d3_yogas : chartType === "D9" ? p.cData?.d9_yogas : p.cData?.yogas;
+                          let yogas = currentYogas ? currentYogas.filter((y: any) => {
+                            if (p.isLagna) {
+                              const relevantCategories = [
+                                "life_path", "power", "abundance", "wealth", "affliction",
+                                "raja_yoga", "exchange", "viparita", "cancellation", "wisdom", "support"
+                              ];
+                              return y.planet === "Lagna" || relevantCategories.includes(y.category);
+                            }
+                            return y.planet === p.nameInEng;
+                          }) : [];
+
+                          if (p.isLagna) {
+                              // Group yogas by name to avoid duplicate badges, but combine descriptions
+                              const grouped = yogas.reduce((acc: any, y: any) => {
+                                  if (!acc[y.name]) {
+                                      acc[y.name] = { ...y };
+                                  } else {
+                                      acc[y.name].description += `\n• ${y.description}`;
+                                  }
+                                  return acc;
+                              }, {});
+                              yogas = Object.values(grouped);
+                          }
 
                           return (
                               <div key={`${p.nameInEng}-${idx}`} 
@@ -386,10 +412,32 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                                           <span className="text-muted-foreground/60 block text-[10px] font-bold uppercase tracking-wider mb-1">นักษัตร</span>
                                           <span className="text-white font-bold">{p.nakshatra}</span>
                                       </div>
-                                      {lordOf.length > 0 && (
+                                      {(lordOf.length > 0 || p.isLagna) && (
                                           <div>
-                                              <span className="text-muted-foreground/60 block text-[10px] font-bold uppercase tracking-wider mb-1">เจ้าเรือน</span>
-                                              <span className="text-sky-300 font-bold">{lordOf.join(", ")}</span>
+                                              <span className="text-muted-foreground/60 block text-[10px] font-bold uppercase tracking-wider mb-1">
+                                                {p.isLagna ? "ตนุลัคน์" : "เจ้าเรือน"}
+                                              </span>
+                                              <span className="text-sky-300 font-bold">
+                                                {p.isLagna 
+                                                  ? (() => {
+                                                      // Primary: Use backend data
+                                                      let rulerName = currentLords?.[1]?.planet;
+                                                      
+                                                      // Fallback: If old chart data is loaded without d3/d9 lords
+                                                      if (!rulerName) {
+                                                        const sign = currentLagnaData?.sign;
+                                                        if (sign) {
+                                                          const rulers: { [key: number]: string } = {
+                                                            1: "Mars", 2: "Venus", 3: "Mercury", 4: "Moon", 5: "Sun", 6: "Mercury",
+                                                            7: "Venus", 8: "Mars", 9: "Jupiter", 10: "Saturn", 11: "Rahu", 12: "Jupiter"
+                                                          };
+                                                          rulerName = rulers[sign];
+                                                        }
+                                                      }
+                                                      return (rulerName && planetThaiNames[rulerName]) || rulerName || "—";
+                                                    })()
+                                                  : lordOf.join(", ")}
+                                              </span>
                                           </div>
                                       )}
                                   </div>
@@ -468,19 +516,19 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                                                             <>
                                                                 <div className="flex items-center gap-1.5 bg-blue-500/5 px-2 py-1 rounded-lg border border-blue-500/20">
                                                                     <span className="text-blue-400 text-[9px] font-bold">คนที่ 1</span>
-                                                                    <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p1] || a.p1}</span>
+                                                                    <span className="font-bold text-white text-[13px]">{a.p1 ? (planetThaiNames[a.p1] || a.p1) : "—"}</span>
                                                                 </div>
                                                                 <span className="text-muted-foreground/50 text-[10px] px-1">ทำมุมกับ</span>
                                                                 <div className="flex items-center gap-1.5 bg-pink-500/5 px-2 py-1 rounded-lg border border-pink-500/20">
                                                                     <span className="text-pink-400 text-[9px] font-bold">คนที่ 2</span>
-                                                                    <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p2] || a.p2}</span>
+                                                                    <span className="font-bold text-white text-[13px]">{a.p2 ? (planetThaiNames[a.p2] || a.p2) : "—"}</span>
                                                                 </div>
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p1] || a.p1}</span>
+                                                                <span className="font-bold text-white text-[13px]">{a.p1 ? (planetThaiNames[a.p1] || a.p1) : "—"}</span>
                                                                 <span className="text-muted-foreground/30 text-[11px]">+</span>
-                                                                <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p2] || a.p2}</span>
+                                                                <span className="font-bold text-white text-[13px]">{a.p2 ? (planetThaiNames[a.p2] || a.p2) : "—"}</span>
                                                             </>
                                                         )}
                                                     </div>
