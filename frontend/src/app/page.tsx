@@ -261,6 +261,9 @@ export default function Home() {
     }
   };
 
+  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [showLeftPanel, setShowLeftPanel] = useState(true);
+
   if (!hasMounted) return null;
 
   return (
@@ -271,49 +274,98 @@ export default function Home() {
         onChartTypeChange={setChartType}
       />
       
-      <main className="grid flex-1 overflow-hidden" style={{ gridTemplateColumns: "20% 55% 25%" }}>
-        <LeftPanel 
-          mode={mode} 
-          setMode={setMode} 
-          onCalculate={calculateChart} 
-          onCalculateCompare={calculateCompare}
-          loading={loading}
-          history={history}
-          onSelectHistory={(item) => {
-              calculateChart(item.formData);
-          }}
-          onDeleteHistory={async (id) => {
-              await fetch(`http://localhost:8000/history/${id}`, { method: "DELETE" });
-              setHistory(history.filter(h => h.id !== id));
-          }}
-        />
+      <main className="flex flex-1 overflow-hidden relative">
+        {/* Left Panel (Sliding Drawer) */}
+        <div 
+          className="h-full flex-shrink-0 border-r border-border/40 bg-background transition-all duration-500 ease-in-out z-20 overflow-hidden"
+          style={{ width: showLeftPanel ? "280px" : "0px" }}
+        >
+          <div 
+            className="w-[280px] h-full transition-transform duration-500 ease-in-out"
+            style={{ transform: showLeftPanel ? "translateX(0)" : "translateX(-100%)" }}
+          >
+            <LeftPanel 
+              mode={mode} 
+              setMode={setMode} 
+              onCalculate={calculateChart} 
+              onCalculateCompare={calculateCompare}
+              loading={loading}
+              history={history}
+              onSelectHistory={(item) => calculateChart(item.formData)}
+              onDeleteHistory={async (id) => {
+                  await fetch(`http://localhost:8000/history/${id}`, { method: "DELETE" });
+                  setHistory(history.filter(h => h.id !== id));
+              }}
+            />
+          </div>
+        </div>
         
-        <CenterPanel 
-          chartData={chartData}
-          transitData={transitData}
-          compareData={compareData}
-          mode={mode}
-          displayChartData={displayChartData}
-          displayTransitData={displayTransitData}
-          getDivisionalData={getDivisionalData}
-          loading={loading}
-          chartType={chartType}
-          onAgeChange={handleTransitAgeChange}
-          selectedPlanet={selectedPlanet}
-          onSelectPlanet={setSelectedPlanet}
-          synastryFocus={synastryFocus}
-          setSynastryFocus={setSynastryFocus}
-        />
+        {/* Center Panel */}
+        <div className="flex-1 h-full relative z-10 overflow-hidden bg-black/20">
+          <CenterPanel 
+            chartData={chartData}
+            transitData={transitData}
+            compareData={compareData}
+            mode={mode}
+            displayChartData={displayChartData}
+            displayTransitData={displayTransitData}
+            getDivisionalData={getDivisionalData}
+            loading={loading}
+            chartType={chartType}
+            onAgeChange={handleTransitAgeChange}
+            selectedPlanet={selectedPlanet}
+            onSelectPlanet={setSelectedPlanet}
+            synastryFocus={synastryFocus}
+            setSynastryFocus={setSynastryFocus}
+          />
+          
+          {/* Left Panel Toggle Button */}
+          <button
+            onClick={() => setShowLeftPanel(!showLeftPanel)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-50 flex h-14 w-5 items-center justify-center rounded-r-md border border-l-0 border-border bg-card/90 text-muted-foreground hover:bg-primary hover:text-black transition-all shadow-[5px_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md"
+            title={showLeftPanel ? "พับแผงด้านซ้าย" : "แสดงแผงด้านซ้าย"}
+          >
+            {showLeftPanel ? (
+              <span className="text-[10px]">◀</span>
+            ) : (
+              <span className="text-[10px]">▶</span>
+            )}
+          </button>
+
+          {/* Right Panel Toggle Button */}
+          <button
+            onClick={() => setShowRightPanel(!showRightPanel)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-50 flex h-14 w-5 items-center justify-center rounded-l-md border border-r-0 border-border bg-card/90 text-muted-foreground hover:bg-primary hover:text-black transition-all shadow-[-5px_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md"
+            title={showRightPanel ? "พับแผงด้านขวา" : "แสดงแผงด้านขวา"}
+          >
+            {showRightPanel ? (
+              <span className="text-[10px]">▶</span>
+            ) : (
+              <span className="text-[10px]">◀</span>
+            )}
+          </button>
+        </div>
         
-        <RightPanel 
-          chartData={displayChartData}
-          compareData={compareData}
-          mode={mode}
-          chartType={chartType}
-          selectedPlanet={selectedPlanet}
-          onSelectPlanet={setSelectedPlanet}
-          onAgeChange={handleTransitAgeChange}
-        />
+        {/* Right Panel (Sliding Drawer) */}
+        <div 
+          className="h-full flex-shrink-0 border-l border-border/40 bg-background transition-all duration-500 ease-in-out z-20 overflow-hidden"
+          style={{ width: showRightPanel ? "340px" : "0px" }}
+        >
+          <div 
+            className="w-[340px] h-full transition-transform duration-500 ease-in-out"
+            style={{ transform: showRightPanel ? "translateX(0)" : "translateX(100%)" }}
+          >
+            <RightPanel 
+              chartData={displayChartData}
+              compareData={compareData}
+              mode={mode}
+              chartType={chartType}
+              selectedPlanet={selectedPlanet}
+              onSelectPlanet={setSelectedPlanet}
+              onAgeChange={handleTransitAgeChange}
+            />
+          </div>
+        </div>
       </main>
 
 

@@ -145,7 +145,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                             personFocus === "A" ? "bg-[#3b82f6] text-white shadow-lg" : "text-muted-foreground hover:bg-muted"
                         }`}
                     >
-                        คนที่ 1 (Person A)
+                        คนที่ 1
                     </button>
                     <button 
                         onClick={() => setPersonFocus("B")}
@@ -153,7 +153,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                             personFocus === "B" ? "bg-white text-black shadow-lg" : "text-muted-foreground hover:bg-muted"
                         }`}
                     >
-                        คนที่ 2 (Person B)
+                        คนที่ 2
                     </button>
                 </div>
             )}
@@ -234,7 +234,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                     <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
                       <th className="px-4 py-3 font-semibold">ดาว</th>
                       <th className="px-4 py-3 font-semibold">ราศี</th>
-                      <th className="px-4 py-3 font-semibold">สถานะทั้งหมด ({chartType})</th>
+                      <th className="px-4 py-3 font-semibold">สถานะดาว ({chartType})</th>
                     </tr>
                   </thead>
                   <tbody>

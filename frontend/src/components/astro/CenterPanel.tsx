@@ -55,6 +55,7 @@ export function CenterPanel({
   const [tYear, setTYear] = useState("");
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [showBottomPanel, setShowBottomPanel] = useState(true);
 
   // Sync date string when transit data changes
   useEffect(() => {
@@ -124,7 +125,8 @@ export function CenterPanel({
         <div className="absolute bottom-8 right-6 z-50 flex flex-col items-center gap-2 bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/5 p-1.5 rounded-full transition-all shadow-xl group/zoom">
             <button 
                 onClick={() => setZoomLevel(prev => Math.min(3, prev + 0.5))}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white transition-colors"
+                disabled={zoomLevel >= 3}
+                className={`w-7 h-7 flex items-center justify-center rounded-full transition-colors ${zoomLevel >= 3 ? "bg-white/5 text-white/20 cursor-not-allowed" : "bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white"}`}
                 title="ซูมเข้า"
             >
                 <Plus className="w-3.5 h-3.5" />
@@ -137,85 +139,108 @@ export function CenterPanel({
             </div>
             <button 
                 onClick={() => setZoomLevel(prev => Math.max(1, prev - 0.5))}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white transition-colors"
+                disabled={zoomLevel <= 1}
+                className={`w-7 h-7 flex items-center justify-center rounded-full transition-colors ${zoomLevel <= 1 ? "bg-white/5 text-white/20 cursor-not-allowed" : "bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white"}`}
                 title="ซูมออก"
             >
                 <Minus className="w-3.5 h-3.5" />
             </button>
             <button 
                 onClick={() => setZoomLevel(1)}
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 text-primary/50 group-hover/zoom:text-primary transition-colors mt-0.5"
-                title="รีเซ็ต"
+                disabled={zoomLevel <= 1}
+                className={`w-7 h-7 flex items-center justify-center rounded-full mt-0.5 transition-colors ${zoomLevel <= 1 ? "bg-white/5 text-primary/30 cursor-not-allowed" : "bg-primary/10 hover:bg-primary/20 text-primary/50 group-hover/zoom:text-primary"}`}
+                title="รีเซ็ตตำแหน่ง"
             >
                 <RefreshCw className="w-3 h-3" />
             </button>
         </div>
 
         {chartType === "CAL" ? (
-          <div className="grid grid-cols-1 gap-12 w-full max-w-5xl mx-auto py-10 px-4">
-             {/* D1 Top Center */}
-             <div className="flex flex-col items-center">
-                <div className="mb-2 flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 backdrop-blur-sm">
-                   <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                   <span className="text-[10px] font-bold uppercase tracking-widest text-primary">ดวงราศีจักร (Natal - D1)</span>
-                </div>
-                <div className="aspect-square h-[420px] w-[420px]">
-                  <ZodiacWheel 
-                    planets={getDivisionalData(chartData, "D1")?.planets || null} 
-                    transitPlanets={showTransit ? (getDivisionalData(transitData, "D1")?.planets || null) : null}
-                    natalLagna={getDivisionalData(chartData, "D1")?.lagna || null}
-                    transitLagna={showTransit ? (getDivisionalData(transitData, "D1")?.lagna || null) : null}
-                    natalHouses={getDivisionalData(chartData, "D1")?.houses || null}
-                    transitHouses={showTransit ? (getDivisionalData(transitData, "D1")?.houses || null) : null}
-                    enabledAspects={enabled} 
-                    selectedPlanet={selectedPlanet}
-                    onSelectPlanet={onSelectPlanet}
-                  />
-                </div>
-             </div>
-
-             <div className="flex flex-wrap justify-center gap-10">
-                {/* D9 */}
-                <div className="flex flex-col items-center group">
-                   <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">นวางศ์จักร (Navamsa - D9)</span>
-                   </div>
-                   <div className="aspect-square h-[280px] w-[280px]">
-                     <ZodiacWheel 
-                        planets={getDivisionalData(chartData, "D9")?.planets || null} 
-                        transitPlanets={showTransit ? (getDivisionalData(transitData, "D9")?.planets || null) : null}
-                        natalLagna={getDivisionalData(chartData, "D9")?.lagna || null}
-                        transitLagna={showTransit ? (getDivisionalData(transitData, "D9")?.lagna || null) : null}
-                        natalHouses={getDivisionalData(chartData, "D9")?.houses || null}
-                        transitHouses={showTransit ? (getDivisionalData(transitData, "D9")?.houses || null) : null}
+          <div 
+            className="relative flex-1 w-full h-full min-h-0 overflow-hidden"
+            onWheel={(e) => {
+                if (e.deltaY < 0) {
+                    setZoomLevel(prev => Math.min(3, prev + 0.2));
+                } else {
+                    setZoomLevel(prev => Math.max(1, prev - 0.2));
+                }
+            }}
+          >
+            <motion.div 
+              className={`w-full h-full flex flex-col items-center justify-center transition-shadow ${zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+              animate={zoomLevel === 1 ? { scale: 1, x: 0, y: 0 } : { scale: zoomLevel }}
+              drag={zoomLevel > 1}
+              dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
+              dragElastic={0.1}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="grid grid-cols-1 gap-12 w-full max-w-5xl mx-auto py-10 px-4">
+                 {/* D1 Top Center */}
+                 <div className="flex flex-col items-center">
+                    <div className="mb-2 flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 backdrop-blur-sm">
+                       <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                       <span className="text-[10px] font-bold uppercase tracking-widest text-primary">ดวงราศีจักร (Natal - D1)</span>
+                    </div>
+                    <div className="aspect-square h-[420px] w-[420px]">
+                      <ZodiacWheel 
+                        planets={getDivisionalData(chartData, "D1")?.planets || null} 
+                        transitPlanets={showTransit ? (getDivisionalData(transitData, "D1")?.planets || null) : null}
+                        natalLagna={getDivisionalData(chartData, "D1")?.lagna || null}
+                        transitLagna={showTransit ? (getDivisionalData(transitData, "D1")?.lagna || null) : null}
+                        natalHouses={getDivisionalData(chartData, "D1")?.houses || null}
+                        transitHouses={showTransit ? (getDivisionalData(transitData, "D1")?.houses || null) : null}
                         enabledAspects={enabled} 
                         selectedPlanet={selectedPlanet}
                         onSelectPlanet={onSelectPlanet}
-                     />
-                   </div>
-                </div>
+                      />
+                    </div>
+                 </div>
 
-                {/* D3 */}
-                <div className="flex flex-col items-center group">
-                   <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">ตรียางศ์จักร (Drekkana - D3)</span>
-                   </div>
-                   <div className="aspect-square h-[280px] w-[280px]">
-                     <ZodiacWheel 
-                        planets={getDivisionalData(chartData, "D3")?.planets || null} 
-                        transitPlanets={showTransit ? (getDivisionalData(transitData, "D3")?.planets || null) : null}
-                        natalLagna={getDivisionalData(chartData, "D3")?.lagna || null}
-                        transitLagna={showTransit ? (getDivisionalData(transitData, "D3")?.lagna || null) : null}
-                        natalHouses={getDivisionalData(chartData, "D3")?.houses || null}
-                        transitHouses={showTransit ? (getDivisionalData(transitData, "D3")?.houses || null) : null}
-                        enabledAspects={enabled} 
-                        selectedPlanet={selectedPlanet}
-                        onSelectPlanet={onSelectPlanet}
-                     />
-                   </div>
-                </div>
-             </div>
+                 <div className="flex flex-wrap justify-center gap-10">
+                    {/* D9 */}
+                    <div className="flex flex-col items-center group">
+                       <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">นวางศ์จักร (Navamsa - D9)</span>
+                       </div>
+                       <div className="aspect-square h-[280px] w-[280px]">
+                         <ZodiacWheel 
+                            planets={getDivisionalData(chartData, "D9")?.planets || null} 
+                            transitPlanets={showTransit ? (getDivisionalData(transitData, "D9")?.planets || null) : null}
+                            natalLagna={getDivisionalData(chartData, "D9")?.lagna || null}
+                            transitLagna={showTransit ? (getDivisionalData(transitData, "D9")?.lagna || null) : null}
+                            natalHouses={getDivisionalData(chartData, "D9")?.houses || null}
+                            transitHouses={showTransit ? (getDivisionalData(transitData, "D9")?.houses || null) : null}
+                            enabledAspects={enabled} 
+                            selectedPlanet={selectedPlanet}
+                            onSelectPlanet={onSelectPlanet}
+                         />
+                       </div>
+                    </div>
+
+                    {/* D3 */}
+                    <div className="flex flex-col items-center group">
+                       <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">ตรียางศ์จักร (Drekkana - D3)</span>
+                       </div>
+                       <div className="aspect-square h-[280px] w-[280px]">
+                         <ZodiacWheel 
+                            planets={getDivisionalData(chartData, "D3")?.planets || null} 
+                            transitPlanets={showTransit ? (getDivisionalData(transitData, "D3")?.planets || null) : null}
+                            natalLagna={getDivisionalData(chartData, "D3")?.lagna || null}
+                            transitLagna={showTransit ? (getDivisionalData(transitData, "D3")?.lagna || null) : null}
+                            natalHouses={getDivisionalData(chartData, "D3")?.houses || null}
+                            transitHouses={showTransit ? (getDivisionalData(transitData, "D3")?.houses || null) : null}
+                            enabledAspects={enabled} 
+                            selectedPlanet={selectedPlanet}
+                            onSelectPlanet={onSelectPlanet}
+                         />
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            </motion.div>
           </div>
+
         ) : (
           <>
           <div 
@@ -230,7 +255,7 @@ export function CenterPanel({
           >
             <motion.div 
                 className={`aspect-square w-full h-full max-w-full max-h-full flex items-center justify-center transition-shadow ${zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
-                animate={{ scale: zoomLevel }}
+                animate={zoomLevel === 1 ? { scale: 1, x: 0, y: 0 } : { scale: zoomLevel }}
                 drag={zoomLevel > 1}
                 dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
                 dragElastic={0.1}
@@ -276,7 +301,7 @@ export function CenterPanel({
         {chartData && (
           <>
             <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur z-20">
-              วันกำเนิด · {chartData.julian_date.toFixed(4)}
+              วันกำเนิด (JD) · {chartData.julian_date.toFixed(4)}
             </div>
             <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur z-20">
               ลัคนา · {chartData.lagna.longitude.toFixed(2)}°
@@ -318,11 +343,26 @@ export function CenterPanel({
       </div>
       </div>
 
-      {/* Transit scrubber */}
-      <div className="border-t border-border bg-card/60 px-4 py-3">
+      {/* Bottom Panel Toggle Button */}
+      <div className="relative z-50 flex justify-center w-full h-0">
+          <button
+            onClick={() => setShowBottomPanel(!showBottomPanel)}
+            className="absolute bottom-0 flex h-5 w-14 items-center justify-center rounded-t-md border border-b-0 border-border bg-card/90 text-muted-foreground hover:bg-primary hover:text-black transition-all shadow-[0_-5px_15px_rgba(0,0,0,0.5)] backdrop-blur-md"
+            title={showBottomPanel ? "ซ่อนแถบเวลา" : "แสดงแถบเวลา"}
+          >
+            {showBottomPanel ? <span className="text-[10px]">▼</span> : <span className="text-[10px]">▲</span>}
+          </button>
+      </div>
+
+      {/* Transit scrubber (Collapsible) */}
+      <div 
+        className="grid transition-all duration-500 ease-in-out border-t border-border bg-card/60"
+        style={{ gridTemplateRows: showBottomPanel ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden px-4 py-3">
         <div className="mb-2 flex items-center justify-between text-xs">
           <div className="font-mono text-xs text-foreground flex items-center gap-3">
-            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">อายุ (Age):</span>
+            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">อายุชะตา:</span>
             <div className="flex items-center gap-1">
                 <input 
                     type="number" 
@@ -339,7 +379,7 @@ export function CenterPanel({
                 <span className="text-muted-foreground">ด.</span>
             </div>
             <span className="mx-2 text-border">|</span>
-            <span className="text-muted-foreground">วันที่: </span>
+            <span className="text-muted-foreground font-bold">วันที่ดาวจร: </span>
             <div className="flex gap-1 items-center bg-primary/10 border border-primary/30 rounded px-1 py-0.5">
               <input 
                 type="text" 
@@ -370,7 +410,7 @@ export function CenterPanel({
                 onChange={(e) => setTYear(e.target.value)}
                 onBlur={handleDateSubmit}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
-                placeholder="ปปปป"
+                placeholder="พ.ศ."
                 className="bg-transparent text-primary font-bold text-center w-10 outline-none"
               />
             </div>
@@ -553,6 +593,7 @@ export function CenterPanel({
                 );
              });
           })()}
+        </div>
         </div>
       </div>
     </section>

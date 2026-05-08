@@ -113,7 +113,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
           <div className="space-y-4 border-t border-border p-3.5 text-[13px]">
              {/* Section A */}
              <div className={mode === "Synastry" ? "p-3 border border-primary/20 rounded bg-primary/5 space-y-3" : "space-y-3"}>
-                {mode === "Synastry" && <div className="text-[10px] font-black text-primary uppercase mb-1">เจ้าชะตาคนที่ 1 (Person A)</div>}
+                {mode === "Synastry" && <div className="text-[10px] font-black text-primary uppercase mb-1">เจ้าชะตาคนที่ 1</div>}
                 <div>
                     <label className="text-[10px] font-bold uppercase text-primary/80 mb-1 block">ชื่อ-นามสกุล</label>
                     <input 
@@ -146,11 +146,11 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                     <div>
-                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">ชั่วโมง</label>
+                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">ชั่วโมง (0-23)</label>
                         <input type="number" value={formData.hour} onChange={e => handleInputChange("hour", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" placeholder="ชม." />
                     </div>
                     <div>
-                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">นาที</label>
+                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">นาที (0-59)</label>
                         <input type="number" value={formData.minute} onChange={e => handleInputChange("minute", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" placeholder="น." />
                     </div>
                 </div>
@@ -162,7 +162,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                 <div className="p-3 border border-white/20 rounded bg-white/5 space-y-3">
                     <div className="text-[10px] font-black text-white/90 uppercase mb-1 flex items-center gap-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                        เจ้าชะตาคนที่ 2 (Person B)
+                        เจ้าชะตาคนที่ 2
                     </div>
                     <div>
                         <label className="text-[10px] font-bold uppercase text-white/60 mb-1 block">ชื่อ-นามสกุล</label>
@@ -212,7 +212,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
              )}
 
              <div className="pt-2 border-t border-border/50">
-                <label className="text-[10px] font-bold uppercase text-primary/80 mb-1 block">อายนางศ (Ayanamsa)</label>
+                <label className="text-[10px] font-bold uppercase text-primary/80 mb-1 block">ปฏิทินอายนางศ (Ayanamsa)</label>
                 <select 
                     value={formData.ayanamsa_mode || "LAHIRI"} 
                     onChange={e => {

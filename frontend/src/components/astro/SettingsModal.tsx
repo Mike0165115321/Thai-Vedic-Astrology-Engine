@@ -17,30 +17,31 @@ export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProp
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm" onClick={onClose}>
       <div className="w-full max-w-lg rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-panel)]" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">Calculation Settings</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">ตั้งค่าการคำนวณ</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
         </div>
         <div className="space-y-4 text-xs">
           <Section 
-            title="Ayanamsa" 
+            title="ปฏิทินอายนางศ (Ayanamsa)" 
             options={["LAHIRI", "RAMAN", "KRISHNAMURTI", "FAGAN_BRADLEY", "TROPICAL"]} 
             active={ayanamsa} 
             onChange={(val) => onUpdate({ ayanamsa_mode: val })}
           />
           <Section 
-            title="House System" 
+            title="ระบบเรือนชะตา (House System)" 
             options={["Whole Sign", "Placidus", "Koch", "Equal", "Porphyry"]} 
             active={houseSystem} 
             onChange={(val) => onUpdate({ house_system: val })}
           />
           <Section 
-            title="Node" 
+            title="การคำนวณราหู/เกตุ (Node)" 
             options={["MEAN", "TRUE"]} 
             active={nodeType} 
             onChange={(val) => onUpdate({ node_type: val as "MEAN" | "TRUE" })}
+            labels={{ "MEAN": "เฉลี่ย (Mean)", "TRUE": "จริง (True)" }}
           />
           <Section 
-            title="Aspect Orb (°)" 
+            title="ระยะเอื้อมมุมสัมพันธ์ (Aspect Orb °)" 
             options={["3", "5", "8", "10"]} 
             active={aspectOrb} 
             onChange={(val) => onUpdate({ aspect_orb: parseInt(val) })}
@@ -51,11 +52,12 @@ export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProp
   );
 }
 
-function Section({ title, options, active, onChange }: { 
+function Section({ title, options, active, onChange, labels }: { 
   title: string; 
   options: string[]; 
   active: string;
   onChange: (val: string) => void;
+  labels?: { [key: string]: string };
 }) {
   return (
     <div>
@@ -69,7 +71,7 @@ function Section({ title, options, active, onChange }: {
               o === active ? "border-primary bg-primary/15 text-primary" : "border-border bg-muted/40 text-muted-foreground hover:text-foreground"
             }`}
           >
-            {o.replace("_", " ")}
+            {labels?.[o] || o.replace("_", " ")}
           </button>
         ))}
       </div>

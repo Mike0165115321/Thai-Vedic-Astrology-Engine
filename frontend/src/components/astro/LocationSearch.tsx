@@ -149,9 +149,21 @@ export function LocationSearch({ onSelect, labelColor = "text-primary", accentCo
 
   return (
     <div className="space-y-3 relative" ref={containerRef}>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2">
+            <label className={`text-[9px] uppercase ${labelColor} font-bold`}>สถานที่เกิด / จังหวัด</label>
+        </div>
+        <button 
+            onClick={getCurrentLocation}
+            className="flex items-center gap-1 text-[9px] font-black uppercase text-primary/80 hover:text-primary transition-all px-1.5 py-0.5 rounded border border-primary/20 hover:border-primary/40 bg-primary/5"
+        >
+            <Crosshair className="h-2.5 w-2.5" />
+            ใช้ตำแหน่งปัจจุบัน
+        </button>
+      </div>
+      
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
-          <label className={`text-[9px] uppercase ${labelColor} mb-1 block font-bold`}>จังหวัด (Province)</label>
           <div className="relative">
             <input
               type="text"
@@ -161,7 +173,7 @@ export function LocationSearch({ onSelect, labelColor = "text-primary", accentCo
                 setOpenDropdown("province");
               }}
               onFocus={() => setOpenDropdown("province")}
-              placeholder="เลือกจังหวัด..."
+              placeholder="จังหวัด..."
               className={`w-full bg-input/50 border border-border rounded px-2 py-1.5 font-sans text-xs focus:ring-1 focus:ring-${accentColor} outline-none transition-all`}
             />
             {province ? (
@@ -194,7 +206,6 @@ export function LocationSearch({ onSelect, labelColor = "text-primary", accentCo
         </div>
 
         <div className="relative">
-          <label className={`text-[9px] uppercase ${labelColor} mb-1 block font-bold`}>อำเภอ / เขต (District)</label>
           <div className="relative">
             <input
               type="text"
@@ -207,7 +218,7 @@ export function LocationSearch({ onSelect, labelColor = "text-primary", accentCo
                   if (localSuggestions.length > 0) setOpenDropdown("suggestions");
                   else if (results.length > 0) setOpenDropdown("results"); 
               }}
-              placeholder={province ? `ค้นหาใน${province}...` : "ระบุอำเภอ..."}
+              placeholder={province ? `ค้นหาใน${province}...` : "อำเภอ / เขต..."}
               className={`w-full bg-input/50 border border-border rounded px-2 py-1.5 font-sans text-xs focus:ring-1 focus:ring-${accentColor} outline-none transition-all`}
             />
             {loading && <Loader2 className={`absolute right-2 top-2.5 h-3 w-3 animate-spin text-${accentColor}`} />}
@@ -217,17 +228,17 @@ export function LocationSearch({ onSelect, labelColor = "text-primary", accentCo
 
       {/* Local Suggestions (Instant) */}
       {openDropdown === "suggestions" && localSuggestions.length > 0 && (
-        <ul className="absolute z-50 mt-1 w-[calc(100%-24px)] max-h-60 overflow-y-auto rounded-md border border-primary/30 bg-card shadow-2xl divide-y divide-border animate-in slide-in-from-top-2 duration-200">
+        <ul className="absolute z-50 mt-1 w-[calc(100%-12px)] max-h-60 overflow-y-auto rounded-md border border-primary/30 bg-card shadow-2xl divide-y divide-border animate-in slide-in-from-top-2 duration-200 left-1.5">
           <li className="px-3 py-1 bg-primary/10 text-[8px] text-primary font-bold uppercase tracking-widest flex justify-between">
-            <span>รายชื่ออำเภอใน{province}</span>
-            <span className="opacity-60 italic">ข้อมูลภายในระบบ</span>
+            <span>รายชื่ออำเภอในจังหวัด{province}</span>
+            <span className="opacity-60 italic font-medium">ฐานข้อมูลระบบ</span>
           </li>
           {localSuggestions.map((d, i) => (
             <li
               key={i}
               onClick={() => {
-                onSelect(d.lat, d.lon, `อำเภอ${d.name_th}, จังหวัด${province}`);
-                setAmphoe(`อำเภอ${d.name_th}`);
+                onSelect(d.lat, d.lon, `อ.${d.name_th}, จ.${province}`);
+                setAmphoe(`อ.${d.name_th}`);
                 setResults([]);
                 setOpenDropdown(null);
               }}
@@ -245,9 +256,9 @@ export function LocationSearch({ onSelect, labelColor = "text-primary", accentCo
 
       {/* API Search Results (Fallback/Detailed) */}
       {openDropdown === "results" && results.length > 0 && (!localSuggestions.length || amphoe.length > 3) && (
-        <ul className="absolute z-50 mt-1 w-[calc(100%-24px)] max-h-60 overflow-y-auto rounded-md border border-primary/30 bg-card shadow-2xl divide-y divide-border animate-in slide-in-from-top-2 duration-200">
+        <ul className="absolute z-50 mt-1 w-[calc(100%-12px)] max-h-60 overflow-y-auto rounded-md border border-primary/30 bg-card shadow-2xl divide-y divide-border animate-in slide-in-from-top-2 duration-200 left-1.5">
           <li className="px-3 py-1 bg-primary/10 text-[8px] text-primary font-bold uppercase tracking-widest">
-            {province ? `ผลลัพธ์ในจังหวัด${province}` : "ผลการค้นหา"}
+            {province ? `ผลลัพธ์ออนไลน์ใน${province}` : "ผลการค้นหาออนไลน์"}
           </li>
           {results.map((res, i) => (
             <li
