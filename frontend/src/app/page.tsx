@@ -9,6 +9,7 @@ import { RightPanel } from "@/components/astro/RightPanel";
 import { AIAssistant } from "@/components/astro/AIAssistant";
 import { SettingsModal } from "@/components/astro/SettingsModal";
 import { TransitScannerModal } from "@/components/astro/TransitScannerModal";
+import TransitReport from "@/components/astro/TransitReport";
 import { ChartData, BirthFormData, CompareResponse } from "@/types/chart";
 
 export default function Home() {
@@ -23,6 +24,8 @@ export default function Home() {
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [synastryFocus, setSynastryFocus] = useState<"A" | "B" | "Both">("Both");
   const [hasMounted, setHasMounted] = useState(false);
+  const [reportData, setReportData] = useState<any>(null);
+  const [showReport, setShowReport] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [globalSettings, setGlobalSettings] = useState<Partial<BirthFormData>>({
     ayanamsa_mode: "LAHIRI",
@@ -304,6 +307,12 @@ export default function Home() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Update report data for previewing
+        setReportData(data);
+        setShowReport(true);
+        setExportModal(false);
+
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const firstName = birthData.name.split(" ")[0];
         const fileName = `Scan_${firstName}_${startAge}-${endAge}.json`;
@@ -450,6 +459,13 @@ export default function Home() {
           onUpdate={(newSettings) => {
             setGlobalSettings(prev => ({ ...prev, ...newSettings }));
           }}
+        />
+      )}
+
+      {showReport && (
+        <TransitReport 
+          data={reportData} 
+          onClose={() => setShowReport(false)} 
         />
       )}
       

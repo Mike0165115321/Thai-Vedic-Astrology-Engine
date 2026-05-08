@@ -12,12 +12,21 @@ interface TransitScannerModalProps {
 
 export function TransitScannerModal({ onClose, history, currentNatalData, onGenerate }: TransitScannerModalProps) {
   const [selectedPersonId, setSelectedPersonId] = useState<string>("current");
-  const [startAge, setStartAge] = useState(0);
-  const [endAge, setEndAge] = useState(100);
+  const now = new Date();
+  const currentYearBE = now.getFullYear() + 543;
+  const [startMonth, setStartMonth] = useState(now.getMonth() + 1);
+  const [startYear, setStartYear] = useState(currentYearBE);
+  const [endMonth, setEndMonth] = useState(12);
+  const [endYear, setEndYear] = useState(currentYearBE + 10);
   const [loading, setLoading] = useState(false);
   const [selectedPlanets, setSelectedPlanets] = useState<string[]>([
     "Jupiter", "Saturn", "Rahu", "Uranus"
   ]);
+
+  const months = [
+    "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+    "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+  ];
 
   const planetsList = [
     { id: "Sun", name: "อาทิตย์ (๑)" },
@@ -58,8 +67,12 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
 
     await onGenerate({
       birthData,
-      startAge,
-      endAge,
+      start_year: startYear - 543,
+      start_month: startMonth,
+      start_day: 1,
+      end_year: endYear - 543,
+      end_month: endMonth,
+      end_day: 28,
       planets: selectedPlanets
     });
     
@@ -77,7 +90,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
             </div>
             <div>
               <h2 className="text-lg font-bold text-foreground">Advanced Transit Scanner</h2>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ระบบวิเคราะห์ดาวจรเชิงลึก (120 ปี)</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ระบบวิเคราะห์ดาวจรเชิงลึก (พ.ศ.)</p>
             </div>
           </div>
           <button onClick={onClose} className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
@@ -103,38 +116,84 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
             </select>
           </div>
 
-          {/* Step 2: Time Range */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Calendar className="h-4 w-4 text-primary" /> ช่วงอายุ
-              </label>
-              <input 
-                type="number" 
-                value={startAge}
-                min={0}
-                max={120}
-                onChange={(e) => setStartAge(parseInt(e.target.value) || 0)}
-                className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm focus:border-primary focus:outline-none"
-              />
-            </div>
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <Calendar className="h-4 w-4 text-primary" /> ถึง
-              </label>
-              <input 
-                type="number" 
-                value={endAge}
-                min={0}
-                max={120}
-                onChange={(e) => setEndAge(parseInt(e.target.value) || 0)}
-                className="w-full rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm focus:border-primary focus:outline-none"
-              />
-              <p className="text-[10px] text-muted-foreground px-1 italic">
-                * สแกนได้สูงสุด 120 ปี ต่อการวิเคราะห์ 1 ครั้ง
-              </p>
+          {/* Step 2: Time Range (Month/Year for both) */}
+          <div className="space-y-4">
+            <div className="bg-muted/20 p-4 rounded-2xl border border-border/50 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest">เดือนเริ่มต้น</label>
+                  <select 
+                    value={startMonth}
+                    onChange={(e) => setStartMonth(parseInt(e.target.value))}
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-all"
+                  >
+                    {months.map((m, i) => (
+                      <option key={m} value={i + 1}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest">ปี พ.ศ. เริ่มต้น</label>
+                  <input 
+                    type="number" 
+                    value={startYear}
+                    onChange={(e) => setStartYear(parseInt(e.target.value) || currentYearBE)}
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center py-1">
+                <div className="h-px bg-border flex-1"></div>
+                <span className="px-3 text-[10px] font-black text-muted-foreground uppercase tracking-tighter">ถึง</span>
+                <div className="h-px bg-border flex-1"></div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest">เดือนสิ้นสุด</label>
+                  <select 
+                    value={endMonth}
+                    onChange={(e) => setEndMonth(parseInt(e.target.value))}
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-all"
+                  >
+                    {months.map((m, i) => (
+                      <option key={m} value={i + 1}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest">ปี พ.ศ. สิ้นสุด</label>
+                  <input 
+                    type="number" 
+                    value={endYear}
+                    onChange={(e) => setEndYear(parseInt(e.target.value) || currentYearBE + 10)}
+                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-all font-bold"
+                  />
+                </div>
+              </div>
             </div>
           </div>
+
+          {(() => {
+            const getBirthYear = () => {
+              if (selectedPersonId === "current") return currentNatalData?.year || new Date().getFullYear();
+              return history.find(p => p.id === selectedPersonId)?.formData.year || new Date().getFullYear();
+            };
+            const bYear = getBirthYear() + 543;
+            const sAge = startYear - bYear;
+            const eAge = endYear - bYear;
+            return (
+              <div className="mt-[-12px] px-2">
+                <p className="text-xs font-bold text-primary">
+                  ✨ วิเคราะห์ช่วงอายุประมาณ {sAge} - {eAge} ปี
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  * ข้อมูลจะถูกสแกนตั้งแต่วันที่ 1 ม.ค. ของปีเริ่มต้น ถึง 31 ธ.ค. ของปีสิ้นสุด
+                </p>
+              </div>
+            );
+          })()}
 
           {/* Step 3: Planets */}
           <div className="space-y-3">

@@ -19,11 +19,43 @@ def scan_transits_endpoint(data: TransitScanRequest):
         if diff.days > 365 * 120:
              raise HTTPException(status_code=400, detail="Scan range limited to 120 years")
 
+        def filter_planet_data(chart):
+            if not chart or "planets" not in chart:
+                return chart
+            
+            # Fields to remove
+            blacklist = ["longitude", "latitude", "speed", "julian_date", "degree_in_sign"]
+            
+            # Clean primary planets
+            for name in chart["planets"]:
+                for field in blacklist:
+                    chart["planets"][name].pop(field, None)
+            
+            # Clean divisional charts if present
+            for div in ["d3", "d9"]:
+                if div in chart:
+                    for name in chart[div]:
+                        for field in blacklist:
+                            chart[div][name].pop(field, None)
+            
+            # Clean lagna
+            if "lagna" in chart:
+                for field in blacklist:
+                    chart["lagna"].pop(field, None)
+            if "d3_lagna" in chart:
+                for field in blacklist:
+                    chart["d3_lagna"].pop(field, None)
+            if "d9_lagna" in chart:
+                for field in blacklist:
+                    chart["d9_lagna"].pop(field, None)
+                    
+            return chart
+
         # 1. Calculate Natal Chart (Axis 1)
-        natal_chart = None
+        natal_chart_raw = None
         if data.natal_data:
             from api.routes.chart import calculate_birth_chart
-            natal_chart = calculate_birth_chart(data.natal_data)
+            natal_chart_raw = calculate_birth_chart(data.natal_data)
 
         # 2. Calculate Initial Transits Snapshot (Axis 2)
         from api.routes.chart import calculate_birth_chart
@@ -37,20 +69,24 @@ def scan_transits_endpoint(data: TransitScanRequest):
             lon=data.natal_data.lon if data.natal_data else 100.5018,
             timezone=data.natal_data.timezone if data.natal_data else "UTC"
         )
-        initial_transits = calculate_birth_chart(initial_transit_data)
+        initial_transits_raw = calculate_birth_chart(initial_transit_data)
         
         # Enhance Axis 2 with Natal Relative Info
-        if natal_chart:
+        if natal_chart_raw:
             # Add Relative Houses to initial transits
-            natal_lagna_sign = natal_chart["lagna"]["sign"]
-            for name, p_data in initial_transits["planets"].items():
+            natal_lagna_sign = natal_chart_raw["lagna"]["sign"]
+            for name, p_data in initial_transits_raw["planets"].items():
                 p_data["natal_house"] = (p_data["sign"] - natal_lagna_sign + 12) % 12 + 1
             
             # Add Cross-Aspects (Transit at Start -> Natal)
-            initial_transits["natal_aspects"] = calculate_cross_aspects(
-                initial_transits["planets"], 
-                natal_chart["planets"]
+            initial_transits_raw["natal_aspects"] = calculate_cross_aspects(
+                initial_transits_raw["planets"], 
+                natal_chart_raw["planets"]
             )
+
+        # Apply Filtering AFTER all calculations
+        natal_chart = filter_planet_data(natal_chart_raw)
+        initial_transits = filter_planet_data(initial_transits_raw)
 
         # 3. Scan for Timeline (Axis 3)
         events = scan_transits(
