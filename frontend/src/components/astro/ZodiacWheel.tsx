@@ -15,6 +15,7 @@ type Props = {
   enabledAspects: string[];
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
+  isSynastry?: boolean;
 };
 
 const SIZE = 560;
@@ -95,7 +96,7 @@ const resolveOverlaps = (list: any[], baseRadius: number) => {
     return list.map(p => ({ ...p, visualRadius: radiusMap[p.id] || baseRadius }));
 };
 
-export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, natalHouses, transitHouses, enabledAspects, selectedPlanet, onSelectPlanet }: Props) {
+export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, natalHouses, transitHouses, enabledAspects, selectedPlanet, onSelectPlanet, isSynastry }: Props) {
   const natalList = useMemo(() => {
     let list: any[] = [];
     if (planets) {
@@ -351,11 +352,11 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
 
       {/* Center Label */}
       <circle cx={CENTER} cy={CENTER} r={45} fill="var(--card)" stroke="var(--primary)" strokeWidth="2" />
-      <text x={CENTER} y={CENTER - 5} textAnchor="middle" className="text-[10px] uppercase tracking-tighter text-muted-foreground">
-        {planets ? "พื้นดวง" : "ดวงจร"}
+      <text x={CENTER} y={CENTER - 5} textAnchor="middle" className="text-[10px] uppercase tracking-tighter text-muted-foreground font-black">
+        {isSynastry ? "ดวงสมพงษ์" : (planets ? "พื้นดวง" : "ดวงจร")}
       </text>
-      <text x={CENTER} y={CENTER + 15} textAnchor="middle" className="text-[14px] font-bold fill-foreground">
-        {natalLagna ? `${SIGNS[Math.floor(natalLagna.longitude / 30)].name_th} ${Math.floor(natalLagna.longitude % 30)}°${Math.floor(((natalLagna.longitude % 30) % 1) * 60)}′` : "SKY MAP"}
+      <text x={CENTER} y={CENTER + 15} textAnchor="middle" className={`text-[14px] font-black fill-foreground ${isSynastry ? "text-primary animate-pulse" : ""}`}>
+        {isSynastry ? "SYNASTRY" : (natalLagna ? `${SIGNS[Math.floor(natalLagna.longitude / 30)].name_th} ${Math.floor(natalLagna.longitude % 30)}°${Math.floor(((natalLagna.longitude % 30) % 1) * 60)}′` : "SKY MAP")}
       </text>
     </svg>
   );

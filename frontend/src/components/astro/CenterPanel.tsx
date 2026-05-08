@@ -4,13 +4,15 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { Play, Pause, SkipBack, SkipForward, Filter } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
 import { ASPECTS } from "./data";
-import { ChartData } from "@/types/chart";
+import { ChartData, CompareResponse } from "@/types/chart";
 
 type Props = {
   chartData: ChartData | null;
   transitData: ChartData | null;
   displayChartData: ChartData | null;
   displayTransitData: ChartData | null;
+  compareData?: CompareResponse | null;
+  mode?: "Natal" | "Synastry" | "Transit";
   loading: boolean;
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
@@ -24,6 +26,8 @@ export function CenterPanel({
   transitData, 
   displayChartData, 
   displayTransitData, 
+  compareData,
+  mode,
   loading, 
   selectedPlanet, 
   onSelectPlanet, 
@@ -185,14 +189,15 @@ export function CenterPanel({
             <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
             <ZodiacWheel 
               planets={displayChartData?.planets || null} 
-              transitPlanets={showTransit ? (displayTransitData?.planets || null) : null}
+              transitPlanets={mode === "Synastry" ? (compareData?.person_b_chart.planets || null) : (showTransit ? (displayTransitData?.planets || null) : null)}
               natalLagna={displayChartData?.lagna || null}
-              transitLagna={showTransit ? (displayTransitData?.lagna || null) : null}
+              transitLagna={mode === "Synastry" ? (compareData?.person_b_chart.lagna || null) : (showTransit ? (displayTransitData?.lagna || null) : null)}
               natalHouses={displayChartData?.houses || null}
-              transitHouses={showTransit ? (displayTransitData?.houses || null) : null}
+              transitHouses={mode === "Synastry" ? (compareData?.person_b_chart.houses || null) : (showTransit ? (displayTransitData?.houses || null) : null)}
               enabledAspects={enabled} 
               selectedPlanet={selectedPlanet}
               onSelectPlanet={onSelectPlanet}
+              isSynastry={mode === "Synastry"}
             />
           </div>
         </div>

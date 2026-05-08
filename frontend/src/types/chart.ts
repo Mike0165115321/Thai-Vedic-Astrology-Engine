@@ -43,8 +43,8 @@ export interface ChartData {
   houses: { [key: string]: number };
   western_aspects: any[];
   vedic_aspects: any[];
-  d3: { [key: string]: { sign: number; longitude: number } };
-  d9: { [key: string]: { sign: number; longitude: number } };
+  d3: { [key: string]: { sign: number; longitude: number; dignity?: string; dignity_list?: string[] } };
+  d9: { [key: string]: { sign: number; longitude: number; dignity?: string; dignity_list?: string[] } };
   d3_lagna?: Lagna;
   d9_lagna?: Lagna;
   lunar_data: {
@@ -70,4 +70,13 @@ export interface BirthFormData {
   node_type?: "MEAN" | "TRUE";
   house_system?: string;
   aspect_orb?: number;
+}
+
+export interface CompareResponse {
+  person_a_chart: ChartData;
+  person_b_chart: ChartData;
+  compatibility_summary: {
+    message: string;
+    [key: string]: any;
+  };
 }

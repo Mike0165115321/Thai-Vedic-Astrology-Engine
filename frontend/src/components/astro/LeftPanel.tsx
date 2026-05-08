@@ -19,15 +19,17 @@ type Props = {
   mode: Mode;
   setMode: (m: Mode) => void;
   onCalculate: (data: BirthFormData) => void;
+  onCalculateCompare?: (dataA: BirthFormData, dataB: BirthFormData) => void;
   loading: boolean;
   history: HistoryItem[];
   onSelectHistory: (item: HistoryItem) => void;
   onDeleteHistory: (id: string) => void;
 };
 
-export function LeftPanel({ mode, setMode, onCalculate, loading, history, onSelectHistory, onDeleteHistory }: Props) {
+export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, loading, history, onSelectHistory, onDeleteHistory }: Props) {
   const [openForm, setOpenForm] = useState(true);
-  const [formData, setFormData] = useState<BirthFormData>({
+  
+  const defaultFormData: BirthFormData = {
     name: "",
     year: 2024,
     month: 5,
@@ -39,7 +41,10 @@ export function LeftPanel({ mode, setMode, onCalculate, loading, history, onSele
     timezone: "Asia/Bangkok",
     ayanamsa_mode: "LAHIRI",
     custom_ayanamsa_offset: 0
-  });
+  };
+
+  const [formData, setFormData] = useState<BirthFormData>(defaultFormData);
+  const [formDataB, setFormDataB] = useState<BirthFormData>({ ...defaultFormData, name: "Person B" });
 
   // Load last session form data
   useEffect(() => {
@@ -57,15 +62,15 @@ export function LeftPanel({ mode, setMode, onCalculate, loading, history, onSele
       localStorage.setItem("last_form_data", JSON.stringify(formData));
   }, [formData]);
 
-  const handleInputChange = (key: keyof BirthFormData, val: string) => {
-    // List of fields that should be numeric
+  const handleInputChange = (key: keyof BirthFormData, val: string, isB = false) => {
     const numericFields: (keyof BirthFormData)[] = ["year", "month", "day", "hour", "minute", "lat", "lon"];
+    const setter = isB ? setFormDataB : setFormData;
     
     if (numericFields.includes(key)) {
         const numVal = val === "" ? 0 : parseFloat(val);
-        setFormData((prev) => ({ ...prev, [key]: numVal }));
+        setter((prev) => ({ ...prev, [key]: numVal }));
     } else {
-        setFormData((prev) => ({ ...prev, [key]: val }));
+        setter((prev) => ({ ...prev, [key]: val }));
     }
   };
 
@@ -105,98 +110,97 @@ export function LeftPanel({ mode, setMode, onCalculate, loading, history, onSele
           {openForm ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
         </button>
         {openForm && (
-          <div className="space-y-3.5 border-t border-border p-3.5 text-[13px]">
-             <div>
-                <label className="text-[10px] font-bold uppercase text-primary/80 mb-1 block">ชื่อ-นามสกุล / หัวข้อดวง</label>
-                <input 
-                    type="text" 
-                    placeholder="ระบุชื่อเจ้าชะตา..." 
-                    value={formData.name} 
-                    onChange={e => handleInputChange("name", e.target.value)} 
-                    className="w-full bg-input border border-border rounded px-2.5 py-1.5 text-[13px] focus:ring-1 focus:ring-primary outline-none transition-all" 
-                />
-             </div>
-             <div className="grid grid-cols-3 gap-2">
+          <div className="space-y-4 border-t border-border p-3.5 text-[13px]">
+             {/* Section A */}
+             <div className={mode === "Synastry" ? "p-3 border border-primary/20 rounded bg-primary/5 space-y-3" : "space-y-3"}>
+                {mode === "Synastry" && <div className="text-[10px] font-black text-primary uppercase mb-1">เจ้าชะตาคนที่ 1 (Person A)</div>}
                 <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">วันที่</label>
-                    <input type="number" value={formData.day} onChange={e => handleInputChange("day", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 font-mono text-[13px]" />
+                    <label className="text-[10px] font-bold uppercase text-primary/80 mb-1 block">ชื่อ-นามสกุล</label>
+                    <input 
+                        type="text" 
+                        placeholder="ระบุชื่อ..." 
+                        value={formData.name} 
+                        onChange={e => handleInputChange("name", e.target.value)} 
+                        className="w-full bg-input border border-border rounded px-2.5 py-1.5 text-[13px] outline-none" 
+                    />
                 </div>
-                <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">เดือน</label>
-                    <input type="number" value={formData.month} onChange={e => handleInputChange("month", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 font-mono text-[13px]" />
-                </div>
-                <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">ปี (พ.ศ.)</label>
+                <div className="grid grid-cols-3 gap-2">
+                    <input type="number" value={formData.day} onChange={e => handleInputChange("day", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="ว" />
+                    <input type="number" value={formData.month} onChange={e => handleInputChange("month", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="ด" />
                     <input 
                         type="number" 
                         value={formData.year + 543} 
                         onChange={e => handleInputChange("year", (parseInt(e.target.value) - 543).toString())} 
-                        className="w-full bg-input border border-border rounded px-2 py-1 font-mono text-[13px]" 
+                        className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" 
+                        placeholder="ปี"
                     />
                 </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <input type="number" value={formData.hour} onChange={e => handleInputChange("hour", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="ชม." />
+                    <input type="number" value={formData.minute} onChange={e => handleInputChange("minute", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="น." />
+                </div>
+                <LocationSearch onSelect={(lat, lon) => setFormData(p => ({ ...p, lat, lon }))} />
              </div>
 
-             <div className="grid grid-cols-2 gap-2">
-                <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">ชั่วโมง</label>
-                    <input type="number" value={formData.hour} onChange={e => handleInputChange("hour", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 font-mono text-[13px]" />
+             {/* Section B (Synastry Only) */}
+             {mode === "Synastry" && (
+                <div className="p-3 border border-accent/20 rounded bg-accent/5 space-y-3">
+                    <div className="text-[10px] font-black text-accent uppercase mb-1">เจ้าชะตาคนที่ 2 (Person B)</div>
+                    <div>
+                        <input 
+                            type="text" 
+                            placeholder="ระบุชื่อ..." 
+                            value={formDataB.name} 
+                            onChange={e => handleInputChange("name", e.target.value, true)} 
+                            className="w-full bg-input border border-border rounded px-2.5 py-1.5 text-[13px] outline-none" 
+                        />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        <input type="number" value={formDataB.day} onChange={e => handleInputChange("day", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
+                        <input type="number" value={formDataB.month} onChange={e => handleInputChange("month", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
+                        <input 
+                            type="number" 
+                            value={formDataB.year + 543} 
+                            onChange={e => handleInputChange("year", (parseInt(e.target.value) - 543).toString(), true)} 
+                            className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" 
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <input type="number" value={formDataB.hour} onChange={e => handleInputChange("hour", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
+                        <input type="number" value={formDataB.minute} onChange={e => handleInputChange("minute", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
+                    </div>
+                    <LocationSearch onSelect={(lat, lon) => setFormDataB(p => ({ ...p, lat, lon }))} />
                 </div>
-                <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">นาที</label>
-                    <input type="number" value={formData.minute} onChange={e => handleInputChange("minute", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 font-mono text-[13px]" />
-                </div>
-             </div>
-
-             <LocationSearch 
-                onSelect={(lat, lon, name) => {
-                    setFormData((prev: any) => ({ ...prev, lat, lon }));
-                }} 
-             />
-
-             <div className="grid grid-cols-2 gap-2">
-                <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">ละติจูด (Lat)</label>
-                    <input type="number" step="any" value={formData.lat} onChange={e => handleInputChange("lat", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 font-mono text-[13px]" />
-                </div>
-                <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">ลองจิจูด (Lon)</label>
-                    <input type="number" step="any" value={formData.lon} onChange={e => handleInputChange("lon", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 font-mono text-[13px]" />
-                </div>
-             </div>
+             )}
 
              <div className="pt-2 border-t border-border/50">
-                <label className="text-[10px] font-bold uppercase text-primary/80 mb-1 block">ระบบอายนางศ (Ayanamsa)</label>
+                <label className="text-[10px] font-bold uppercase text-primary/80 mb-1 block">อายนางศ (Ayanamsa)</label>
                 <select 
                     value={formData.ayanamsa_mode || "LAHIRI"} 
-                    onChange={e => handleInputChange("ayanamsa_mode", e.target.value)}
-                    className="w-full bg-input border border-border rounded px-2 py-1.5 text-[13px] outline-none focus:ring-1 focus:ring-primary font-medium"
+                    onChange={e => {
+                        const val = e.target.value;
+                        setFormData(p => ({ ...p, ayanamsa_mode: val }));
+                        setFormDataB(p => ({ ...p, ayanamsa_mode: val }));
+                    }}
+                    className="w-full bg-input border border-border rounded px-2 py-1.5 text-[13px]"
                 >
                     {AYANAMSAS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
              </div>
 
-             {formData.ayanamsa_mode === "CUSTOM" && (
-                <div>
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Custom Offset (องศา)</label>
-                    <input 
-                        type="number" 
-                        step="any" 
-                        value={formData.custom_ayanamsa_offset || 0} 
-                        onChange={e => handleInputChange("custom_ayanamsa_offset", e.target.value)} 
-                        className="w-full bg-input border border-border rounded px-2 py-1.5 font-mono text-[13px]" 
-                    />
-                </div>
-             )}
-
             <button 
                 onClick={() => {
-                    onCalculate(formData);
+                    if (mode === "Synastry" && onCalculateCompare) {
+                        onCalculateCompare(formData, formDataB);
+                    } else {
+                        onCalculate(formData);
+                    }
                 }}
                 disabled={loading}
-                className="mt-3 w-full rounded bg-primary py-2.5 text-[12px] font-black uppercase tracking-[0.15em] text-primary-foreground hover:brightness-110 shadow shadow-primary/10 disabled:opacity-50 transition-all flex items-center justify-center gap-2.5"
+                className="mt-3 w-full rounded bg-primary py-2.5 text-[12px] font-black uppercase tracking-widest text-primary-foreground hover:brightness-110 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              {loading ? "กำลังคำนวณ..." : "คำนวณดวงชะตา"}
+              {loading ? "กำลังคำนวณ..." : mode === "Synastry" ? "คำนวณดวงสมพงษ์" : "คำนวณดวงชะตา"}
             </button>
           </div>
         )}

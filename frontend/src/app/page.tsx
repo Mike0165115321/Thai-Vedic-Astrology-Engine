@@ -7,12 +7,13 @@ import { CenterPanel } from "@/components/astro/CenterPanel";
 import { RightPanel } from "@/components/astro/RightPanel";
 import { AIAssistant } from "@/components/astro/AIAssistant";
 import { SettingsModal } from "@/components/astro/SettingsModal";
-import { ChartData, BirthFormData } from "@/types/chart";
+import { ChartData, BirthFormData, CompareResponse } from "@/types/chart";
 
 export default function Home() {
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [chartType, setChartType] = useState<"D1" | "D3" | "D9" | "CAL">("D1");
   const [transitData, setTransitData] = useState<ChartData | null>(null);
+  const [compareData, setCompareData] = useState<CompareResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"Natal" | "Synastry" | "Transit">("Natal");
   const [settings, setSettings] = useState(false);
@@ -158,7 +159,8 @@ export default function Home() {
                 ...data.planets[name], 
                 sign: divInfo.sign,
                 longitude: divInfo.longitude,
-                dignity: divInfo.dignity || data.planets[name].dignity
+                dignity: divInfo.dignity || data.planets[name].dignity,
+                dignity_list: divInfo.dignity_list || data.planets[name].dignity_list
             };
         } else {
             divPlanets[name] = data.planets[name];
@@ -237,6 +239,26 @@ export default function Home() {
     }
   };
 
+  const calculateCompare = async (dataA: BirthFormData, dataB: BirthFormData) => {
+    setLoading(true);
+    try {
+      const response = await fetch("http://localhost:8000/calculate/compare/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ person_a: dataA, person_b: dataB }),
+      });
+      if (!response.ok) throw new Error("API Error");
+      const data = await response.json();
+      setCompareData(data);
+      // For synastry, we use person_a as the primary chart for dasha etc if needed
+      setChartData(data.person_a_chart);
+    } catch (error) {
+      console.error("Error calculating synastry:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!hasMounted) return null;
 
   return (
@@ -252,6 +274,7 @@ export default function Home() {
           mode={mode} 
           setMode={setMode} 
           onCalculate={calculateChart} 
+          onCalculateCompare={calculateCompare}
           loading={loading}
           history={history}
           onSelectHistory={(item) => {
@@ -266,6 +289,8 @@ export default function Home() {
         <CenterPanel 
           chartData={chartData}
           transitData={transitData}
+          compareData={compareData}
+          mode={mode}
           displayChartData={displayChartData}
           displayTransitData={displayTransitData}
           getDivisionalData={getDivisionalData}
