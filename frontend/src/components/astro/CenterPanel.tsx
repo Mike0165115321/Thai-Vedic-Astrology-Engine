@@ -23,6 +23,11 @@ type Props = {
   setSynastryFocus: (f: "A" | "B" | "Both") => void;
 };
 
+const planetThaiNames: { [key: string]: string } = {
+    Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
+    Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ"
+};
+
 export function CenterPanel({ 
   chartData, 
   transitData, 
@@ -221,34 +226,34 @@ export function CenterPanel({
 
       {/* Transit Controls (Bottom Left) */}
       <div className="absolute bottom-4 left-4 flex items-center gap-1.5 z-20">
-         <button
-            onClick={() => setShowTransit(!showTransit)}
-            className={`flex h-7 items-center gap-1.5 rounded-full border px-2.5 transition-all shadow-xl backdrop-blur-md ${
-              showTransit ? "border-primary/40 bg-primary/20 text-primary" : "border-white/10 bg-card/60 text-muted-foreground"
-            }`}
-         >
-            <span className={`h-1.5 w-1.5 rounded-full ${showTransit ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
-            <span className="text-[10px] font-bold uppercase tracking-wide">แสดงดาวจร</span>
-         </button>
-
-         {showTransit && (
            <button
-              onClick={() => {
-                if (!chartData) return;
-                const now = new Date();
-                const birthMs = chartData.julian_date * 86400000 - 210866803200000;
-                const diffDays = (now.getTime() - birthMs) / (1000 * 3600 * 24);
-                const newAge = Math.max(0, diffDays / 365.2422);
-                setAge(newAge);
-                onAgeChange(newAge);
-              }}
-              className="flex h-7 items-center gap-1.5 rounded-full border border-white/10 bg-card/60 px-2.5 text-white hover:bg-muted transition-all shadow-xl backdrop-blur-md"
+              onClick={() => setShowTransit(!showTransit)}
+              className={`flex h-7 items-center gap-1.5 rounded-full border px-2.5 transition-all shadow-xl backdrop-blur-md ${
+                showTransit ? "border-primary/40 bg-primary/20 text-primary" : "border-white/10 bg-card/60 text-muted-foreground"
+              }`}
            >
-              <Clock className="h-3 w-3 text-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-wide">ดาวจรปัจจุบัน</span>
+              <span className={`h-1.5 w-1.5 rounded-full ${showTransit ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
+              <span className="text-[10px] font-bold uppercase tracking-wide">แสดงดาวจร</span>
            </button>
-         )}
-      </div>
+  
+           {showTransit && (
+             <button
+                onClick={() => {
+                  if (!chartData) return;
+                  const now = new Date();
+                  const birthMs = chartData.julian_date * 86400000 - 210866803200000;
+                  const diffDays = (now.getTime() - birthMs) / (1000 * 3600 * 24);
+                  const newAge = Math.max(0, diffDays / 365.2422);
+                  setAge(newAge);
+                  onAgeChange(newAge);
+                }}
+                className="flex h-7 items-center gap-1.5 rounded-full border border-white/10 bg-card/60 px-2.5 text-white hover:bg-muted transition-all shadow-xl backdrop-blur-md"
+             >
+                <Clock className="h-3 w-3 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-wide">ดาวจรปัจจุบัน</span>
+             </button>
+           )}
+        </div>
 
         {chartData && (
           <>
@@ -346,18 +351,96 @@ export function CenterPanel({
             >+1 ปี</button>
           </div>
         </div>
+        {/* Dasha Scrubber Integration */}
+        {chartData?.dasha_timeline && (
+          <div className="relative mb-6 h-4 w-full rounded-full overflow-hidden border border-white/5 bg-black/40 shadow-inner group">
+             {(() => {
+                const tl = chartData.dasha_timeline;
+                const firstStart = new Date(tl[0].start).getTime();
+                const lastEnd = new Date(tl[tl.length - 1].end).getTime();
+                const totalDuration = lastEnd - firstStart;
+                let currentLeft = 0;
+
+                return tl.map((d) => {
+                    const start = new Date(d.start).getTime();
+                    const end = new Date(d.end).getTime();
+                    const width = ((end - start) / totalDuration) * 100;
+                    const left = currentLeft;
+                    currentLeft += width;
+
+                    const colors: any = { Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981", Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF" };
+                    const nums: any = { Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔", Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙" };
+                    
+                    const targetMs = firstStart + (age * 31556926000); 
+                    const isActive = targetMs >= start && targetMs < end;
+
+                    return (
+                        <div key={d.planet + d.start}
+                            className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[8px] font-black text-black transition-all ${isActive ? "opacity-100 ring-2 ring-white/50 z-10" : "opacity-30"}`}
+                            style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
+                        >
+                            {nums[d.planet]}
+                        </div>
+                    );
+                });
+             })()}
+             
+             {/* Antardasha Micro-indicator */}
+             {(() => {
+                const tl = chartData.dasha_timeline;
+                const firstStart = new Date(tl[0].start).getTime();
+                const targetMs = firstStart + (age * 31556926000);
+                const currentM = tl.find(d => targetMs >= new Date(d.start).getTime() && targetMs < new Date(d.end).getTime()) || tl[0];
+                
+                if (!currentM || !currentM.antardashas) return null;
+                const currentA = currentM.antardashas.find(a => targetMs >= new Date(a.start).getTime() && targetMs < new Date(a.end).getTime());
+                if (!currentA) return null;
+                
+                return (
+                    <div className="absolute top-0 left-0 w-full h-full pointer-events-none flex items-end justify-center pb-0.5">
+                        <span className="bg-black/80 text-white text-[7px] px-1 rounded-sm border border-white/20 uppercase font-black tracking-tighter">
+                            {planetThaiNames[currentM.planet]} / {planetThaiNames[currentA.planet]}
+                        </span>
+                    </div>
+                );
+             })()}
+          </div>
+        )}
+
         <input
-          type="range" min={0} max={120} step={0.1}
+          type="range"
+          min="0"
+          max="120"
+          step="0.0001"
           value={age}
           onChange={(e) => {
             const v = parseFloat(e.target.value);
             setAge(v);
             onAgeChange(v);
           }}
-          className="w-full accent-[var(--primary)]"
+          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-border accent-primary transition-all hover:bg-muted focus:outline-none"
         />
-        <div className="mt-1 flex justify-between font-mono text-[9px] text-muted-foreground uppercase tracking-tighter">
-          <span>0 ปี (แรกเกิด)</span><span>30 ปี</span><span>60 ปี</span><span>90 ปี</span><span>120 ปี</span>
+        <div className="mt-2 flex justify-between px-1 text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+          <div className="flex flex-col items-start">
+             <span>0 ปี (แรกเกิด)</span>
+             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543}</span>}
+          </div>
+          <div className="flex flex-col items-center">
+             <span>30 ปี</span>
+             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+30}</span>}
+          </div>
+          <div className="flex flex-col items-center">
+             <span>60 ปี</span>
+             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+60}</span>}
+          </div>
+          <div className="flex flex-col items-center">
+             <span>90 ปี</span>
+             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+90}</span>}
+          </div>
+          <div className="flex flex-col items-end">
+             <span>120 ปี</span>
+             {chartData?.dasha_timeline && <span className="text-[7px] opacity-60">พ.ศ. {new Date(chartData.dasha_timeline[0].start).getFullYear()+543+120}</span>}
+          </div>
         </div>
       </div>
     </section>

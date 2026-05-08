@@ -1,11 +1,12 @@
 "use client";
+// Updated to support DASHA type
 
 import { useState } from "react";
 import { SIGNS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
 import { THAI_NAKSHATRAS } from "./nakshatra_data";
 
-type Tab = "ตำแหน่งดาว" | "ดาว" | "เจ้าเรือน" | "ทศา";
+type Tab = "ตำแหน่งดาว" | "ดาว" | "เจ้าเรือน";
 
 function degToSign(lon: number) {
   const i = Math.floor(lon / 30);
@@ -34,9 +35,6 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
   const [personFocus, setPersonFocus] = useState<"A" | "B">("A");
 
   const chartData = (mode === "Synastry" && personFocus === "B") ? compareData?.person_b_chart : natalData;
-  
-  // Use real dasha timeline if available, otherwise empty
-  const dashaTimeline = chartData?.dasha_timeline || [];
   
   const planetThaiNames: { [key: string]: string } = {
       Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
@@ -70,10 +68,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
     const naks = chartData.lunar_data?.planet_nakshatras?.[name];
     const thaiNak = naks ? getThaiNak(naks.index) : null;
     
-    // Status list aggregation
-    // Status list aggregation - Robust check for accidentally split strings
     let rawList = Array.isArray(p.dignity_list) ? p.dignity_list : (p.dignity ? [p.dignity] : []);
-    // If it's a list of single chars, join them (fixes Python list("ปกติ") bug)
     if (rawList.length > 1 && rawList.every(s => typeof s === 'string' && s.length === 1)) {
         rawList = [rawList.join('')];
     }
@@ -85,7 +80,6 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
         if (thaiSpeed[p.speed_status]) allStatuses.push(thaiSpeed[p.speed_status]);
     }
     
-    // Clean "ปกติ" if other statuses exist
     if (allStatuses.length > 1 && allStatuses.includes("ปกติ")) {
         allStatuses = allStatuses.filter(s => s !== "ปกติ");
     }
@@ -126,7 +120,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
   return (
     <aside className="flex flex-col border-l border-border bg-card/40 overflow-hidden">
       <div className="flex border-b border-border bg-muted/30">
-        {(["ตำแหน่งดาว", "ดาว", "เจ้าเรือน", "ทศา"] as Tab[]).map((t) => (
+        {(["ตำแหน่งดาว", "ดาว", "เจ้าเรือน"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition ${
               tab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
@@ -321,153 +315,6 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                     </tbody>
                 </table>
               </div>
-            )}
-
-            {tab === "ทศา" && (
-                <div className="flex flex-col h-full bg-slate-900/20">
-                    {/* Dasha Visualization Section */}
-                    <div className="p-4 border-b border-border/50 bg-card/30">
-                        <div className="mb-4 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                            <span>Vimshottari Timeline</span>
-                            <div className="flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>
-                                <span>ปัจจุบัน</span>
-                            </div>
-                        </div>
-
-                        <div className="relative h-[72px] overflow-hidden rounded-xl border border-white/10 bg-black/40 flex flex-col gap-1 p-1 shadow-inner">
-                            {dashaTimeline.length > 0 ? (
-                                <>
-                                    <div className="relative h-7 w-full rounded-md overflow-hidden">
-                                        {(() => {
-                                            const firstStart = new Date(dashaTimeline[0].start).getTime();
-                                            const lastEnd = new Date(dashaTimeline[dashaTimeline.length - 1].end).getTime();
-                                            const totalDuration = lastEnd - firstStart;
-                                            let currentLeft = 0;
-
-                                            return dashaTimeline.map((d) => {
-                                                const start = new Date(d.start).getTime();
-                                                const end = new Date(d.end).getTime();
-                                                const duration = end - start;
-                                                const width = (duration / totalDuration) * 100;
-                                                const left = currentLeft;
-                                                currentLeft += width;
-
-                                                const dashaColors: { [key: string]: string } = {
-                                                    Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981",
-                                                    Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF"
-                                                };
-
-                                                const planetToNumber: { [key: string]: string } = {
-                                                    Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔",
-                                                    Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙"
-                                                };
-
-                                                return (
-                                                    <div key={d.planet + d.start}
-                                                        className={`absolute top-0 flex h-full items-center justify-center border-r border-background/10 text-[10px] font-black text-background transition-all hover:brightness-110 cursor-help ${d.is_current ? "ring-2 ring-white ring-inset z-10" : "opacity-30"}`}
-                                                        style={{ left: `${left}%`, width: `${width}%`, background: dashaColors[d.planet] || "#ccc" }}
-                                                        title={`${planetThaiNames[d.planet] || d.planet}: ${new Date(d.start).toLocaleDateString('th-TH')}`}>
-                                                        {planetToNumber[d.planet]}
-                                                    </div>
-                                                );
-                                            });
-                                        })()}
-                                    </div>
-
-                                    <div className="relative h-9 w-full rounded-md bg-black/20 overflow-hidden">
-                                        {(() => {
-                                            const currentM = dashaTimeline.find(d => d.is_current);
-                                            if (!currentM || !currentM.antardashas) return null;
-
-                                            const firstStart = new Date(currentM.antardashas[0].start).getTime();
-                                            const lastEnd = new Date(currentM.antardashas[currentM.antardashas.length - 1].end).getTime();
-                                            const totalDuration = lastEnd - firstStart;
-
-                                            const planetToNumber: { [key: string]: string } = {
-                                                Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔",
-                                                Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙"
-                                            };
-
-                                            return currentM.antardashas.map((a: any) => {
-                                                const start = new Date(a.start).getTime();
-                                                const end = new Date(a.end).getTime();
-                                                const left = ((start - firstStart) / totalDuration) * 100;
-                                                const width = ((end - start) / totalDuration) * 100;
-
-                                                const dashaColors: { [key: string]: string } = {
-                                                    Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981",
-                                                    Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF"
-                                                };
-
-                                                return (
-                                                    <div key={a.planet + a.start}
-                                                        className={`absolute top-0 flex flex-col items-center justify-center border-r border-background/20 text-[9px] font-bold text-background transition-all hover:brightness-110 cursor-help ${a.is_current ? "ring-2 ring-primary ring-inset z-20 shadow-[0_0_15px_rgba(var(--primary-rgb),0.6)]" : "opacity-70"}`}
-                                                        style={{ left: `${left}%`, width: `${width}%`, background: dashaColors[a.planet] || "#ccc" }}
-                                                        title={`แทรก ${planetThaiNames[a.planet] || a.planet}: ${new Date(a.start).toLocaleDateString('th-TH')}`}>
-                                                        <span>{planetToNumber[a.planet]}</span>
-                                                    </div>
-                                                );
-                                            });
-                                        })()}
-                                    </div>
-                                </>
-                            ) : null}
-                        </div>
-                    </div>
-
-                    {/* Detailed Antardasha List */}
-                    <div className="flex-1 overflow-auto">
-                        <table className="w-full border-collapse text-[12px] font-mono">
-                            <thead className="sticky top-0 bg-slate-950 z-10 shadow-sm">
-                                <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border/50">
-                                    <th className="px-4 py-3 font-bold">คู่ทศา (เสวย/แทรก)</th>
-                                    <th className="px-4 py-3 font-bold text-right">วันเริ่มต้น - สิ้นสุด (พ.ศ.)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(() => {
-                                    const currentM = dashaTimeline.find(d => d.is_current);
-                                    if (!currentM || !currentM.antardashas) return null;
-
-                                    const planetToNumber: { [key: string]: string } = {
-                                        Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔",
-                                        Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙"
-                                    };
-
-                                    return currentM.antardashas.map((a: any) => {
-                                        const sDate = new Date(a.start);
-                                        const eDate = new Date(a.end);
-                                        
-                                        return (
-                                            <tr key={a.planet + a.start} className={`border-b border-border/20 ${a.is_current ? "bg-primary/10" : "hover:bg-white/5"}`}>
-                                                <td className="px-4 py-3 flex items-center gap-2">
-                                                    <span className="text-lg font-black text-white">{planetToNumber[currentM.planet]}/{planetToNumber[a.planet]}</span>
-                                                    <span className="text-[10px] text-muted-foreground">({planetThaiNames[currentM.planet]}/{planetThaiNames[a.planet]})</span>
-                                                    {a.is_current && <span className="text-[9px] bg-primary text-black px-1 rounded font-bold animate-pulse">NOW</span>}
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <div className="text-white font-bold">
-                                                        {sDate.getDate()} {sDate.toLocaleDateString('th-TH', { month: 'short' })} {sDate.getFullYear() + 543}
-                                                    </div>
-                                                    <div className="text-[10px] text-muted-foreground">
-                                                        ถึง {eDate.getDate()} {eDate.toLocaleDateString('th-TH', { month: 'short' })} {eDate.getFullYear() + 543}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    });
-                                })()}
-                            </tbody>
-                        </table>
-                        
-                        <div className="p-4 text-center">
-                            <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest italic">
-                                * รอบทศา 120 ปี คำนวณตามมาตรฐานวิมโชตตรีทศา
-                            </p>
-                        </div>
-                    </div>
-                </div>
             )}
           </>
         )}
