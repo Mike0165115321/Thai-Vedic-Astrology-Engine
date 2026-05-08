@@ -12,6 +12,8 @@ from chart.aspects import calculate_western_aspects, calculate_vedic_aspects
 from chart.divisional import get_divisional_positions
 from chart.lunar import get_lunar_data
 from chart.dasha import calculate_vimshottari_dasha
+from chart.house_lords import get_house_lords, get_planet_lordships
+from chart.yogas import detect_yogas
 from datetime import datetime
 
 router = APIRouter()
@@ -67,6 +69,17 @@ def calculate_birth_chart(data: BirthData):
     moon_lon = planets_with_houses.get("Moon", {}).get("longitude", 0)
     dasha_timeline = calculate_vimshottari_dasha(moon_lon, birth_dt_utc)
     
+    # 10. House Lords & Planet Lordships
+    house_lords = get_house_lords(lagna_sign)
+    planet_lordships = get_planet_lordships(lagna_sign)
+    
+    # Attach lordship to planets for easy frontend access
+    for name, p_data in planets_with_houses.items():
+        p_data["lordships"] = planet_lordships.get(name, [])
+
+    # 11. Yoga Detection (Layer 2)
+    detected_yogas = detect_yogas(planets_with_houses, lagna_sign, house_lords)
+
     return {
         "julian_date": jd,
         "ayanamsa_name": data.ayanamsa_mode,
@@ -81,7 +94,9 @@ def calculate_birth_chart(data: BirthData):
         "d3_lagna": d3_lagna,
         "d9_lagna": d9_lagna,
         "lunar_data": lunar_data,
-        "dasha_timeline": dasha_timeline
+        "dasha_timeline": dasha_timeline,
+        "house_lords": house_lords,
+        "yogas": detected_yogas
     }
 
 @router.post("/", response_model=BirthChart)

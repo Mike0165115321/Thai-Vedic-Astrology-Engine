@@ -13,6 +13,7 @@ export interface Planet {
   planetary_war?: boolean;
   thai_name?: string;
   symbol?: string;
+  lordships?: { house: number; name: string }[];
 }
 
 export interface Lagna {
@@ -41,6 +42,8 @@ export interface ChartData {
   lagna: Lagna;
   planets: { [key: string]: Planet };
   houses: { [key: string]: number };
+  house_lords: { [key: number]: { planet: string; sign: number; name: string } };
+  yogas: any[];
   western_aspects: any[];
   vedic_aspects: any[];
   d3: { [key: string]: { sign: number; longitude: number; dignity?: string; dignity_list?: string[] } };

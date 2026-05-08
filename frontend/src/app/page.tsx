@@ -311,6 +311,7 @@ export default function Home() {
           chartType={chartType}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
+          onAgeChange={handleTransitAgeChange}
         />
       </main>
 

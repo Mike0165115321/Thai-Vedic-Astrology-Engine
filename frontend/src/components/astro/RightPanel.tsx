@@ -5,7 +5,7 @@ import { SIGNS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
 import { THAI_NAKSHATRAS } from "./nakshatra_data";
 
-type Tab = "ตำแหน่งดาว" | "กำลังดาว" | "เกณฑ์พิเศษ";
+type Tab = "ตำแหน่งดาว" | "ดาว" | "เจ้าเรือน";
 
 function degToSign(lon: number) {
   const i = Math.floor(lon / 30);
@@ -21,7 +21,13 @@ type Props = {
   chartType: "D1" | "D3" | "D9" | "CAL";
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
+  onAgeChange: (age: number) => void;
 };
+
+const HOUSE_NAMES_TH = [
+    "ตนุ", "กดุมภะ", "สหัชชะ", "พันธุ", "ปุตตะ", "อริ", 
+    "ปัตนิ", "มรณะ", "ศุภะ", "กัมมะ", "ลาภะ", "วินาศ"
+];
 
 export function RightPanel({ chartData: natalData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ตำแหน่งดาว");
@@ -90,11 +96,12 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
       lon: p.longitude,
       retro: p.is_retrograde,
       combust: p.is_combust,
-      house: p.house || "?",
+      house: p.house,
       dignity: p.dignity || "ปกติ",
       dignityList: allStatuses,
       nakshatra: thaiNak ? `${thaiNak.name} (${naks.pada})` : "—",
       nakCategory: thaiNak ? `${thaiNak.category}ฤกษ์` : "",
+      lordships: p.lordships || [],
       color: planetColors[name] || "var(--accent)"
     }
   }) : [];
@@ -119,7 +126,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
   return (
     <aside className="flex flex-col border-l border-border bg-card/40 overflow-hidden">
       <div className="flex border-b border-border bg-muted/30">
-        {(["ตำแหน่งดาว", "กำลังดาว", "เกณฑ์พิเศษ"] as Tab[]).map((t) => (
+        {(["ตำแหน่งดาว", "ดาว", "เจ้าเรือน"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider transition ${
               tab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
@@ -162,7 +169,8 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                   <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
                     <th className="px-3 py-2.5 font-semibold">ดาว</th>
                     <th className="px-3 py-2.5 font-semibold">องศา/ราศี</th>
-                    <th className="px-3 py-2.5 font-semibold">นพเคราะห์/ภพ</th>
+                    <th className="px-3 py-2.5 font-semibold text-center">นพเคราะห์</th>
+                    <th className="px-3 py-2.5 font-semibold text-right">สถิตเรือน</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -183,9 +191,12 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                           );
                         })()}
                       </td>
-                      <td className="px-3 py-2.5">
+                      <td className="px-3 py-2.5 text-center">
                         <div className="text-white">{lagna.nakshatra}</div>
-                        <div className="text-[11px] text-primary font-bold">{lagna.nakCategory}</div>
+                        <div className="text-[11px] text-sky-400 font-bold">{lagna.nakCategory}</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-black text-amber-400 text-[13px]">
+                        ตนุ
                       </td>
                     </tr>
                   )}
@@ -208,12 +219,12 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                             <div className="text-white font-bold">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
                             <div className="text-[10px] text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</div>
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="px-3 py-2.5 text-center">
                             <div className="text-white">{p.nakshatra}</div>
-                            <div className="flex items-center justify-between gap-2 mt-0.5">
-                                <span className="text-[11px] text-sky-400 font-bold whitespace-nowrap">{p.nakCategory}</span>
-                                <span className="text-[10px] text-white/40 italic whitespace-nowrap">ภพที่ {p.house}</span>
-                            </div>
+                            <span className="text-[11px] text-sky-400/80 font-bold">{p.nakCategory}</span>
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-black text-white text-[13px]">
+                            {typeof p.house === 'number' ? HOUSE_NAMES_TH[p.house - 1] : "—"}
                         </td>
                       </tr>
                     );
@@ -222,8 +233,8 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
               </table>
             )}
 
-            {tab === "กำลังดาว" && (
-              <div className="p-0 overflow-auto">
+            {tab === "ดาว" && (
+              <div className="p-0 overflow-auto pb-20">
                 <table className="w-full border-collapse text-[13px] font-mono">
                   <thead className="sticky top-0 bg-card/95 backdrop-blur z-10">
                     <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
@@ -254,15 +265,59 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                     })}
                   </tbody>
                 </table>
-                <div className="text-[12px] text-muted-foreground italic text-center py-8 border-t border-border/50">
+                
+                <div className="p-4 border-t border-border/50 bg-muted/10">
+                    <div className="text-[10px] uppercase font-bold text-muted-foreground mb-3 tracking-widest">เกณฑ์พิเศษ (Yogas)</div>
+                    <div className="p-6 text-center text-muted-foreground/40 italic text-[10px] border border-dashed border-border/50 rounded-lg">
+                        กำลังคำนวณเกณฑ์ดาวและโยค...
+                    </div>
+                </div>
+
+                <div className="text-[12px] text-muted-foreground italic text-center py-8 opacity-40">
                     กำลังดาว (Shadbala) กำลังถูกคำนวณ...
                 </div>
               </div>
             )}
 
-            {tab === "เกณฑ์พิเศษ" && (
-              <div className="p-3 text-center py-10 text-muted-foreground/60 italic text-[10px]">
-                การวิเคราะห์โยคและเกณฑ์พิเศษ กำลังพัฒนาใน Layer 2
+            {tab === "เจ้าเรือน" && (
+              <div className="p-0 overflow-auto">
+                <table className="w-full border-collapse text-[12px] font-mono">
+                    <thead className="sticky top-0 bg-card/95 backdrop-blur z-10">
+                        <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
+                            <th className="px-4 py-2.5 font-semibold">ภพ</th>
+                            <th className="px-4 py-2.5 font-semibold text-center">เจ้าเรือน</th>
+                            <th className="px-4 py-2.5 font-semibold text-right">เกณฑ์/โยค</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Array.from({ length: 12 }).map((_, i) => {
+                            const houseNum = i + 1;
+                            const data = chartData.house_lords?.[houseNum as any];
+                            return (
+                                <tr key={houseNum} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
+                                    <td className="px-4 py-3 text-white font-bold">{HOUSE_NAMES_TH[i]}</td>
+                                    <td className="px-4 py-3 text-center">
+                                        {data ? (
+                                            <span className="text-amber-400 font-black">
+                                                {planetThaiNames[data.planet] || data.planet}
+                                            </span>
+                                        ) : "—"}
+                                    </td>
+                                    <td className="px-4 py-3 text-right">
+                                        {chartData.yogas?.filter(y => y.house === houseNum).map(y => (
+                                            <div key={y.name} className="text-[11px] text-sky-400 font-bold leading-tight mb-1">
+                                                {y.name}
+                                            </div>
+                                        ))}
+                                        {(!chartData.yogas || chartData.yogas.filter(y => y.house === houseNum).length === 0) && (
+                                            <span className="text-[10px] text-muted-foreground/20 italic">—</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
               </div>
             )}
           </>
