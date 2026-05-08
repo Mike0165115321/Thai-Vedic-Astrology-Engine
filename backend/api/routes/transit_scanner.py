@@ -35,4 +35,6 @@ def scan_transits_endpoint(data: TransitScanRequest):
         }
         
     except Exception as e:
+        import traceback
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))

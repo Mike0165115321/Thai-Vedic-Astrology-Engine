@@ -6,7 +6,7 @@ from transits.detectors import detect_events
 from core.ayanamsa import set_ayanamsa
 from chart.lagna import calculate_lagna
 from chart.aspects import calculate_western_aspects, calculate_cross_aspects
-from chart.lunar import get_nakshatra_name
+from chart.lunar import calculate_nakshatra
 
 def scan_transits(
     start_date: datetime,
@@ -28,15 +28,18 @@ def scan_transits(
     natal_planets = None
     natal_lagna_sign = None
     if natal_data:
-        from api.routes.chart import calculate_chart_endpoint
+        from api.routes.chart import calculate_birth_chart
         from models.birth_data import BirthData
-        # Convert dict to BirthData if needed
+        
+        # Ensure we have a BirthData object
         if isinstance(natal_data, dict):
             nbd = BirthData(**natal_data)
+        elif hasattr(natal_data, "dict"):
+            nbd = BirthData(**natal_data.dict())
         else:
             nbd = natal_data
             
-        natal_results = calculate_chart_endpoint(nbd)
+        natal_results = calculate_birth_chart(nbd)
         natal_planets = natal_results["planets"]
         natal_lagna_sign = natal_results["lagna"]["sign"]
 
@@ -91,7 +94,7 @@ def scan_transits(
                     event["degree_text"] = f"{int(p_details['degree_in_sign'])}°{int((p_details['degree_in_sign'] % 1) * 60)}'"
                     event["dignity"] = p_details["dignity"]
                     event["dignity_list"] = p_details["dignity_list"]
-                    event["nakshatra"] = get_nakshatra_name(p_details["longitude"])
+                    event["nakshatra"] = calculate_nakshatra(p_details["longitude"])["name"]
                     
                     # Natal House Mapping
                     if natal_lagna_sign:

@@ -8,6 +8,7 @@ import { CenterPanel } from "@/components/astro/CenterPanel";
 import { RightPanel } from "@/components/astro/RightPanel";
 import { AIAssistant } from "@/components/astro/AIAssistant";
 import { SettingsModal } from "@/components/astro/SettingsModal";
+import { TransitScannerModal } from "@/components/astro/TransitScannerModal";
 import { ChartData, BirthFormData, CompareResponse } from "@/types/chart";
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"Natal" | "Synastry" | "Transit">("Natal");
   const [settings, setSettings] = useState(false);
+  const [exportModal, setExportModal] = useState(false);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [synastryFocus, setSynastryFocus] = useState<"A" | "B" | "Both">("Both");
   const [hasMounted, setHasMounted] = useState(false);
@@ -279,12 +281,55 @@ export default function Home() {
   const [showRightPanel, setShowRightPanel] = useState(true);
   const [showLeftPanel, setShowLeftPanel] = useState(true);
 
+  const handleExportScanner = async (config: any) => {
+    try {
+      const { birthData, startAge, endAge, planets } = config;
+      const startYear = birthData.year + startAge;
+      const endYear = birthData.year + endAge;
+
+      const response = await fetch("http://localhost:8000/calculate/transit-scanner/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          start_year: startYear,
+          start_month: birthData.month,
+          start_day: birthData.day,
+          end_year: endYear,
+          end_month: birthData.month,
+          end_day: birthData.day,
+          planets: planets,
+          natal_data: birthData
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `astro_report_${birthData.name}_${startAge}_${endAge}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setExportModal(false);
+      } else {
+        alert("Failed to generate scan report");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error scanning transits");
+    }
+  };
+
   if (!hasMounted) return null;
 
   return (
     <div className="dark flex h-screen flex-col overflow-hidden bg-background text-foreground font-sans">
       <TopBar 
         onSettings={() => setSettings(true)} 
+        onExportJSON={() => setExportModal(true)}
+        onExportPDF={() => window.print()}
         currentChartType={chartType}
         onChartTypeChange={setChartType}
       />
@@ -386,6 +431,15 @@ export default function Home() {
 
 
       
+      {exportModal && (
+        <TransitScannerModal 
+          onClose={() => setExportModal(false)} 
+          history={history}
+          currentNatalData={currentBirthData.current}
+          onGenerate={handleExportScanner}
+        />
+      )}
+
       {settings && (
         <SettingsModal 
           onClose={() => setSettings(false)} 

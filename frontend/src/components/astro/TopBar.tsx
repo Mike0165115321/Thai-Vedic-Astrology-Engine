@@ -2,10 +2,14 @@ import { Download, Settings, FileJson } from "lucide-react";
 
 export function TopBar({ 
   onSettings, 
+  onExportPDF,
+  onExportJSON,
   currentChartType, 
   onChartTypeChange 
 }: { 
   onSettings: () => void,
+  onExportPDF?: () => void,
+  onExportJSON?: () => void,
   currentChartType: string,
   onChartTypeChange: (type: 'D1' | 'D3' | 'D9' | 'CAL') => void
 }) {
@@ -43,10 +47,16 @@ export function TopBar({
       </nav>
 
       <div className="flex items-center gap-1.5">
-        <button className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted">
+        <button 
+          onClick={onExportPDF}
+          className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted"
+        >
           <Download className="h-3.5 w-3.5" /> PDF
         </button>
-        <button className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted">
+        <button 
+          onClick={onExportJSON}
+          className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted"
+        >
           <FileJson className="h-3.5 w-3.5" /> JSON
         </button>
         <button onClick={onSettings} className="rounded border border-border bg-muted/40 p-1.5 hover:bg-muted">
