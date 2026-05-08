@@ -229,7 +229,7 @@ export function ZodiacWheel({
         return (
           <g key={s.name}>
             <path d={path} fill={fill} stroke="var(--border)" strokeWidth={0.5} />
-            <text x={labelPos.x} y={labelPos.y + 4} textAnchor="middle" fontSize="11" fontWeight="bold"
+            <text x={polar(i * 30 + 15, (R_HOUSES + R_INNER) / 2 + 4).x} y={polar(i * 30 + 15, (R_HOUSES + R_INNER) / 2 + 4).y} textAnchor="middle" fontSize="10" fontWeight="bold"
               fill={s.element === "fire" ? "var(--destructive)" :
                     s.element === "earth" ? "var(--success)" :
                     s.element === "air" ? "var(--info)" : "var(--accent)"}>
@@ -270,8 +270,8 @@ export function ZodiacWheel({
             <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="var(--border)" strokeDasharray="3 3" opacity={0.5} />
             
             {houseNum > 0 && (
-              <g opacity={0.65}>
-                <text x={pName.x} y={pName.y} textAnchor="middle" fontSize="10" fontWeight="600" fill="var(--muted-foreground)">
+              <g opacity={0.85}>
+                <text x={polar(i * 30 + 15, (R_OUTER + R_SIGNS) / 2 + 4).x} y={polar(i * 30 + 15, (R_OUTER + R_SIGNS) / 2 + 4).y} textAnchor="middle" fontSize="10" fontWeight="900" fill="var(--muted-foreground)">
                   {HOUSE_NAMES_TH[houseNum - 1]}
                 </text>
               </g>

@@ -306,6 +306,8 @@ export default function Home() {
         
         <RightPanel 
           chartData={displayChartData}
+          compareData={compareData}
+          mode={mode}
           chartType={chartType}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
