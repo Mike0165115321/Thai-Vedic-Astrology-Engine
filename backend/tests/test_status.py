@@ -27,9 +27,10 @@ def test_specific_dignities():
     planets = get_all_planets(jd)
     
     sun = planets.get("Sun")
-    # Sun in Aries is Exalted
+    # Sun in Aries is Exalted (อุจจ์)
     assert sun["sign"] == 1
-    assert "Exalted" in sun["dignity"]
+    assert "อุจจ์" in sun["dignity"]
+    assert "อุจจ์" in sun["dignity_list"]
     
 def test_planetary_war_trigger():
     # Need to find a date with planetary war (two planets < 1 deg)

@@ -16,11 +16,12 @@ function degToSign(lon: number) {
 
 type Props = {
   chartData: ChartData | null;
+  chartType: "D1" | "D3" | "D9" | "CAL";
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
 };
 
-export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props) {
+export function RightPanel({ chartData, chartType, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ตำแหน่งดาว");
   
   // Use real dasha timeline if available, otherwise empty
@@ -41,16 +42,45 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
     return THAI_NAKSHATRAS.find(n => n.id === index);
   };
 
+  const getDignityStyle = (dignity: string) => {
+    if (dignity.includes("มหาอุจจ์")) return "bg-primary text-primary-foreground font-bold shadow-[0_0_8px_oklch(var(--primary)/0.4)]";
+    if (dignity.includes("อุจจ์")) return "bg-primary/20 text-primary border border-primary/30";
+    if (dignity.includes("เกษตร")) return "bg-success/20 text-success border border-success/30";
+    if (dignity.includes("มหาจักร")) return "bg-accent/20 text-accent border border-accent/30";
+    if (dignity.includes("ราชาโชค") || dignity.includes("เทวีโชค")) return "bg-warning/20 text-warning border border-warning/30";
+    if (dignity.includes("วรโคตม")) return "bg-sky-500/20 text-sky-400 border border-sky-500/30";
+    if (dignity.includes("พักร์") || dignity.includes("ดับ")) return "bg-destructive/20 text-destructive border border-destructive/30";
+    if (dignity.includes("ประ") || dignity.includes("นิจ")) return "bg-destructive/10 text-destructive/70 border border-destructive/20";
+    return "bg-muted/50 text-muted-foreground border border-border/50";
+  };
+
   const planets = chartData ? Object.entries(chartData.planets).map(([name, p]) => {
-    const naks = chartData.lunar_data.planet_nakshatras[name];
+    const naks = chartData.lunar_data?.planet_nakshatras?.[name];
     const thaiNak = naks ? getThaiNak(naks.index) : null;
+    
+    // Status list aggregation
+    let allStatuses = [...(p.dignity_list || (p.dignity ? [p.dignity] : []))];
+    if (p.is_retrograde && !allStatuses.includes("พักร์")) allStatuses.push("พักร์");
+    if (p.is_combust && !allStatuses.includes("ดับ")) allStatuses.push("ดับ");
+    if (p.speed_status && p.speed_status !== "Normal" && !allStatuses.includes(p.speed_status)) {
+        const thaiSpeed: any = { "Slow (ช้า)": "มนทร์", "Fast (เร็ว)": "เสริด", "Stationary (หยุด)": "เสริด" };
+        if (thaiSpeed[p.speed_status]) allStatuses.push(thaiSpeed[p.speed_status]);
+    }
+    
+    // Clean "ปกติ" if other statuses exist
+    if (allStatuses.length > 1 && allStatuses.includes("ปกติ")) {
+        allStatuses = allStatuses.filter(s => s !== "ปกติ");
+    }
+
     return {
       name: planetThaiNames[name] || name,
       symbol: p.symbol || name.substring(0, 2),
       lon: p.longitude,
       retro: p.is_retrograde,
+      combust: p.is_combust,
       house: p.house || "?",
       dignity: p.dignity || "ปกติ",
+      dignityList: allStatuses,
       nakshatra: thaiNak ? `${thaiNak.name} (${naks.pada})` : "—",
       nakCategory: thaiNak ? `${thaiNak.category}ฤกษ์` : "",
       color: planetColors[name] || "var(--accent)"
@@ -134,15 +164,6 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                     const nameInEng = Object.keys(chartData.planets)[idx];
                     const isSelected = selectedPlanet === nameInEng;
                     
-                    const getDignityStyle = (dignity: string) => {
-                        if (dignity.includes("มหาอุจจ์")) return "bg-primary text-primary-foreground font-bold shadow-[0_0_8px_oklch(var(--primary)/0.4)]";
-                        if (dignity.includes("อุจจ์")) return "bg-primary/20 text-primary border border-primary/30";
-                        if (dignity.includes("เกษตร")) return "bg-success/20 text-success border border-success/30";
-                        if (dignity.includes("มหาจักร")) return "bg-accent/20 text-accent border border-accent/30";
-                        if (dignity.includes("ราชาโชค") || dignity.includes("เทวีโชค")) return "bg-warning/20 text-warning border border-warning/30";
-                        if (dignity.includes("ประ") || dignity.includes("นิจ")) return "bg-destructive/10 text-destructive/70 border border-destructive/20";
-                        return "bg-muted/50 text-muted-foreground border border-border/50";
-                    };
 
                     return (
                       <tr key={p.name} 
@@ -165,9 +186,19 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
                             </div>
                         </td>
                         <td className="px-2 py-1.5">
-                          <span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[9px] transition-all ${getDignityStyle(p.dignity)}`}>
-                            {p.dignity}
-                          </span>
+                          {chartType === "CAL" ? (
+                             <span className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[9px] transition-all ${getDignityStyle(p.dignity)}`}>
+                                {p.dignityList.join(" ")}
+                             </span>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                                {p.dignityList.map(s => (
+                                    <span key={s} className={`inline-flex items-center justify-center rounded px-1 py-0.5 text-[8px] leading-none transition-all whitespace-nowrap ${getDignityStyle(s)}`}>
+                                        {s}
+                                    </span>
+                                ))}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     );
@@ -179,24 +210,57 @@ export function RightPanel({ chartData, selectedPlanet, onSelectPlanet }: Props)
             {tab === "กำลังดาว" && (
               <div className="p-4 space-y-4">
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest border-b border-border pb-1">Divisional Charts (D3 / D9)</div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-4">
+                  {/* D9 Section */}
                   <div className="flex flex-col gap-1.5">
-                    <div className="text-[10px] font-bold text-primary border-l-2 border-primary pl-2 mb-1">D3 (ตรียางค์)</div>
-                    {Object.entries(chartData.d3).map(([name, p]) => (
-                      <div key={name} className="flex items-center justify-between text-[10px] font-mono bg-muted/20 px-2 py-1 rounded border border-border/40">
-                        <span style={{ color: planetColors[name] || "var(--accent)" }}>{planetThaiNames[name] || name}</span>
-                        <span className="text-muted-foreground">{SIGNS[Math.floor(p.longitude / 30)].symbol}</span>
-                      </div>
-                    ))}
+                    <div className="text-[10px] font-bold text-accent border-l-2 border-accent pl-2 mb-1 uppercase tracking-wider">นวางค์จักร (Navamsa - D9)</div>
+                    <div className="grid grid-cols-1 gap-1">
+                      {Object.entries(chartData.d9).map(([name, p]: [string, any]) => {
+                         const d = degToSign(p.longitude);
+                         const dignity = p.dignity || "ปกติ";
+                         return (
+                            <div key={name} className="flex items-center justify-between text-[10px] font-mono bg-muted/20 px-2 py-1.5 rounded border border-border/40">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold" style={{ color: planetColors[name] || "var(--accent)" }}>{planetThaiNames[name] || name}</span>
+                                    <span className="text-[9px] text-muted-foreground">{d.sign.symbol}</span>
+                                </div>
+                                <div className="flex gap-1">
+                                    {(p.dignity_list || [dignity]).map((s: string) => (
+                                        <span key={s} className={`px-1 rounded-[2px] text-[8px] ${getDignityStyle(s)}`}>
+                                            {s}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                         );
+                      })}
+                    </div>
                   </div>
+
+                  {/* D3 Section */}
                   <div className="flex flex-col gap-1.5">
-                    <div className="text-[10px] font-bold text-accent border-l-2 border-accent pl-2 mb-1">D9 (นวางค์)</div>
-                    {Object.entries(chartData.d9).map(([name, p]) => (
-                      <div key={name} className="flex items-center justify-between text-[10px] font-mono bg-muted/20 px-2 py-1 rounded border border-border/40">
-                        <span style={{ color: planetColors[name] || "var(--accent)" }}>{planetThaiNames[name] || name}</span>
-                        <span className="text-muted-foreground">{SIGNS[Math.floor(p.longitude / 30)].symbol}</span>
-                      </div>
-                    ))}
+                    <div className="text-[10px] font-bold text-primary border-l-2 border-primary pl-2 mb-1 uppercase tracking-wider">ตรียางค์จักร (Drekkana - D3)</div>
+                    <div className="grid grid-cols-1 gap-1">
+                      {Object.entries(chartData.d3).map(([name, p]: [string, any]) => {
+                         const d = degToSign(p.longitude);
+                         const dignity = p.dignity || "ปกติ";
+                         return (
+                            <div key={name} className="flex items-center justify-between text-[10px] font-mono bg-muted/20 px-2 py-1.5 rounded border border-border/40">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold" style={{ color: planetColors[name] || "var(--accent)" }}>{planetThaiNames[name] || name}</span>
+                                    <span className="text-[9px] text-muted-foreground">{d.sign.symbol}</span>
+                                </div>
+                                <div className="flex gap-1">
+                                    {(p.dignity_list || [dignity]).map((s: string) => (
+                                        <span key={s} className={`px-1 rounded-[2px] text-[8px] ${getDignityStyle(s)}`}>
+                                            {s}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                         );
+                      })}
+                    </div>
                   </div>
                 </div>
                 <div className="text-[10px] text-muted-foreground italic text-center py-4">

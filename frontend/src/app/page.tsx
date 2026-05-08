@@ -278,6 +278,7 @@ export default function Home() {
         
         <RightPanel 
           chartData={displayChartData}
+          chartType={chartType}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
         />

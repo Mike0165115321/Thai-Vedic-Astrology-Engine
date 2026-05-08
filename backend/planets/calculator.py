@@ -81,11 +81,23 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
     
     # 1. Dignity & Speed Status + Thai Names
     for name, data in results.items():
-        # Get Planet ID for dignity lookup (Sun=0, ..., Ketu=8)
         name_to_id = {"Sun": 0, "Moon": 1, "Mars": 2, "Mercury": 3, "Jupiter": 4, "Venus": 5, "Saturn": 6, "Rahu": 7, "Ketu": 8}
         p_id = name_to_id.get(name)
         
-        data["dignity"] = get_dignity(p_id, data["longitude"])
+        dignity_list = get_dignity(p_id, data["longitude"])
+        
+        # Check Vargottama (วรโคตม)
+        from chart.d9 import calculate_navamsa
+        d1_sign = int(data["longitude"] / 30) + 1
+        d9_sign = calculate_navamsa(data["longitude"])
+        if d1_sign == d9_sign and "วรโคตม" not in dignity_list:
+            if dignity_list == ["ปกติ"]:
+                dignity_list = ["วรโคตม"]
+            else:
+                dignity_list.append("วรโคตม")
+
+        data["dignity"] = " · ".join(dignity_list)
+        data["dignity_list"] = dignity_list
         data["speed_status"] = get_speed_status(name, data["speed"])
         data["is_combust"] = False # Default
         data["planetary_war"] = False # Default

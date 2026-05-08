@@ -7,6 +7,7 @@ export interface Planet {
   degree_in_sign?: number;
   house?: number;
   dignity?: string;
+  dignity_list?: string[];
   speed_status?: string;
   is_combust?: boolean;
   planetary_war?: boolean;

@@ -200,6 +200,6 @@ def get_dignity(planet_id, longitude):
         status_list.append("เกษตร")
 
     if not status_list:
-        return "ปกติ"
+        return ["ปกติ"]
 
-    return " · ".join(status_list)
+    return status_list

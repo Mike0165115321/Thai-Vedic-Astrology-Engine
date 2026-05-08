@@ -33,12 +33,25 @@ def get_divisional_positions(planets_data, lagna_data=None, division="D9"):
         new_lon = (sign_base + relative_degree) % 360
         
         p_id = name_to_id.get(name)
-        dignity = get_dignity(p_id, new_lon) if p_id is not None else ""
+        dignity_list = get_dignity(p_id, new_lon) if p_id is not None else ["ปกติ"]
         
+        # Check Vargottama (วรโคตม) - only relevant for D9
+        if division == "D9":
+            natal_sign = int(data["longitude"] / 30) + 1
+            if sign == natal_sign and "วรโคตม" not in dignity_list:
+                if dignity_list == ["ปกติ"]:
+                    dignity_list = ["วรโคตม"]
+                else:
+                    dignity_list.append("วรโคตม")
+
         div_data[name] = {
             "sign": sign,
             "longitude": new_lon,
-            "dignity": dignity
+            "dignity": " · ".join(dignity_list),
+            "dignity_list": dignity_list,
+            "is_retrograde": data.get("is_retrograde", False),
+            "is_combust": data.get("is_combust", False),
+            "speed_status": data.get("speed_status", "Normal")
         }
     
     div_lagna = None
