@@ -316,7 +316,6 @@ export default function Home() {
       </main>
 
 
-      <AIAssistant />
       
       {settings && (
         <SettingsModal 

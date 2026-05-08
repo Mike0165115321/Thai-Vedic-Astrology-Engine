@@ -239,6 +239,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                   <thead className="sticky top-0 bg-card/95 backdrop-blur z-10">
                     <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
                       <th className="px-4 py-3 font-semibold">ดาว</th>
+                      <th className="px-4 py-3 font-semibold">ราศี</th>
                       <th className="px-4 py-3 font-semibold">สถานะทั้งหมด ({chartType})</th>
                     </tr>
                   </thead>
@@ -250,6 +251,12 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                             <span className="font-bold" style={{ color: p.color }}>
                                 {p.name}
                             </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {(() => {
+                                const d = degToSign(p.lon);
+                                return <span className="text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</span>;
+                            })()}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap gap-2">
@@ -298,7 +305,9 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                                     </td>
                                     <td className="px-4 py-3 text-right">
                                         {chartData.yogas?.filter(y => y.house === houseNum).map(y => (
-                                            <div key={y.name} className="text-[11px] text-sky-400 font-bold leading-tight mb-1">
+                                            <div key={`${y.name}-${y.planet}`} 
+                                                 className={`text-[11px] font-bold leading-tight mb-1 ${y.score < 0 ? "text-rose-500" : "text-sky-400"}`}
+                                                 title={y.description}>
                                                 {y.name}
                                             </div>
                                         ))}
@@ -326,22 +335,35 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
         <div className="relative h-8 overflow-hidden rounded border border-border bg-muted/40">
           {dashaTimeline.length > 0 ? (
             <>
-                {dashaTimeline.map((d, i) => {
-                    const width = (100 / dashaTimeline.length);
-                    const left = i * width;
-                    const dashaColors: { [key: string]: string } = {
-                        Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981",
-                        Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF"
-                    };
-                    return (
-                        <div key={d.planet + d.start}
-                            className={`absolute top-0 flex h-full items-center justify-center border-r border-background/20 text-[8px] font-bold text-background transition-all hover:brightness-110 cursor-help ${d.is_current ? "ring-2 ring-primary ring-inset" : ""}`}
-                            style={{ left: `${left}%`, width: `${width}%`, background: dashaColors[d.planet] || "#ccc" }}
-                            title={`${d.planet}: ${new Date(d.start).getFullYear()} - ${new Date(d.end).getFullYear()}`}>
-                            {d.planet.substring(0, 2)}
-                        </div>
-                    );
-                })}
+                {(() => {
+                    const firstStart = new Date(dashaTimeline[0].start).getTime();
+                    const lastEnd = new Date(dashaTimeline[dashaTimeline.length - 1].end).getTime();
+                    const totalDuration = lastEnd - firstStart;
+                    let currentLeft = 0;
+
+                    return dashaTimeline.map((d, i) => {
+                        const start = new Date(d.start).getTime();
+                        const end = new Date(d.end).getTime();
+                        const duration = end - start;
+                        const width = (duration / totalDuration) * 100;
+                        const left = currentLeft;
+                        currentLeft += width;
+
+                        const dashaColors: { [key: string]: string } = {
+                            Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981",
+                            Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF"
+                        };
+
+                        return (
+                            <div key={d.planet + d.start}
+                                className={`absolute top-0 flex h-full items-center justify-center border-r border-background/20 text-[8px] font-bold text-background transition-all hover:brightness-110 cursor-help ${d.is_current ? "ring-2 ring-primary ring-inset z-10" : ""}`}
+                                style={{ left: `${left}%`, width: `${width}%`, background: dashaColors[d.planet] || "#ccc" }}
+                                title={`${planetThaiNames[d.planet] || d.planet}: ${new Date(d.start).toLocaleDateString('th-TH')} - ${new Date(d.end).toLocaleDateString('th-TH')}`}>
+                                {d.planet.substring(0, 2)}
+                            </div>
+                        );
+                    });
+                })()}
             </>
           ) : (
             <div className="flex h-full items-center justify-center text-[9px] text-muted-foreground italic">
