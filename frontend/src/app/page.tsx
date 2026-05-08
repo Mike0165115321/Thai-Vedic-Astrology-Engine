@@ -105,6 +105,7 @@ export default function Home() {
     }
   };
 
+
   // Age-based transit recalculation (debounced)
   const handleTransitAgeChange = useCallback((age: number) => {
     if (transitTimer.current) clearTimeout(transitTimer.current);
@@ -140,6 +141,20 @@ export default function Home() {
       }
     }, 400);
   }, []);
+
+  // Auto-sync to current time when entering Transit mode
+  useEffect(() => {
+    if (mode === "Transit" && currentBirthData.current) {
+        const birth = currentBirthData.current;
+        const now = new Date();
+        const birthDate = new Date(birth.year, birth.month - 1, birth.day, birth.hour, birth.minute);
+        const diffMs = now.getTime() - birthDate.getTime();
+        const diffDays = diffMs / (1000 * 3600 * 24);
+        const currentAge = diffDays / 365.2422;
+        
+        handleTransitAgeChange(Math.max(0, currentAge));
+    }
+  }, [mode, handleTransitAgeChange]);
 
   // Helper to get divisional longitudes for rendering
   const getDivisionalData = useCallback((data: ChartData | null, type: string) => {
@@ -357,6 +372,7 @@ export default function Home() {
           >
             <RightPanel 
               chartData={displayChartData}
+              transitData={displayTransitData}
               compareData={compareData}
               mode={mode}
               chartType={chartType}

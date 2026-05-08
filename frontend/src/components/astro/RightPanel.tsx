@@ -1,7 +1,7 @@
 "use client";
 // Updated to support DASHA type
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { SIGNS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
 import { THAI_NAKSHATRAS } from "./nakshatra_data";
@@ -17,6 +17,7 @@ function degToSign(lon: number) {
 
 type Props = {
   chartData: ChartData | null;
+  transitData: ChartData | null;
   compareData?: CompareResponse | null;
   mode?: "Natal" | "Synastry" | "Transit";
   chartType: "D1" | "D3" | "D9" | "CAL";
@@ -40,11 +41,17 @@ const ASPECT_LABELS: { [key: number]: { label: string; color: string; desc: stri
   180: { label: "เล็ง", color: "#f87171", desc: "เผชิญหน้า สมดุล หรือแตกหัก" }
 };
 
-export function RightPanel({ chartData: natalData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
+export function RightPanel({ chartData: natalData, transitData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ข้อมูลดาว");
   const [personFocus, setPersonFocus] = useState<"A" | "B" | "Both">("A");
 
-  const chartData = (mode === "Synastry" && personFocus === "B") ? compareData?.person_b_chart : natalData;
+  const chartData = useMemo(() => {
+    if (mode === "Transit") return transitData;
+    if (mode === "Synastry") {
+      return personFocus === "B" ? compareData?.person_b_chart : natalData;
+    }
+    return natalData;
+  }, [mode, personFocus, natalData, transitData, compareData]);
   
   const planetThaiNames: { [key: string]: string } = {
       Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
@@ -79,12 +86,12 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
     return "bg-slate-700/50 text-slate-300 border border-slate-600/50";
   };
 
-  const planets = chartData ? Object.entries(chartData.planets).map(([name, p]) => {
+  const planets = chartData ? Object.entries(chartData.planets).map(([name, p]: [string, any]) => {
     const naks = chartData.lunar_data?.planet_nakshatras?.[name];
     const thaiNak = naks ? getThaiNak(naks.index) : null;
     
     let rawList = Array.isArray(p.dignity_list) ? p.dignity_list : (p.dignity ? [p.dignity] : []);
-    if (rawList.length > 1 && rawList.every(s => typeof s === 'string' && s.length === 1)) {
+    if (rawList.length > 1 && rawList.every((s: any) => typeof s === 'string' && s.length === 1)) {
         rawList = [rawList.join('')];
     }
     let allStatuses = [...rawList];
@@ -136,7 +143,15 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
 
   return (
     <aside className="flex h-full flex-col border-l border-border bg-card/40 overflow-hidden">
-      <div className="flex border-b border-border bg-muted/30">
+      <div className="flex flex-col gap-3 px-4 pt-4 pb-2 border-b border-border bg-card/30">
+          <div className="flex items-center justify-between">
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  {mode === "Transit" ? "ข้อมูลดาวจรปัจจุบัน" : (mode === "Synastry" ? `ข้อมูลดวงชะตา (${personFocus === "A" ? "คนแรก" : "คนที่สอง"})` : "ข้อมูลดวงชะตา")}
+              </h2>
+          </div>
+          
+          <div className="flex gap-1 p-1 bg-black/40 rounded-lg border border-white/5">
         {(["ข้อมูลดาว", "การทำมุม"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 px-2 py-2 text-[10px] font-semibold uppercase tracking-wider transition ${

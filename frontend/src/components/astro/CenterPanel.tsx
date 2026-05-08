@@ -417,6 +417,22 @@ export function CenterPanel({
             
             <span className="mx-2 text-border">|</span>
 
+            <button 
+              onClick={() => {
+                if (!chartData) return;
+                const now = new Date();
+                const birth = new Date(chartData.julian_date * 86400000 - 210866803200000);
+                const diffDays = (now.getTime() - birth.getTime()) / (1000 * 3600 * 24);
+                const currentAge = diffDays / 365.2422;
+                setAge(currentAge);
+                onAgeChange(currentAge);
+              }}
+              className="flex items-center gap-1 px-2 py-0.5 rounded bg-primary text-black font-black hover:bg-primary/80 transition-all text-[10px]"
+            >
+              <RefreshCw className="h-3 w-3" />
+              ปัจจุบัน
+            </button>
+
             <span className="mx-2 text-border">|</span>
             
             {/* Scale Selector */}
