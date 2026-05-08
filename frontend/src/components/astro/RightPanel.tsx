@@ -6,7 +6,7 @@ import { SIGNS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
 import { THAI_NAKSHATRAS } from "./nakshatra_data";
 
-type Tab = "ตำแหน่งดาว" | "ดาว" | "เจ้าเรือน" | "การทำมุม";
+type Tab = "ข้อมูลดาว" | "การทำมุม";
 
 function degToSign(lon: number) {
   const i = Math.floor(lon / 30);
@@ -41,20 +41,25 @@ const ASPECT_LABELS: { [key: number]: { label: string; color: string; desc: stri
 };
 
 export function RightPanel({ chartData: natalData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
-  const [tab, setTab] = useState<Tab>("ตำแหน่งดาว");
+  const [tab, setTab] = useState<Tab>("ข้อมูลดาว");
   const [personFocus, setPersonFocus] = useState<"A" | "B" | "Both">("A");
 
   const chartData = (mode === "Synastry" && personFocus === "B") ? compareData?.person_b_chart : natalData;
   
   const planetThaiNames: { [key: string]: string } = {
       Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
-      Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ"
+      Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ", Uranus: "มฤตยู"
+  };
+  
+  const planetThaiNumbers: { [key: string]: string } = {
+      Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔",
+      Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙", Uranus: "๐"
   };
 
   const planetColors: { [key: string]: string } = {
       Sun: "var(--warning)", Moon: "#cfd6e4", Mars: "var(--destructive)",
       Jupiter: "var(--primary)", Venus: "#f5b8e0", Mercury: "var(--info)",
-      Saturn: "#94a3b8", Rahu: "#f59e0b", Ketu: "#fbbf24"
+      Saturn: "#94a3b8", Rahu: "#f59e0b", Ketu: "#fbbf24", Uranus: "#a78bfa"
   };
 
   const getThaiNak = (index: number) => {
@@ -90,7 +95,8 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
         if (thaiSpeed[p.speed_status]) allStatuses.push(thaiSpeed[p.speed_status]);
     }
     
-    if (allStatuses.length > 1 && allStatuses.includes("ปกติ")) {
+    // Filter out "ปกติ" if there are other meaningful statuses
+    if (allStatuses.length > 1) {
         allStatuses = allStatuses.filter(s => s !== "ปกติ");
     }
 
@@ -130,7 +136,7 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
   return (
     <aside className="flex h-full flex-col border-l border-border bg-card/40 overflow-hidden">
       <div className="flex border-b border-border bg-muted/30">
-        {(["ตำแหน่งดาว", "ดาว", "เจ้าเรือน", "การทำมุม"] as Tab[]).map((t) => (
+        {(["ข้อมูลดาว", "การทำมุม"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 px-2 py-2 text-[10px] font-semibold uppercase tracking-wider transition ${
               tab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
@@ -175,163 +181,121 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                     </button>
                 </div>
             )}
-            {tab === "ตำแหน่งดาว" && (
-              <table className="w-full border-collapse text-[12px] font-mono">
-                <thead className="sticky top-0 bg-card/95 backdrop-blur z-10">
-                  <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
-                    <th className="px-3 py-2.5 font-semibold">ดาว</th>
-                    <th className="px-3 py-2.5 font-semibold">องศา/ราศี</th>
-                    <th className="px-3 py-2.5 font-semibold text-center">นพเคราะห์</th>
-                    <th className="px-3 py-2.5 font-semibold text-right">สถิตเรือน</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lagna && (
-                    <tr className="border-b border-border bg-primary/5">
-                      <td className="px-3 py-2.5">
-                        <span className="mr-2 font-bold" style={{ color: lagna.color }}>{lagna.symbol}</span>
-                        <span className="text-white font-bold">{lagna.name}</span>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        {(() => {
-                          const d = degToSign(lagna.lon);
+            {tab === "ข้อมูลดาว" && (
+              <div className="p-0 pb-10 divide-y divide-border/30">
+                  {(() => {
+                      const getThaiNak = (index: number) => {
+                          return THAI_NAKSHATRAS.find(n => n.id === index) || null;
+                      };
+
+                      const lagnaItem = chartData.lagna ? { 
+                          isLagna: true, 
+                          name: "ลัคนา",
+                          nameInEng: "Lagna",
+                          symbol: "ลั", 
+                          color: "var(--warning)", 
+                          lon: chartData.lagna.longitude,
+                          nakshatra: (() => {
+                              const n = chartData.lunar_data?.lagna_nakshatra;
+                              const t = n ? getThaiNak(n.index) : null;
+                              return t ? `${t.name} (${n.pada})` : "—";
+                          })(),
+                          house: 1,
+                          dignityList: [],
+                          retro: false
+                      } : null;
+                      
+                      const planetItems = planets.map((p, idx) => ({
+                          isLagna: false,
+                          nameInEng: Object.keys(chartData.planets)[idx],
+                          name: p.name,
+                          symbol: p.symbol,
+                          color: p.color,
+                          lon: p.lon,
+                          nakshatra: p.nakshatra,
+                          house: p.house,
+                          dignityList: p.dignityList,
+                          retro: p.retro
+                      }));
+
+                      const combinedData = [];
+                      if (lagnaItem) combinedData.push(lagnaItem);
+                      combinedData.push(...planetItems);
+
+                      return combinedData.map((p) => {
+                          const d = degToSign(p.lon);
+                          const isSelected = selectedPlanet === p.nameInEng;
+                          const houseName = typeof p.house === 'number' ? HOUSE_NAMES_TH[p.house - 1] : "—";
+                          
+                          // Find lordships
+                          const lordOf = chartData.house_lords ? 
+                                         Object.entries(chartData.house_lords)
+                                               .filter(([_, data]) => (data as any).planet === p.nameInEng)
+                                               .map(([hNum, _]) => HOUSE_NAMES_TH[parseInt(hNum) - 1]) 
+                                         : [];
+
+                          // Find Yogas
+                          const yogas = chartData.yogas ? chartData.yogas.filter(y => y.planet === p.nameInEng) : [];
+
                           return (
-                            <>
-                              <div className="text-white font-bold">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
-                              <div className="text-[10px] text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</div>
-                            </>
+                              <div key={p.nameInEng} 
+                                   onClick={() => onSelectPlanet(isSelected ? null : p.nameInEng)}
+                                   className={`p-4 transition-colors cursor-pointer ${isSelected ? "bg-primary/10" : "hover:bg-muted/20"}`}>
+                                  
+                                  <div className="flex justify-between items-start mb-2.5">
+                                      <div className="flex items-center gap-3">
+                                          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-muted/40 font-black shadow-inner text-[15px]" style={{ color: p.color, textShadow: `0 0 5px ${p.color}40` }}>
+                                              {p.symbol}
+                                          </div>
+                                          <div>
+                                              <div className="font-bold text-[13px] text-white flex items-center gap-1.5">
+                                                  {p.name} {p.isLagna && <span className="text-[9px] bg-warning/20 text-warning px-1 rounded uppercase tracking-wider">ลัคนา</span>}
+                                                  {p.retro && <span className="text-rose-500 font-black text-[10px]" title="โคจรพักร์ (ถอยหลัง)">℞</span>}
+                                              </div>
+                                              <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                                                  {d.deg}°{String(d.min).padStart(2, "0")}′ {d.sign.name_th}
+                                              </div>
+                                          </div>
+                                      </div>
+                                      <div className="text-right flex flex-col items-end gap-1.5">
+                                          <div className="text-[12px] font-black text-amber-400">
+                                              ภพ{houseName}
+                                          </div>
+                                          <div className="flex flex-wrap gap-1 justify-end">
+                                              {p.dignityList.map((s: string) => (
+                                                  <span key={s} className={`px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold ${getDignityStyle(s)}`}>{s}</span>
+                                              ))}
+                                          </div>
+                                      </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-3 text-[10px] mt-3 bg-black/20 p-2.5 rounded border border-white/5">
+                                      <div>
+                                          <span className="text-muted-foreground block text-[9px] uppercase tracking-wider mb-0.5">นักษัตร</span>
+                                          <span className="text-white/90">{p.nakshatra}</span>
+                                      </div>
+                                      {lordOf.length > 0 && (
+                                          <div>
+                                              <span className="text-muted-foreground block text-[9px] uppercase tracking-wider mb-0.5">เจ้าเรือน</span>
+                                              <span className="text-sky-300 font-semibold">{lordOf.join(", ")}</span>
+                                          </div>
+                                      )}
+                                  </div>
+
+                                  {yogas.length > 0 && (
+                                      <div className="mt-2.5 text-[10px] leading-tight flex flex-wrap gap-1.5 items-center">
+                                          <span className="text-muted-foreground font-semibold">เกณฑ์/โยค:</span>
+                                          {yogas.map((y: any, i: number) => (
+                                              <span key={i} className={`px-1.5 py-0.5 rounded-[3px] bg-muted/40 font-bold border border-border/50 ${y.score < 0 ? "text-rose-400" : "text-emerald-400"}`} title={y.description}>
+                                                  {y.name}
+                                              </span>
+                                          ))}
+                                      </div>
+                                  )}
+                              </div>
                           );
-                        })()}
-                      </td>
-                      <td className="px-3 py-2.5 text-center">
-                        <div className="text-white">{lagna.nakshatra}</div>
-                        <div className="text-[11px] text-sky-400 font-bold">{lagna.nakCategory}</div>
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-black text-amber-400 text-[13px]">
-                        ตนุ
-                      </td>
-                    </tr>
-                  )}
-                  {planets.map((p, idx) => {
-                    const d = degToSign(p.lon);
-                    const nameInEng = Object.keys(chartData.planets)[idx];
-                    const isSelected = selectedPlanet === nameInEng;
-                    
-
-                    return (
-                      <tr key={p.name} 
-                          onClick={() => onSelectPlanet(isSelected ? null : nameInEng)}
-                          className={`border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer ${isSelected ? "bg-primary/10" : ""}`}>
-                        <td className="px-3 py-2.5">
-                          <span className="mr-2 font-bold" style={{ color: p.color }}>{p.symbol}</span>
-                          <span className="text-white/90 font-bold">{p.name}</span>
-                          {p.retro && <span className="ml-1 text-rose-500 font-black">℞</span>}
-                        </td>
-                        <td className="px-3 py-2.5">
-                            <div className="text-white font-bold">{d.deg}°{String(d.min).padStart(2, "0")}′</div>
-                            <div className="text-[10px] text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</div>
-                        </td>
-                        <td className="px-3 py-2.5 text-center">
-                            <div className="text-white">{p.nakshatra}</div>
-                            <span className="text-[11px] text-sky-400/80 font-bold">{p.nakCategory}</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-right font-black text-white text-[13px]">
-                            {typeof p.house === 'number' ? HOUSE_NAMES_TH[p.house - 1] : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-
-            {tab === "ดาว" && (
-              <div className="p-0 overflow-auto pb-20">
-                <table className="w-full border-collapse text-[13px] font-mono">
-                  <thead className="sticky top-0 bg-card/95 backdrop-blur z-10">
-                    <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
-                      <th className="px-4 py-3 font-semibold">ดาว</th>
-                      <th className="px-4 py-3 font-semibold">ราศี</th>
-                      <th className="px-4 py-3 font-semibold">สถานะดาว ({chartType})</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {planets.map((p, idx) => {
-                      return (
-                        <tr key={p.name} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3">
-                            <span className="font-bold" style={{ color: p.color }}>
-                                {p.name}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            {(() => {
-                                const d = degToSign(p.lon);
-                                return <span className="text-muted-foreground">{d.sign.symbol} {d.sign.name_th}</span>;
-                            })()}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex flex-wrap gap-2">
-                              {p.dignityList.length > 0 ? (
-                                p.dignityList.map(s => (
-                                  <span key={s} className={`px-2 py-1 rounded-[3px] text-[11px] font-bold ${getDignityStyle(s)}`}>{s}</span>
-                                ))
-                              ) : <span className="text-white/20">ปกติ</span>}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-                
-                <div className="text-[12px] text-muted-foreground italic text-center py-8 opacity-40 border-t border-border/50">
-                    กำลังดาว กำลังถูกคำนวณ...
-                </div>
-              </div>
-            )}
-
-            {tab === "เจ้าเรือน" && (
-              <div className="p-0 overflow-auto">
-                <table className="w-full border-collapse text-[12px] font-mono">
-                    <thead className="sticky top-0 bg-card/95 backdrop-blur z-10">
-                        <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground border-b border-border">
-                            <th className="px-4 py-2.5 font-semibold">ภพ</th>
-                            <th className="px-4 py-2.5 font-semibold text-center">เจ้าเรือน</th>
-                            <th className="px-4 py-2.5 font-semibold text-right">เกณฑ์/โยค</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {Array.from({ length: 12 }).map((_, i) => {
-                            const houseNum = i + 1;
-                            const data = chartData.house_lords?.[houseNum as any];
-                            return (
-                                <tr key={houseNum} className="border-b border-border/40 hover:bg-muted/30 transition-colors">
-                                    <td className="px-4 py-3 text-white font-bold">{HOUSE_NAMES_TH[i]}</td>
-                                    <td className="px-4 py-3 text-center">
-                                        {data ? (
-                                            <span className="text-amber-400 font-black">
-                                                {planetThaiNames[data.planet] || data.planet}
-                                            </span>
-                                        ) : "—"}
-                                    </td>
-                                    <td className="px-4 py-3 text-right">
-                                        {chartData.yogas?.filter(y => y.house === houseNum).map(y => (
-                                            <div key={`${y.name}-${y.planet}`} 
-                                                 className={`text-[11px] font-bold leading-tight mb-1 ${y.score < 0 ? "text-rose-500" : "text-sky-400"}`}
-                                                 title={y.description}>
-                                                {y.name}
-                                            </div>
-                                        ))}
-                                        {(!chartData.yogas || chartData.yogas.filter(y => y.house === houseNum).length === 0) && (
-                                            <span className="text-[10px] text-muted-foreground/20 italic">—</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                      });
+                  })()}
               </div>
             )}
 

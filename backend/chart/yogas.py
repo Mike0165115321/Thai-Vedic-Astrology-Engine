@@ -84,25 +84,25 @@ def detect_udom_kane(detected, planets, lagna_sign):
     if lagna_sign in NARAYA_SIGNS:
         for p in ["Sun", "Mercury", "Jupiter", "Saturn"]:
             p_data = planets.get(p)
-            if p_data:
+            if p_data and p_data["house"] in [1, 4, 5, 7]:
                 add_yoga(detected, "อุดมเกณฑ์", p, p_data["house"], f"ดาว {p} เป็นอุดมเกณฑ์ในนระราศี", score=20, category="abundance")
 
     # อัมพุอุดมเกณฑ์ (2, 3, 6, 8)
     if lagna_sign in AMPHU_SIGNS:
         for p in ["Moon", "Mars", "Venus", "Rahu"]:
             p_data = planets.get(p)
-            if p_data:
+            if p_data and p_data["house"] in [2, 3, 6, 8]:
                 add_yoga(detected, "อุดมเกณฑ์", p, p_data["house"], f"ดาว {p} เป็นอุดมเกณฑ์ในอัมพุราศี", score=20, category="abundance")
 
     # กีฏะอุดมเกณฑ์ (8)
     if lagna_sign in KEETA_SIGNS:
-        if "Rahu" in planets:
-            add_yoga(detected, "อุดมเกณฑ์", "Rahu", planets["Rahu"]["house"], "ราหูเป็นอุดมเกณฑ์ในกีฏะราศี", score=25, category="abundance")
+        if "Rahu" in planets and planets["Rahu"]["house"] == 8:
+            add_yoga(detected, "อุดมเกณฑ์", "Rahu", 8, "ราหูเป็นอุดมเกณฑ์ในกีฏะราศี", score=25, category="abundance")
 
     # จตุบทอุดมเกณฑ์ (5)
     if lagna_sign in CHATUSH_SIGNS:
-        if "Jupiter" in planets:
-            add_yoga(detected, "อุดมเกณฑ์", "Jupiter", planets["Jupiter"]["house"], "พฤหัสเป็นอุดมเกณฑ์ในจตุบทราศี", score=25, category="abundance")
+        if "Jupiter" in planets and planets["Jupiter"]["house"] == 5:
+            add_yoga(detected, "อุดมเกณฑ์", "Jupiter", 5, "พฤหัสเป็นอุดมเกณฑ์ในจตุบทราศี", score=25, category="abundance")
 
 def detect_mahapurusha(detected, planets):
     # ปัญจมหาบุรุษโยค: เกษตร/อุจจ์ ในเคนทร (1, 4, 7, 10)

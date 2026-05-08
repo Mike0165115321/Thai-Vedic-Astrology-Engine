@@ -17,6 +17,7 @@ PLANETS = {
     6: {"name": "Saturn", "thai_name": "เสาร์", "symbol": "๗"},
     7: {"name": "Rahu", "thai_name": "ราหู", "symbol": "๘"},
     8: {"name": "Ketu", "thai_name": "เกตุ", "symbol": "๙"},
+    9: {"name": "Uranus", "thai_name": "มฤตยู", "symbol": "๐"},
 }
 
 # Ayanamsa — default mode (must match keys in core/ayanamsa.py AYANAMSA_MODES)

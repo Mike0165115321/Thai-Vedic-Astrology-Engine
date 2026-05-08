@@ -44,6 +44,7 @@ const getPlanetColor = (name: string) => {
   if (name === "Saturn") return "#94a3b8"; // Saturn Slate
   if (name === "Rahu") return "#f59e0b"; // Rahu Amber
   if (name === "Ketu") return "#fbbf24"; // Ketu Gold
+  if (name === "Uranus") return "#a78bfa"; // Uranus Violet
   return "#818cf8"; // Default Indigo
 };
 
@@ -59,40 +60,43 @@ const resolveOverlaps = (list: any[], baseRadius: number) => {
     
     // Sort a copy to detect neighbors
     const sorted = [...list].sort((a, b) => a.lon - b.lon);
-    const threshold = 8; // Degree threshold for overlap
-    const step = 22;    // Distance to stagger radially
+    const threshold = 12; // Increased from 8 to 12 for better clarity
+    const step = 25;     // Increased from 22 to 25 for clearer vertical separation
     
     const radiusMap: { [key: string]: number } = {};
-    let stackLevel = 0;
+    const usedLevels: number[] = [];
     
     for (let i = 0; i < sorted.length; i++) {
         const p = sorted[i];
-        if (i > 0) {
-            let diff = p.lon - sorted[i-1].lon;
-            if (diff < 0) diff += 360; // Should not happen with sort but just in case
-            
-            if (diff < threshold) {
-                stackLevel += 1;
-            } else {
-                stackLevel = 0;
+        let stackLevel = 0;
+        
+        // Check previous planets in a sliding window to find a free level
+        // We look at the last 3 planets to see if we're too close to any of them
+        const lookBack = 4;
+        let occupiedLevels = new Set<number>();
+        
+        for (let j = 1; j <= lookBack; j++) {
+            if (i - j >= 0) {
+                const prev = sorted[i - j];
+                const diff = Math.abs(p.lon - prev.lon);
+                if (diff < threshold) {
+                    occupiedLevels.add(usedLevels[i - j]);
+                }
             }
         }
-        
-        // Check wrap-around overlap (last vs first)
-        if (i === 0 && sorted.length > 1) {
-            const last = sorted[sorted.length - 1];
-            const wrapDiff = (360 - last.lon + p.lon) % 360;
-            if (wrapDiff < threshold) {
-                stackLevel = 1; // Start with offset if it overlaps with the end
+
+        // Find the first level (0, 1, -1, 2, -2...) that isn't occupied by a nearby planet
+        const levelsToTry = [0, 1, -1, 2, -2, 3, -3];
+        for (const level of levelsToTry) {
+            if (!occupiedLevels.has(level)) {
+                stackLevel = level;
+                break;
             }
+            stackLevel = level; // Fallback to furthest if all busy
         }
         
-        // Alternating pattern: 0, -1, 1, -2, 2...
-        const dir = stackLevel % 2 === 0 ? 1 : -1;
-        const depth = Math.ceil(stackLevel / 2);
-        const offset = depth > 0 ? dir * depth * step : 0;
-        
-        radiusMap[p.id] = baseRadius + offset;
+        usedLevels[i] = stackLevel;
+        radiusMap[p.id] = baseRadius + (stackLevel * step);
     }
     
     // Return original list with updated visualRadius to maintain stable DOM order

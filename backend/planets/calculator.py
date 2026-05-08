@@ -11,7 +11,8 @@ PLANET_IDS = {
     "Jupiter": swe.JUPITER,
     "Venus": swe.VENUS,
     "Saturn": swe.SATURN,
-    "Rahu": swe.MEAN_NODE, # Default to Mean Node as per Vedic tradition
+    "Rahu": swe.MEAN_NODE,
+    "Uranus": swe.URANUS,
 }
 
 def calculate_planet_position(jd, planet_id):
@@ -46,7 +47,7 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
     rahu_id = swe.MEAN_NODE if node_type.upper() == "MEAN" else swe.TRUE_NODE
     
     # Calculate Sun to Saturn
-    standard_planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+    standard_planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Uranus"]
     for name in standard_planets:
         p_id = PLANET_IDS[name]
         results[name] = calculate_planet_position(jd, p_id)
@@ -81,7 +82,7 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
     
     # 1. Dignity & Speed Status + Thai Names
     for name, data in results.items():
-        name_to_id = {"Sun": 0, "Moon": 1, "Mars": 2, "Mercury": 3, "Jupiter": 4, "Venus": 5, "Saturn": 6, "Rahu": 7, "Ketu": 8}
+        name_to_id = {"Sun": 0, "Moon": 1, "Mars": 2, "Mercury": 3, "Jupiter": 4, "Venus": 5, "Saturn": 6, "Rahu": 7, "Ketu": 8, "Uranus": 9}
         p_id = name_to_id.get(name)
         
         dignity_list = get_dignity(p_id, data["longitude"])
