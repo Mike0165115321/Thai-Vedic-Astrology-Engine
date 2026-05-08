@@ -21,9 +21,11 @@ type LocationResult = {
 
 type Props = {
   onSelect: (lat: number, lon: number, name: string) => void;
+  labelColor?: string;
+  accentColor?: string;
 };
 
-export function LocationSearch({ onSelect }: Props) {
+export function LocationSearch({ onSelect, labelColor = "text-primary", accentColor = "primary" }: Props) {
   const [province, setProvince] = useState("");
   const [provinceEn, setProvinceEn] = useState("");
   const [amphoe, setAmphoe] = useState("");
@@ -151,7 +153,7 @@ export function LocationSearch({ onSelect }: Props) {
       <button
         onClick={getCurrentLocation}
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded border border-primary/30 bg-primary/5 py-1.5 text-[9px] font-bold uppercase tracking-widest text-primary hover:bg-primary/10 transition-all disabled:opacity-50"
+        className={`flex w-full items-center justify-center gap-2 rounded border border-${accentColor}/30 bg-${accentColor}/5 py-1.5 text-[9px] font-bold uppercase tracking-widest text-${accentColor} hover:bg-${accentColor}/10 transition-all disabled:opacity-50`}
       >
         {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Crosshair className="h-3 w-3" />}
         ใช้ตำแหน่งปัจจุบัน (Current Location)
@@ -159,7 +161,7 @@ export function LocationSearch({ onSelect }: Props) {
 
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
-          <label className="text-[9px] uppercase text-primary mb-1 block font-bold">จังหวัด (Province)</label>
+          <label className={`text-[9px] uppercase ${labelColor} mb-1 block font-bold`}>จังหวัด (Province)</label>
           <div className="relative">
             <input
               type="text"
@@ -170,7 +172,7 @@ export function LocationSearch({ onSelect }: Props) {
               }}
               onFocus={() => setOpenDropdown("province")}
               placeholder="เลือกจังหวัด..."
-              className="w-full bg-input/50 border border-border rounded px-2 py-1.5 font-sans text-xs focus:ring-1 focus:ring-primary outline-none transition-all"
+              className={`w-full bg-input/50 border border-border rounded px-2 py-1.5 font-sans text-xs focus:ring-1 focus:ring-${accentColor} outline-none transition-all`}
             />
             {province ? (
                 <button 
@@ -202,7 +204,7 @@ export function LocationSearch({ onSelect }: Props) {
         </div>
 
         <div className="relative">
-          <label className="text-[9px] uppercase text-primary mb-1 block font-bold">อำเภอ / เขต (District)</label>
+          <label className={`text-[9px] uppercase ${labelColor} mb-1 block font-bold`}>อำเภอ / เขต (District)</label>
           <div className="relative">
             <input
               type="text"
@@ -216,9 +218,9 @@ export function LocationSearch({ onSelect }: Props) {
                   else if (results.length > 0) setOpenDropdown("results"); 
               }}
               placeholder={province ? `ค้นหาใน${province}...` : "ระบุอำเภอ..."}
-              className="w-full bg-input/50 border border-border rounded px-2 py-1.5 font-sans text-xs focus:ring-1 focus:ring-primary outline-none transition-all"
+              className={`w-full bg-input/50 border border-border rounded px-2 py-1.5 font-sans text-xs focus:ring-1 focus:ring-${accentColor} outline-none transition-all`}
             />
-            {loading && <Loader2 className="absolute right-2 top-2.5 h-3 w-3 animate-spin text-primary" />}
+            {loading && <Loader2 className={`absolute right-2 top-2.5 h-3 w-3 animate-spin text-${accentColor}`} />}
           </div>
         </div>
       </div>

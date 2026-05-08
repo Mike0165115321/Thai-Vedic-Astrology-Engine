@@ -159,10 +159,13 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
 
              {/* Section B (Synastry Only) */}
              {mode === "Synastry" && (
-                <div className="p-3 border border-accent/20 rounded bg-accent/5 space-y-3">
-                    <div className="text-[10px] font-black text-accent uppercase mb-1">เจ้าชะตาคนที่ 2 (Person B)</div>
+                <div className="p-3 border border-white/20 rounded bg-white/5 space-y-3">
+                    <div className="text-[10px] font-black text-white/90 uppercase mb-1 flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                        เจ้าชะตาคนที่ 2 (Person B)
+                    </div>
                     <div>
-                        <label className="text-[10px] font-bold uppercase text-accent mb-1 block">ชื่อ-นามสกุล</label>
+                        <label className="text-[10px] font-bold uppercase text-white/60 mb-1 block">ชื่อ-นามสกุล</label>
                         <input 
                             type="text" 
                             placeholder="ระบุชื่อ..." 
@@ -173,15 +176,15 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                         <div>
-                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">วัน</label>
+                            <label className="text-[9px] font-bold text-white/60 uppercase mb-0.5 block">วัน</label>
                             <input type="number" value={formDataB.day} onChange={e => handleInputChange("day", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
                         </div>
                         <div>
-                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">เดือน</label>
+                            <label className="text-[9px] font-bold text-white/60 uppercase mb-0.5 block">เดือน</label>
                             <input type="number" value={formDataB.month} onChange={e => handleInputChange("month", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
                         </div>
                         <div>
-                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">ปี (พ.ศ.)</label>
+                            <label className="text-[9px] font-bold text-white/60 uppercase mb-0.5 block">ปี (พ.ศ.)</label>
                             <input 
                                 type="number" 
                                 value={formDataB.year + 543} 
@@ -192,15 +195,19 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <div>
-                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">ชั่วโมง</label>
+                            <label className="text-[9px] font-bold text-white/60 uppercase mb-0.5 block">ชั่วโมง</label>
                             <input type="number" value={formDataB.hour} onChange={e => handleInputChange("hour", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
                         </div>
                         <div>
-                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">นาที</label>
+                            <label className="text-[9px] font-bold text-white/60 uppercase mb-0.5 block">นาที</label>
                             <input type="number" value={formDataB.minute} onChange={e => handleInputChange("minute", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
                         </div>
                     </div>
-                    <LocationSearch onSelect={(lat, lon) => setFormDataB(p => ({ ...p, lat, lon }))} />
+                    <LocationSearch 
+                        onSelect={(lat, lon) => setFormDataB(p => ({ ...p, lat, lon }))} 
+                        labelColor="text-white/60"
+                        accentColor="white"
+                    />
                 </div>
              )}
 

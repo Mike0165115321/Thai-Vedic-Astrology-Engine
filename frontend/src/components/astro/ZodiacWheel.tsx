@@ -140,7 +140,7 @@ export function ZodiacWheel({
             symbol: p.symbol || name.substring(0, 2),
             lon: p.longitude,
             retro: p.is_retrograde,
-            color: isSynastry ? "#f43f5e" : getPlanetColor(name), // Fixed Rose for Person B
+            color: isSynastry ? "#ffffff" : getPlanetColor(name), // Fixed White for Person B
             isTransit: true,
             isLagna: false
         }));
@@ -152,7 +152,7 @@ export function ZodiacWheel({
             symbol: 'ลั',
             lon: transitLagna.longitude,
             retro: false,
-            color: isSynastry ? "#f43f5e" : 'var(--info)',
+            color: isSynastry ? "#ffffff" : 'var(--info)',
             isTransit: true,
             isLagna: true
         });
@@ -329,24 +329,24 @@ export function ZodiacWheel({
                 e.stopPropagation(); 
                 if (!p.isLagna) onSelectPlanet(p.name); 
              }}>
-              <g style={{ filter: isSelected ? "drop-shadow(0 0 8px var(--primary))" : "none" }}>
+              <g style={{ filter: isSelected ? `drop-shadow(0 0 8px ${p.color})` : "none" }}>
                 {/* Background glow */}
-                <circle cx={0} cy={0} r={p.isTransit ? 10 : 14} fill={p.color} opacity={isSelected || p.isLagna ? 0.3 : 0.1} />
+                <circle cx={0} cy={0} r={(p.isTransit && !isSynastry) ? 10 : 14} fill={p.color} opacity={isSelected || p.isLagna ? 0.3 : 0.1} />
                 
                 {/* Icon circle */}
                 <circle 
-                  cx={0} cy={0} r={p.isTransit ? 8 : 12} 
+                  cx={0} cy={0} r={(p.isTransit && !isSynastry) ? 8 : 12} 
                   fill="var(--background)" 
                   stroke={p.color} 
                   strokeWidth={isSelected || p.isLagna ? 2 : 1}
-                  opacity={p.isTransit ? 0.8 : 1}
+                  opacity={(p.isTransit && !isSynastry) ? 0.8 : 1}
                 />
                 
                 {/* Symbol */}
                 <text
                   textAnchor="middle"
-                  dy={p.isTransit ? "3.5" : "4.5"}
-                  fontSize={p.isTransit ? "10" : "13"}
+                  dy={(p.isTransit && !isSynastry) ? "3.5" : "4.5"}
+                  fontSize={(p.isTransit && !isSynastry) ? "10" : "13"}
                   fill={p.color}
                   fontWeight={p.isLagna ? 900 : 700}
                   className="select-none"

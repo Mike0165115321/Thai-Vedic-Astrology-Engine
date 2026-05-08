@@ -210,15 +210,15 @@ export function CenterPanel({
           {mode === "Synastry" && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 flex bg-card/80 backdrop-blur border border-primary/20 rounded-full p-1 shadow-xl z-20">
                {[
-                 { id: "A", label: "คนที่ 1" },
-                 { id: "B", label: "คนที่ 2" },
-                 { id: "Both", label: "ดูพร้อมกัน" }
+                 { id: "A", label: "คนที่ 1", color: "bg-[#3b82f6]" },
+                 { id: "B", label: "คนที่ 2", color: "bg-white !text-black" },
+                 { id: "Both", label: "ดูพร้อมกัน", color: "bg-primary" }
                ].map(f => (
                  <button
                    key={f.id}
                    onClick={() => setSynastryFocus(f.id as any)}
                    className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
-                     synastryFocus === f.id ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground hover:text-foreground"
+                     synastryFocus === f.id ? `${f.color} shadow-lg scale-105` : "text-muted-foreground hover:text-foreground"
                    }`}
                  >
                    {f.label}
