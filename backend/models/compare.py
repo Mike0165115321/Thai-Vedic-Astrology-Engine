@@ -10,4 +10,5 @@ class CompareRequest(BaseModel):
 class CompareResponse(BaseModel):
     person_a_chart: BirthChart
     person_b_chart: BirthChart
+    synastry_aspects: List[Dict[str, Any]] | None = None
     compatibility_summary: Dict[str, Any] = {}

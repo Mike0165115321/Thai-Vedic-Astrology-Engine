@@ -74,3 +74,32 @@ def calculate_vedic_aspects(planets_data):
             })
             
     return vedic_aspects
+
+def calculate_cross_aspects(planets_a, planets_b, custom_orb=None):
+    """
+    Calculates Western aspects between two different sets of planets (Synastry).
+    """
+    aspect_list = []
+    for p1, data1 in planets_a.items():
+        for p2, data2 in planets_b.items():
+            lon1 = data1["longitude"]
+            lon2 = data2["longitude"]
+            
+            diff = abs(lon1 - lon2)
+            if diff > 180:
+                diff = 360 - diff
+                
+            for aspect_name, config in WESTERN_ASPECTS.items():
+                angle = config["angle"]
+                orb = custom_orb if custom_orb is not None else config["orb"]
+                
+                if abs(diff - angle) <= orb:
+                    aspect_list.append({
+                        "p1": p1,
+                        "p2": p2,
+                        "aspect": aspect_name,
+                        "angle": angle,
+                        "actual_diff": diff,
+                        "orb_diff": abs(diff - angle)
+                    })
+    return aspect_list

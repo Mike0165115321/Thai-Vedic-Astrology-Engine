@@ -42,7 +42,7 @@ const ASPECT_LABELS: { [key: number]: { label: string; color: string; desc: stri
 
 export function RightPanel({ chartData: natalData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ตำแหน่งดาว");
-  const [personFocus, setPersonFocus] = useState<"A" | "B">("A");
+  const [personFocus, setPersonFocus] = useState<"A" | "B" | "Both">("A");
 
   const chartData = (mode === "Synastry" && personFocus === "B") ? compareData?.person_b_chart : natalData;
   
@@ -164,6 +164,14 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                         }`}
                     >
                         คนที่ 2
+                    </button>
+                    <button 
+                        onClick={() => setPersonFocus("Both")}
+                        className={`flex-1 py-1.5 rounded text-[10px] font-black uppercase transition-all ${
+                            personFocus === "Both" ? "bg-(image:--gradient-gold) text-primary-foreground shadow-lg" : "text-muted-foreground hover:bg-muted"
+                        }`}
+                    >
+                        สัมพันธ์
                     </button>
                 </div>
             )}
@@ -332,20 +340,24 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                 <div className="bg-primary/5 p-3 border-b border-border">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        มุมสัมพันธ์ระหว่างดาว ({chartType})
+                        {mode === "Synastry" && personFocus === "Both" ? "มุมสัมพันธ์ระหว่างบุคคล" : `มุมสัมพันธ์ระหว่างดาว (${chartType})`}
                     </h4>
                     <p className="text-[10px] text-muted-foreground mt-1">แสดงกระแสสัมพันธ์และมุมองศาที่ดาวส่งถึงกันในดวงชะตา</p>
                 </div>
 
                 {(() => {
-                  const currentAspects = chartType === "D3" ? chartData.d3_western_aspects : 
-                                       chartType === "D9" ? chartData.d9_western_aspects : 
-                                       chartData.western_aspects;
+                  let currentAspects = chartType === "D3" ? chartData?.d3_western_aspects : 
+                                       chartType === "D9" ? chartData?.d9_western_aspects : 
+                                       chartData?.western_aspects;
                   
+                  if (mode === "Synastry" && personFocus === "Both") {
+                    currentAspects = compareData?.synastry_aspects;
+                  }
+
                   if (!currentAspects || currentAspects.length === 0) {
                     return (
                         <div className="p-10 text-center text-[10px] text-muted-foreground italic uppercase tracking-widest">
-                            ไม่พบการทำมุมที่สำคัญใน {chartType}
+                            ไม่พบการทำมุมที่สำคัญใน {mode === "Synastry" && personFocus === "Both" ? "ดวงสัมพงษ์" : chartType}
                         </div>
                     );
                   }

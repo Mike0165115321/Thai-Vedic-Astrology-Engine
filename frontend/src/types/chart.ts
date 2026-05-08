@@ -81,6 +81,7 @@ export interface BirthFormData {
 export interface CompareResponse {
   person_a_chart: ChartData;
   person_b_chart: ChartData;
+  synastry_aspects?: any[];
   compatibility_summary: {
     message: string;
     [key: string]: any;
