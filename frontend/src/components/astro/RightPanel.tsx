@@ -40,6 +40,99 @@ const ASPECT_LABELS: { [key: number]: { label: string; color: string; desc: stri
   180: { label: "เล็ง", color: "#f87171", desc: "เผชิญหน้า สมดุล หรือแตกหัก" }
 };
 
+const planetThaiNames: { [key: string]: string } = {
+    Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
+    Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ", Uranus: "มฤตยู"
+};
+
+const planetColors: { [key: string]: string } = {
+    Sun: "var(--warning)", Moon: "#cfd6e4", Mars: "var(--destructive)",
+    Jupiter: "var(--primary)", Venus: "#f5b8e0", Mercury: "var(--info)",
+    Saturn: "#94a3b8", Rahu: "#f59e0b", Ketu: "#fbbf24", Uranus: "#a78bfa"
+};
+
+const getThaiNak = (index: number) => {
+    return THAI_NAKSHATRAS.find(n => n.id === index);
+};
+
+const getDignityStyle = (dignity: string) => {
+    if (dignity.includes("มหาอุจจ์")) return "bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/30";
+    if (dignity.includes("อุจจ์")) return "bg-blue-500/20 text-blue-300 border border-blue-500/30";
+    if (dignity.includes("เกษตร")) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+    if (dignity.includes("มหาจักร")) return "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30";
+    if (dignity.includes("ราชาโชค") || dignity.includes("เทวีโชค")) return "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+    if (dignity.includes("วรโคตม")) return "bg-sky-500/20 text-sky-300 border border-sky-500/30";
+    if (dignity.includes("พักร์") || dignity.includes("ดับ")) return "bg-rose-500/20 text-rose-300 border border-rose-500/30";
+    if (dignity.includes("ประ") || dignity.includes("นิจ")) return "bg-red-500/10 text-red-400/80 border border-red-500/20";
+    return "bg-slate-700/50 text-slate-300 border border-slate-600/50";
+};
+
+// Helper function to extract and format planets for rendering
+function processChartPlanets(cData: any, ownerTag: string | null = null, ownerColor: string | null = null) {
+    if (!cData || !cData.planets) return [];
+    const res = [];
+    
+    // Process Lagna
+    if (cData.lagna) {
+        const n = cData.lunar_data?.lagna_nakshatra;
+        const t = n ? getThaiNak(n.index) : null;
+        res.push({
+            isLagna: true,
+            nameInEng: "Lagna",
+            name: "ลัคนา",
+            symbol: "ลั",
+            color: "var(--warning)",
+            lon: cData.lagna.longitude,
+            nakshatra: t ? `${t.name} (${n.pada})` : "—",
+            house: 1,
+            dignityList: [],
+            retro: false,
+            ownerTag,
+            ownerColor,
+            cData
+        });
+    }
+    
+    // Process Planets
+    Object.entries(cData.planets).forEach(([name, p]: [string, any]) => {
+        const naks = cData.lunar_data?.planet_nakshatras?.[name];
+        const t = naks ? getThaiNak(naks.index) : null;
+        
+        let rawList = Array.isArray(p.dignity_list) ? p.dignity_list : (p.dignity ? [p.dignity] : []);
+        if (rawList.length > 1 && rawList.every((s: any) => typeof s === 'string' && s.length === 1)) {
+            rawList = [rawList.join('')];
+        }
+        let allStatuses = [...rawList];
+        if (p.is_retrograde && !allStatuses.includes("พักร์")) allStatuses.push("พักร์");
+        if (p.is_combust && !allStatuses.includes("ดับ")) allStatuses.push("ดับ");
+        if (p.speed_status && p.speed_status !== "Normal" && !allStatuses.includes(p.speed_status)) {
+            const thaiSpeed: any = { "Slow (ช้า)": "มนทร์", "Fast (เร็ว)": "เสริด", "Stationary (หยุด)": "เสริด" };
+            if (thaiSpeed[p.speed_status]) allStatuses.push(thaiSpeed[p.speed_status]);
+        }
+        const isNormal = (s: string) => s.trim() === "ปกติ" || s.includes("ปกติ");
+        if (allStatuses.length > 1 && allStatuses.some(isNormal)) {
+            allStatuses = allStatuses.filter(s => !isNormal(s));
+        }
+        
+        res.push({
+            isLagna: false,
+            nameInEng: name,
+            name: planetThaiNames[name] || name,
+            symbol: p.symbol || name.substring(0, 2),
+            color: planetColors[name] || "var(--accent)",
+            lon: p.longitude,
+            retro: p.is_retrograde,
+            house: p.house,
+            dignityList: allStatuses,
+            nakshatra: t ? `${t.name} (${naks.pada})` : "—",
+            ownerTag,
+            ownerColor,
+            cData
+        });
+    });
+    return res;
+}
+
 export function RightPanel({ chartData: natalData, transitData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ข้อมูลดาว");
   const [personFocus, setPersonFocus] = useState<"A" | "B" | "Both">("A");
@@ -51,71 +144,6 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
     }
     return natalData;
   }, [mode, personFocus, natalData, transitData, compareData]);
-  
-  const planetThaiNames: { [key: string]: string } = {
-      Sun: "อาทิตย์", Moon: "จันทร์", Mars: "อังคาร", Mercury: "พุธ",
-      Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ", Uranus: "มฤตยู"
-  };
-  
-  const planetColors: { [key: string]: string } = {
-      Sun: "var(--warning)", Moon: "#cfd6e4", Mars: "var(--destructive)",
-      Jupiter: "var(--primary)", Venus: "#f5b8e0", Mercury: "var(--info)",
-      Saturn: "#94a3b8", Rahu: "#f59e0b", Ketu: "#fbbf24", Uranus: "#a78bfa"
-  };
-
-  const getThaiNak = (index: number) => {
-    return THAI_NAKSHATRAS.find(n => n.id === index);
-  };
-
-  const getDignityStyle = (dignity: string) => {
-    if (dignity.includes("มหาอุจจ์")) return "bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/30";
-    if (dignity.includes("อุจจ์")) return "bg-blue-500/20 text-blue-300 border border-blue-500/30";
-    if (dignity.includes("เกษตร")) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-    if (dignity.includes("มหาจักร")) return "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30";
-    if (dignity.includes("ราชาโชค") || dignity.includes("เทวีโชค")) return "bg-amber-500/20 text-amber-300 border border-amber-500/30";
-    if (dignity.includes("วรโคตม")) return "bg-sky-500/20 text-sky-300 border border-sky-500/30";
-    if (dignity.includes("พักร์") || dignity.includes("ดับ")) return "bg-rose-500/20 text-rose-300 border border-rose-500/30";
-    if (dignity.includes("ประ") || dignity.includes("นิจ")) return "bg-red-500/10 text-red-400/80 border border-red-500/20";
-    return "bg-slate-700/50 text-slate-300 border border-slate-600/50";
-  };
-
-  const planets = chartData ? Object.entries(chartData.planets).map(([name, p]: [string, any]) => {
-    const naks = chartData.lunar_data?.planet_nakshatras?.[name];
-    const thaiNak = naks ? getThaiNak(naks.index) : null;
-    
-    let rawList = Array.isArray(p.dignity_list) ? p.dignity_list : (p.dignity ? [p.dignity] : []);
-    if (rawList.length > 1 && rawList.every((s: any) => typeof s === 'string' && s.length === 1)) {
-        rawList = [rawList.join('')];
-    }
-    let allStatuses = [...rawList];
-    if (p.is_retrograde && !allStatuses.includes("พักร์")) allStatuses.push("พักร์");
-    if (p.is_combust && !allStatuses.includes("ดับ")) allStatuses.push("ดับ");
-    if (p.speed_status && p.speed_status !== "Normal" && !allStatuses.includes(p.speed_status)) {
-        const thaiSpeed: any = { "Slow (ช้า)": "มนทร์", "Fast (เร็ว)": "เสริด", "Stationary (หยุด)": "เสริด" };
-        if (thaiSpeed[p.speed_status]) allStatuses.push(thaiSpeed[p.speed_status]);
-    }
-    
-    const isNormal = (s: string) => s.trim() === "ปกติ" || s.includes("ปกติ");
-    if (allStatuses.length > 1 && allStatuses.some(isNormal)) {
-        allStatuses = allStatuses.filter(s => !isNormal(s));
-    }
-
-    return {
-      name: planetThaiNames[name] || name,
-      nameInEng: name,
-      symbol: p.symbol || name.substring(0, 2),
-      lon: p.longitude,
-      retro: p.is_retrograde,
-      combust: p.is_combust,
-      house: p.house,
-      dignity: p.dignity || "ปกติ",
-      dignityList: allStatuses,
-      nakshatra: thaiNak ? `${thaiNak.name} (${naks.pada})` : "—",
-      nakCategory: thaiNak ? `${thaiNak.category}ฤกษ์` : "",
-      lordships: p.lordships || [],
-      color: planetColors[name] || "var(--accent)"
-    }
-  }) : [];
 
   return (
     <aside className="flex h-full flex-col border-l border-border bg-card/40 overflow-hidden font-sans">
@@ -123,7 +151,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
           <div className="flex items-center justify-between">
               <h2 className="text-[13px] font-black uppercase tracking-[0.15em] text-primary flex items-center gap-2.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-glow" />
-                  {mode === "Transit" ? "ข้อมูลดาวจรปัจจุบัน" : (mode === "Synastry" ? `ข้อมูลดวงชะตา (${personFocus === "A" ? "คนแรก" : "คนที่สอง"})` : "ข้อมูลดวงชะตา")}
+                  {mode === "Transit" ? "ข้อมูลดาวจรปัจจุบัน" : (mode === "Synastry" ? `ข้อมูลดวงชะตา (${personFocus === "A" ? "คนแรก" : personFocus === "B" ? "คนที่สอง" : "ดวงสมพงษ์"})` : "ข้อมูลดวงชะตา")}
               </h2>
           </div>
           
@@ -140,14 +168,14 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
       </div>
 
       <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-primary/10">
-        {!chartData ? (
+        {!natalData ? (
           <div className="flex h-full items-center justify-center p-10 text-center text-[11px] text-muted-foreground/40 italic font-medium tracking-widest">
             รอการคำนวณข้อมูลชะตา...
           </div>
         ) : (
           <>
             {mode === "Synastry" && (
-                <div className="flex gap-2 p-3 bg-muted/20 border-b border-border/50">
+                <div className="flex gap-2 p-3 bg-muted/20 border-b border-border/50 sticky top-0 z-10 backdrop-blur-xl">
                     {[
                         { id: "A", label: "คนที่ 1", color: "bg-blue-500 shadow-blue-500/30" },
                         { id: "B", label: "คนที่ 2", color: "bg-pink-500 shadow-pink-500/30" },
@@ -168,51 +196,160 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
             {tab === "ข้อมูลดาว" && (
               <div className="p-0 pb-12 divide-y divide-border/20">
                   {(() => {
-                      const getThaiNak = (index: number) => {
-                          return THAI_NAKSHATRAS.find(n => n.id === index) || null;
-                      };
+                      if (mode === "Synastry" && personFocus === "Both") {
+                          const dataA = processChartPlanets(natalData, "คนที่ 1", "bg-blue-500/20 text-blue-300 border-blue-500/30");
+                          const dataB = processChartPlanets(compareData?.person_b_chart, "คนที่ 2", "bg-pink-500/20 text-pink-300 border-pink-500/30");
+                          
+                          const order = ["Lagna", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Uranus"];
+                          
+                          return order.map(pName => {
+                              const pA = dataA.find(x => x.nameInEng === pName);
+                              const pB = dataB.find(x => x.nameInEng === pName);
+                              if (!pA || !pB) return null;
+                              
+                              const dA = degToSign(pA.lon);
+                              const dB = degToSign(pB.lon);
 
-                      const lagnaItem = chartData.lagna ? { 
-                          isLagna: true, 
-                          name: "ลัคนา",
-                          nameInEng: "Lagna",
-                          symbol: "ลั", 
-                          color: "var(--warning)", 
-                          lon: chartData.lagna.longitude,
-                          nakshatra: (() => {
-                              const n = chartData.lunar_data?.lagna_nakshatra;
-                              const t = n ? getThaiNak(n.index) : null;
-                              return t ? `${t.name} (${n.pada})` : "—";
-                          })(),
-                          house: 1,
-                          dignityList: [],
-                          retro: false
-                      } : null;
-                      
-                      const planetItems = planets.map((p) => ({
-                          ...p,
-                          isLagna: false
-                      }));
+                              return (
+                                  <div key={pName} className="p-5 transition-all duration-300 cursor-pointer hover:bg-white/5 border-b border-border/30 last:border-0">
+                                      <div className="flex items-center gap-3 mb-4">
+                                          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-muted/30 font-bold shadow-xl text-[18px] border border-white/5" style={{ color: pA.color }}>
+                                              {pA.symbol}
+                                          </div>
+                                          <div className="font-bold text-[16px] text-white flex items-center gap-2">
+                                              {pA.name} 
+                                              {pA.isLagna && <span className="text-[10px] bg-warning/20 text-warning px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">ลัคนา</span>}
+                                          </div>
+                                      </div>
+                                      
+                                      <div className="grid grid-cols-2 gap-3">
+                                          {/* Person A */}
+                                          <div className="bg-blue-950/20 rounded-xl p-3 border border-blue-500/20 shadow-inner relative overflow-hidden">
+                                              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500/50" />
+                                              <div className="text-[10px] font-bold text-blue-300 mb-2 bg-blue-500/10 px-2 py-0.5 rounded-md inline-block border border-blue-500/20">คนที่ 1</div>
+                                              
+                                              <div className="text-[12px] text-white/90 font-bold mb-1">
+                                                  {dA.deg}°{String(dA.min).padStart(2, "0")}′ {dA.sign.name_th}
+                                              </div>
+                                              <div className="text-[11px] font-black text-amber-400/90 mb-2">
+                                                  ภพ{typeof pA.house === 'number' ? HOUSE_NAMES_TH[pA.house - 1] : "—"}
+                                              </div>
+                                              
+                                              <div className="flex flex-wrap gap-1 mb-3">
+                                                  {pA.dignityList.map((s: string) => (
+                                                      <span key={s} className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold shadow-sm ${getDignityStyle(s)}`}>{s}</span>
+                                                  ))}
+                                                  {pA.retro && <span className="text-rose-500 font-bold text-[9px] bg-rose-500/10 px-1.5 py-0.5 rounded-md border border-rose-500/20">พักร์</span>}
+                                              </div>
+                                              
+                                              <div className="text-[10px] border-t border-blue-500/20 pt-2 mt-2">
+                                                  <span className="text-blue-300/60 block font-bold uppercase tracking-wider mb-0.5 text-[9px]">นักษัตร</span>
+                                                  <span className="text-white/80 font-bold">{pA.nakshatra}</span>
+                                              </div>
+                                          </div>
+
+                                          {/* Person B */}
+                                          <div className="bg-pink-950/20 rounded-xl p-3 border border-pink-500/20 shadow-inner relative overflow-hidden">
+                                              <div className="absolute top-0 left-0 w-1 h-full bg-pink-500/50" />
+                                              <div className="text-[10px] font-bold text-pink-300 mb-2 bg-pink-500/10 px-2 py-0.5 rounded-md inline-block border border-pink-500/20">คนที่ 2</div>
+                                              
+                                              <div className="text-[12px] text-white/90 font-bold mb-1">
+                                                  {dB.deg}°{String(dB.min).padStart(2, "0")}′ {dB.sign.name_th}
+                                              </div>
+                                              <div className="text-[11px] font-black text-amber-400/90 mb-2">
+                                                  ภพ{typeof pB.house === 'number' ? HOUSE_NAMES_TH[pB.house - 1] : "—"}
+                                              </div>
+                                              
+                                              <div className="flex flex-wrap gap-1 mb-3">
+                                                  {pB.dignityList.map((s: string) => (
+                                                      <span key={s} className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold shadow-sm ${getDignityStyle(s)}`}>{s}</span>
+                                                  ))}
+                                                  {pB.retro && <span className="text-rose-500 font-bold text-[9px] bg-rose-500/10 px-1.5 py-0.5 rounded-md border border-rose-500/20">พักร์</span>}
+                                              </div>
+                                              
+                                              <div className="text-[10px] border-t border-pink-500/20 pt-2 mt-2">
+                                                  <span className="text-pink-300/60 block font-bold uppercase tracking-wider mb-0.5 text-[9px]">นักษัตร</span>
+                                                  <span className="text-white/80 font-bold">{pB.nakshatra}</span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </div>
+                              );
+                          });
+                      }
+
+                      // Single Chart View Logic
+                      const currentPlanets = chartData ? Object.entries(chartData.planets).map(([name, p]: [string, any]) => {
+                        const naks = chartData.lunar_data?.planet_nakshatras?.[name];
+                        const thaiNak = naks ? getThaiNak(naks.index) : null;
+                        
+                        let rawList = Array.isArray(p.dignity_list) ? p.dignity_list : (p.dignity ? [p.dignity] : []);
+                        if (rawList.length > 1 && rawList.every((s: any) => typeof s === 'string' && s.length === 1)) {
+                            rawList = [rawList.join('')];
+                        }
+                        let allStatuses = [...rawList];
+                        if (p.is_retrograde && !allStatuses.includes("พักร์")) allStatuses.push("พักร์");
+                        if (p.is_combust && !allStatuses.includes("ดับ")) allStatuses.push("ดับ");
+                        if (p.speed_status && p.speed_status !== "Normal" && !allStatuses.includes(p.speed_status)) {
+                            const thaiSpeed: any = { "Slow (ช้า)": "มนทร์", "Fast (เร็ว)": "เสริด", "Stationary (หยุด)": "เสริด" };
+                            if (thaiSpeed[p.speed_status]) allStatuses.push(thaiSpeed[p.speed_status]);
+                        }
+                        const isNormal = (s: string) => s.trim() === "ปกติ" || s.includes("ปกติ");
+                        if (allStatuses.length > 1 && allStatuses.some(isNormal)) {
+                            allStatuses = allStatuses.filter(s => !isNormal(s));
+                        }
+
+                        return {
+                          name: planetThaiNames[name] || name,
+                          nameInEng: name,
+                          symbol: p.symbol || name.substring(0, 2),
+                          lon: p.longitude,
+                          retro: p.is_retrograde,
+                          combust: p.is_combust,
+                          house: p.house,
+                          dignity: p.dignity || "ปกติ",
+                          dignityList: allStatuses,
+                          nakshatra: thaiNak ? `${thaiNak.name} (${naks.pada})` : "—",
+                          color: planetColors[name] || "var(--accent)",
+                          cData: chartData
+                        }
+                      }) : [];
 
                       const combinedData = [];
-                      if (lagnaItem) combinedData.push(lagnaItem);
-                      combinedData.push(...planetItems);
+                      if (chartData?.lagna) {
+                          const n = chartData.lunar_data?.lagna_nakshatra;
+                          const t = n ? getThaiNak(n.index) : null;
+                          combinedData.push({
+                              isLagna: true,
+                              name: "ลัคนา",
+                              nameInEng: "Lagna",
+                              symbol: "ลั",
+                              color: "var(--warning)",
+                              lon: chartData.lagna.longitude,
+                              nakshatra: t ? `${t.name} (${n.pada})` : "—",
+                              house: 1,
+                              dignityList: [],
+                              retro: false,
+                              cData: chartData
+                          });
+                      }
+                      combinedData.push(...currentPlanets.map(p => ({ ...p, isLagna: false })));
 
-                      return combinedData.map((p) => {
+                      return combinedData.map((p, idx) => {
                           const d = degToSign(p.lon);
                           const isSelected = selectedPlanet === p.nameInEng;
                           const houseName = typeof p.house === 'number' ? HOUSE_NAMES_TH[p.house - 1] : "—";
                           
-                          const lordOf = chartData.house_lords ? 
-                                         Object.entries(chartData.house_lords)
+                          const lordOf = p.cData?.house_lords ? 
+                                         Object.entries(p.cData.house_lords)
                                                .filter(([_, data]) => (data as any).planet === p.nameInEng)
                                                .map(([hNum, _]) => HOUSE_NAMES_TH[parseInt(hNum) - 1]) 
                                          : [];
 
-                          const yogas = chartData.yogas ? chartData.yogas.filter(y => y.planet === p.nameInEng) : [];
+                          const yogas = p.cData?.yogas ? p.cData.yogas.filter((y: any) => y.planet === p.nameInEng) : [];
 
                           return (
-                              <div key={p.nameInEng} 
+                              <div key={`${p.nameInEng}-${idx}`} 
                                    onClick={() => onSelectPlanet(isSelected ? null : p.nameInEng)}
                                    className={`p-5 transition-all duration-300 cursor-pointer border-l-4 ${isSelected ? "bg-primary/5 border-primary shadow-inner" : "hover:bg-white/5 border-transparent"}`}>
                                   
@@ -285,9 +422,9 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                 </div>
 
                 {(() => {
-                  let currentAspects = chartType === "D3" ? chartData?.d3_western_aspects : 
-                                       chartType === "D9" ? chartData?.d9_western_aspects : 
-                                       chartData?.western_aspects;
+                  let currentAspects = chartType === "D3" ? natalData?.d3_western_aspects : 
+                                       chartType === "D9" ? natalData?.d9_western_aspects : 
+                                       natalData?.western_aspects;
                   
                   if (mode === "Synastry" && personFocus === "Both") {
                     currentAspects = compareData?.synastry_aspects;
@@ -296,7 +433,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                   if (!currentAspects || currentAspects.length === 0) {
                     return (
                         <div className="p-16 text-center text-[11px] text-muted-foreground/30 italic font-medium tracking-widest">
-                            ไม่พบการทำมุมที่สำคัญใน {mode === "Synastry" && personFocus === "Both" ? "ดวงสัมพงษ์" : chartType}
+                            ไม่พบการทำมุมที่สำคัญใน {mode === "Synastry" && personFocus === "Both" ? "ดวงสมพงษ์" : chartType}
                         </div>
                     );
                   }
@@ -327,9 +464,25 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                                             <div key={i} className="flex items-center justify-between bg-black/40 rounded-xl p-3 border border-white/5 hover:border-primary/20 transition-all group/aspect shadow-inner">
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p1] || a.p1}</span>
-                                                        <span className="text-muted-foreground/30 text-[11px]">+</span>
-                                                        <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p2] || a.p2}</span>
+                                                        {mode === "Synastry" && personFocus === "Both" ? (
+                                                            <>
+                                                                <div className="flex items-center gap-1.5 bg-blue-500/5 px-2 py-1 rounded-lg border border-blue-500/20">
+                                                                    <span className="text-blue-400 text-[9px] font-bold">คนที่ 1</span>
+                                                                    <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p1] || a.p1}</span>
+                                                                </div>
+                                                                <span className="text-muted-foreground/50 text-[10px] px-1">ทำมุมกับ</span>
+                                                                <div className="flex items-center gap-1.5 bg-pink-500/5 px-2 py-1 rounded-lg border border-pink-500/20">
+                                                                    <span className="text-pink-400 text-[9px] font-bold">คนที่ 2</span>
+                                                                    <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p2] || a.p2}</span>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p1] || a.p1}</span>
+                                                                <span className="text-muted-foreground/30 text-[11px]">+</span>
+                                                                <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p2] || a.p2}</span>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/20 shadow-sm">
