@@ -134,4 +134,6 @@ Phase 2.2: The Narrative Dashboard
 
 Phase 2.3: System & Persistence
   [ ] History Persistence (SQLite/PostgreSQL) - เก็บข้อมูลลง DB ถาวร
-  [ ] PDF/Report Export - ระบบออกใบพยากรณ์สวยงาม
+  [ ] Export System (Current Focus)
+    - [ ] PDF Report Export - ระบบออกใบพยากรณ์สวยงาม
+    - [ ] JSON Data Export - สำหรับนำข้อมูลไปประมวลผลต่อ

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import chart, compare, transit, realtime, history
+from api.routes import chart, compare, transit, transit_scanner, realtime, history
 from db.database import init_db
 
 # Initialize database
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(chart.router, prefix="/calculate/chart", tags=["Natal"])
 app.include_router(compare.router, prefix="/calculate/compare", tags=["Compare"])
 app.include_router(transit.router, prefix="/calculate/transit", tags=["Transit"])
+app.include_router(transit_scanner.router, prefix="/calculate/transit-scanner", tags=["Transit Scanner"])
 app.include_router(history.router, prefix="/history", tags=["History"])
 app.include_router(realtime.router, prefix="/sky", tags=["Realtime"])
 
