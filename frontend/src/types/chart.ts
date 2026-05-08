@@ -33,6 +33,7 @@ export interface DashaPeriod {
   start: string;
   end: string;
   is_current: boolean;
+  antardashas?: DashaPeriod[];
 }
 
 export interface ChartData {
