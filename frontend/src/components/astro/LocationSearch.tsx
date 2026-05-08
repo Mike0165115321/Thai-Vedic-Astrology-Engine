@@ -159,7 +159,7 @@ export function LocationSearch({ onSelect }: Props) {
 
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
-          <label className="text-[9px] uppercase text-muted-foreground mb-1 block font-bold">จังหวัด (Province)</label>
+          <label className="text-[9px] uppercase text-primary mb-1 block font-bold">จังหวัด (Province)</label>
           <div className="relative">
             <input
               type="text"
@@ -202,7 +202,7 @@ export function LocationSearch({ onSelect }: Props) {
         </div>
 
         <div className="relative">
-          <label className="text-[9px] uppercase text-muted-foreground mb-1 block font-bold">อำเภอ / เขต (District)</label>
+          <label className="text-[9px] uppercase text-primary mb-1 block font-bold">อำเภอ / เขต (District)</label>
           <div className="relative">
             <input
               type="text"

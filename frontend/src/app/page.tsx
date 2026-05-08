@@ -18,6 +18,7 @@ export default function Home() {
   const [mode, setMode] = useState<"Natal" | "Synastry" | "Transit">("Natal");
   const [settings, setSettings] = useState(false);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
+  const [synastryFocus, setSynastryFocus] = useState<"A" | "B" | "Both">("Both");
   const [hasMounted, setHasMounted] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [globalSettings, setGlobalSettings] = useState<Partial<BirthFormData>>({
@@ -299,6 +300,8 @@ export default function Home() {
           onAgeChange={handleTransitAgeChange}
           selectedPlanet={selectedPlanet}
           onSelectPlanet={setSelectedPlanet}
+          synastryFocus={synastryFocus}
+          setSynastryFocus={setSynastryFocus}
         />
         
         <RightPanel 

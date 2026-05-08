@@ -16,6 +16,7 @@ type Props = {
   selectedPlanet: string | null;
   onSelectPlanet: (name: string | null) => void;
   isSynastry?: boolean;
+  synastryFocus?: "A" | "B" | "Both";
 };
 
 const SIZE = 560;
@@ -96,7 +97,11 @@ const resolveOverlaps = (list: any[], baseRadius: number) => {
     return list.map(p => ({ ...p, visualRadius: radiusMap[p.id] || baseRadius }));
 };
 
-export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna, natalHouses, transitHouses, enabledAspects, selectedPlanet, onSelectPlanet, isSynastry }: Props) {
+export function ZodiacWheel({ 
+  planets, transitPlanets, natalLagna, transitLagna, 
+  natalHouses, transitHouses, enabledAspects, 
+  selectedPlanet, onSelectPlanet, isSynastry, synastryFocus = "Both" 
+}: Props) {
   const natalList = useMemo(() => {
     let list: any[] = [];
     if (planets) {
@@ -106,7 +111,7 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
             symbol: p.symbol || name.substring(0, 2),
             lon: p.longitude,
             retro: p.is_retrograde,
-            color: getPlanetColor(name),
+            color: isSynastry ? "#3b82f6" : getPlanetColor(name), // Fixed Blue for Person A
             isTransit: false,
             isLagna: false
         }));
@@ -118,13 +123,13 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
             symbol: 'ลั',
             lon: natalLagna.longitude,
             retro: false,
-            color: 'var(--warning)',
+            color: isSynastry ? "#3b82f6" : 'var(--warning)',
             isTransit: false,
             isLagna: true
         });
     }
-    return resolveOverlaps(list, R_PLANETS);
-  }, [planets, natalLagna]);
+    return isSynastry ? list : resolveOverlaps(list, R_PLANETS);
+  }, [planets, natalLagna, isSynastry]);
 
   const transitList = useMemo(() => {
     let list: any[] = [];
@@ -135,7 +140,7 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
             symbol: p.symbol || name.substring(0, 2),
             lon: p.longitude,
             retro: p.is_retrograde,
-            color: getPlanetColor(name),
+            color: isSynastry ? "#f43f5e" : getPlanetColor(name), // Fixed Rose for Person B
             isTransit: true,
             isLagna: false
         }));
@@ -147,15 +152,21 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
             symbol: 'ลั',
             lon: transitLagna.longitude,
             retro: false,
-            color: 'var(--info)',
+            color: isSynastry ? "#f43f5e" : 'var(--info)',
             isTransit: true,
             isLagna: true
         });
     }
-    return resolveOverlaps(list, R_TRANSITS);
-  }, [transitPlanets, transitLagna]);
+    return isSynastry ? list : resolveOverlaps(list, R_TRANSITS);
+  }, [transitPlanets, transitLagna, isSynastry]);
 
-  const combinedList = useMemo(() => [...natalList, ...transitList], [natalList, transitList]);
+  const combinedList = useMemo(() => {
+    const combined = [...natalList, ...transitList];
+    if (isSynastry) {
+        return resolveOverlaps(combined, R_PLANETS);
+    }
+    return combined;
+  }, [natalList, transitList, isSynastry]);
 
   const aspectLines = useMemo(() => {
     const lines: { a: any; b: any; type: string; color: string }[] = [];
@@ -287,8 +298,10 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
         })}
       </g>
 
-      {/* Transit planets outer ring path */}
-      <circle cx={CENTER} cy={CENTER} r={R_TRANSITS} fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.3" />
+      {/* Transit planets outer ring path (Hidden in synastry) */}
+      {!isSynastry && (
+        <circle cx={CENTER} cy={CENTER} r={R_TRANSITS} fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.3" />
+      )}
 
       {/* Planets and Lagnas (Stacked) */}
       {combinedList.map((p) => {
@@ -306,7 +319,12 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
                 damping: 20, 
                 mass: 0.8
              }}
-             className="cursor-pointer" 
+             className="cursor-pointer"
+             style={{
+                opacity: (isSynastry && synastryFocus !== "Both") 
+                  ? (p.isTransit ? (synastryFocus === "B" ? 1 : 0.15) : (synastryFocus === "A" ? 1 : 0.15))
+                  : 1
+             }}
              onClick={(e) => { 
                 e.stopPropagation(); 
                 if (!p.isLagna) onSelectPlanet(p.name); 
@@ -341,8 +359,8 @@ export function ZodiacWheel({ planets, transitPlanets, natalLagna, transitLagna,
                   <text x="6" y="-6" fontSize="8" fill="var(--destructive)" fontWeight="bold">℞</text>
                 )}
 
-                {/* Transit badge */}
-                {p.isTransit && !p.isLagna && (
+                {/* Transit badge (Hidden in synastry) */}
+                {p.isTransit && !p.isLagna && !isSynastry && (
                   <circle cx="6" cy="6" r="2" fill="var(--primary)" />
                 )}
               </g>

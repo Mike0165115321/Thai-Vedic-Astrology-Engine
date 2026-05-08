@@ -121,23 +121,38 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                         placeholder="ระบุชื่อ..." 
                         value={formData.name} 
                         onChange={e => handleInputChange("name", e.target.value)} 
-                        className="w-full bg-input border border-border rounded px-2.5 py-1.5 text-[13px] outline-none" 
+                        className="w-full bg-input border border-border rounded px-2.5 py-1.5 text-[13px] outline-none text-foreground font-medium" 
                     />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                    <input type="number" value={formData.day} onChange={e => handleInputChange("day", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="ว" />
-                    <input type="number" value={formData.month} onChange={e => handleInputChange("month", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="ด" />
-                    <input 
-                        type="number" 
-                        value={formData.year + 543} 
-                        onChange={e => handleInputChange("year", (parseInt(e.target.value) - 543).toString())} 
-                        className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" 
-                        placeholder="ปี"
-                    />
+                    <div>
+                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">วัน</label>
+                        <input type="number" value={formData.day} onChange={e => handleInputChange("day", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" placeholder="ว" />
+                    </div>
+                    <div>
+                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">เดือน</label>
+                        <input type="number" value={formData.month} onChange={e => handleInputChange("month", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" placeholder="ด" />
+                    </div>
+                    <div>
+                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">ปี (พ.ศ.)</label>
+                        <input 
+                            type="number" 
+                            value={formData.year + 543} 
+                            onChange={e => handleInputChange("year", (parseInt(e.target.value) - 543).toString())} 
+                            className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" 
+                            placeholder="ปี"
+                        />
+                    </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                    <input type="number" value={formData.hour} onChange={e => handleInputChange("hour", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="ชม." />
-                    <input type="number" value={formData.minute} onChange={e => handleInputChange("minute", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" placeholder="น." />
+                    <div>
+                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">ชั่วโมง</label>
+                        <input type="number" value={formData.hour} onChange={e => handleInputChange("hour", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" placeholder="ชม." />
+                    </div>
+                    <div>
+                        <label className="text-[9px] font-bold text-primary uppercase mb-0.5 block">นาที</label>
+                        <input type="number" value={formData.minute} onChange={e => handleInputChange("minute", e.target.value)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" placeholder="น." />
+                    </div>
                 </div>
                 <LocationSearch onSelect={(lat, lon) => setFormData(p => ({ ...p, lat, lon }))} />
              </div>
@@ -147,27 +162,43 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                 <div className="p-3 border border-accent/20 rounded bg-accent/5 space-y-3">
                     <div className="text-[10px] font-black text-accent uppercase mb-1">เจ้าชะตาคนที่ 2 (Person B)</div>
                     <div>
+                        <label className="text-[10px] font-bold uppercase text-accent mb-1 block">ชื่อ-นามสกุล</label>
                         <input 
                             type="text" 
                             placeholder="ระบุชื่อ..." 
                             value={formDataB.name} 
                             onChange={e => handleInputChange("name", e.target.value, true)} 
-                            className="w-full bg-input border border-border rounded px-2.5 py-1.5 text-[13px] outline-none" 
+                            className="w-full bg-input border border-border rounded px-2.5 py-1.5 text-[13px] outline-none text-foreground font-medium" 
                         />
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                        <input type="number" value={formDataB.day} onChange={e => handleInputChange("day", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
-                        <input type="number" value={formDataB.month} onChange={e => handleInputChange("month", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
-                        <input 
-                            type="number" 
-                            value={formDataB.year + 543} 
-                            onChange={e => handleInputChange("year", (parseInt(e.target.value) - 543).toString(), true)} 
-                            className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" 
-                        />
+                        <div>
+                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">วัน</label>
+                            <input type="number" value={formDataB.day} onChange={e => handleInputChange("day", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
+                        </div>
+                        <div>
+                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">เดือน</label>
+                            <input type="number" value={formDataB.month} onChange={e => handleInputChange("month", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
+                        </div>
+                        <div>
+                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">ปี (พ.ศ.)</label>
+                            <input 
+                                type="number" 
+                                value={formDataB.year + 543} 
+                                onChange={e => handleInputChange("year", (parseInt(e.target.value) - 543).toString(), true)} 
+                                className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" 
+                            />
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                        <input type="number" value={formDataB.hour} onChange={e => handleInputChange("hour", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
-                        <input type="number" value={formDataB.minute} onChange={e => handleInputChange("minute", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px]" />
+                        <div>
+                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">ชั่วโมง</label>
+                            <input type="number" value={formDataB.hour} onChange={e => handleInputChange("hour", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
+                        </div>
+                        <div>
+                            <label className="text-[9px] font-bold text-accent uppercase mb-0.5 block">นาที</label>
+                            <input type="number" value={formDataB.minute} onChange={e => handleInputChange("minute", e.target.value, true)} className="w-full bg-input border border-border rounded px-2 py-1 text-[13px] font-mono text-foreground" />
+                        </div>
                     </div>
                     <LocationSearch onSelect={(lat, lon) => setFormDataB(p => ({ ...p, lat, lon }))} />
                 </div>
@@ -182,7 +213,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                         setFormData(p => ({ ...p, ayanamsa_mode: val }));
                         setFormDataB(p => ({ ...p, ayanamsa_mode: val }));
                     }}
-                    className="w-full bg-input border border-border rounded px-2 py-1.5 text-[13px]"
+                    className="w-full bg-input border border-border rounded px-2 py-1.5 text-[13px] text-foreground"
                 >
                     {AYANAMSAS.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
@@ -217,7 +248,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
               ไม่มีข้อมูลในคลัง
             </div>
           ) : (
-            history.map((item, i) => (
+            history.map((item) => (
               <li 
                 key={item.id} 
                 className="group relative cursor-pointer px-3 py-2 text-[12px] hover:bg-primary/10 transition-colors"
