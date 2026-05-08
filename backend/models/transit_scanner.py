@@ -6,6 +6,8 @@ class TransitScanRequest(BaseModel):
     start_year: int
     start_month: int
     start_day: int
+    start_hour: int = 0
+    start_minute: int = 0
     end_year: int
     end_month: int
     end_day: int

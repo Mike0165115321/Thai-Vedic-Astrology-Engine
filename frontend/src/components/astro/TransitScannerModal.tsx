@@ -66,7 +66,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
     }
 
     await onGenerate({
-      birthData,
+      natal_data: birthData,
       start_year: startYear - 543,
       start_month: startMonth,
       start_day: 1,
@@ -89,8 +89,8 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
               <Download className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">Advanced Transit Scanner</h2>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ระบบวิเคราะห์ดาวจรเชิงลึก (พ.ศ.)</p>
+              <h2 className="text-lg font-bold text-foreground">ระบบวิเคราะห์ดาวจรเชิงลึก</h2>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Advanced Transit Scanner (พ.ศ.)</p>
             </div>
           </div>
           <button onClick={onClose} className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
@@ -189,7 +189,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
                   ✨ วิเคราะห์ช่วงอายุประมาณ {sAge} - {eAge} ปี
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  * ข้อมูลจะถูกสแกนตั้งแต่วันที่ 1 ม.ค. ของปีเริ่มต้น ถึง 31 ธ.ค. ของปีสิ้นสุด
+                  * ข้อมูลจะถูกสแกนตั้งแต่เดือนเริ่มต้นที่เลือก ไปจนถึงสิ้นเดือนของปีและเดือนที่สิ้นสุด
                 </p>
               </div>
             );

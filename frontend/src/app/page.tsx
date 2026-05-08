@@ -286,36 +286,18 @@ export default function Home() {
 
   const handleExportScanner = async (config: any) => {
     try {
-      const { birthData, startAge, endAge, planets } = config;
-      const startYear = birthData.year + startAge;
-      const endYear = birthData.year + endAge;
-
       const response = await fetch("http://localhost:8000/calculate/transit-scanner/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          start_year: startYear,
-          start_month: birthData.month,
-          start_day: birthData.day,
-          end_year: endYear,
-          end_month: birthData.month,
-          end_day: birthData.day,
-          planets: planets,
-          natal_data: birthData
-        }),
+        body: JSON.stringify(config),
       });
 
       if (response.ok) {
         const data = await response.json();
-        
-        // Update report data for previewing
-        setReportData(data);
-        setShowReport(true);
-        setExportModal(false);
-
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const birthData = config.natal_data;
         const firstName = birthData.name.split(" ")[0];
-        const fileName = `Scan_${firstName}_${startAge}-${endAge}.json`;
+        const fileName = `Scan_${firstName}_${config.start_year + 543}-${config.end_year + 543}.json`;
         
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -329,9 +311,24 @@ export default function Home() {
         alert("Failed to generate scan report");
       }
     } catch (e) {
-      console.error(e);
-      alert("Error scanning transits");
+      console.error("Scanner error:", e);
     }
+  };
+
+  const handleExportPDF = () => {
+    if (!chartData) {
+        alert("กรุณาเลือกหรือคำนวณดวงชะตาก่อน");
+        return;
+    }
+    setReportData({
+        natal_chart: {
+            ...chartData,
+            name: currentBirthData.current?.name || "ไม่ระบุชื่อ",
+            birth_date: `${currentBirthData.current?.day || '-'}/${currentBirthData.current?.month || '-'}/${(currentBirthData.current?.year || 0) + 543}`,
+            location: `พิกัด: ${currentBirthData.current?.lat || '-'}, ${currentBirthData.current?.lon || '-'}`
+        }
+    });
+    setShowReport(true);
   };
 
   if (!hasMounted) return null;
@@ -341,7 +338,7 @@ export default function Home() {
       <TopBar 
         onSettings={() => setSettings(true)} 
         onExportJSON={() => setExportModal(true)}
-        onExportPDF={() => window.print()}
+        onExportPDF={handleExportPDF}
         currentChartType={chartType}
         onChartTypeChange={setChartType}
       />
