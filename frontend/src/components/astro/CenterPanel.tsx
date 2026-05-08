@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Filter, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Filter, Clock, ChevronLeft, ChevronRight, Plus, Minus, RefreshCw } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
+import { motion } from "framer-motion";
 import { ASPECTS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
 
@@ -53,6 +54,7 @@ export function CenterPanel({
   const [tMonth, setTMonth] = useState("");
   const [tYear, setTYear] = useState("");
   const [isEditingDate, setIsEditingDate] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   // Sync date string when transit data changes
   useEffect(() => {
@@ -117,7 +119,38 @@ export function CenterPanel({
       </div>
 
       {/* Wheel Area */}
-      <div className="relative flex-1 overflow-y-auto custom-scrollbar">
+      <div className="relative flex-1 flex flex-col overflow-hidden custom-scrollbar bg-black/20">
+        {/* Zoom Controls (More subtle, bottom-right) */}
+        <div className="absolute bottom-8 right-6 z-50 flex flex-col items-center gap-2 bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/5 p-1.5 rounded-full transition-all shadow-xl group/zoom">
+            <button 
+                onClick={() => setZoomLevel(prev => Math.min(3, prev + 0.5))}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white transition-colors"
+                title="ซูมเข้า"
+            >
+                <Plus className="w-3.5 h-3.5" />
+            </button>
+            <div className="h-10 w-0.5 bg-white/10 rounded-full relative overflow-hidden">
+                <motion.div 
+                    className="absolute bottom-0 left-0 w-full bg-primary/40 group-hover/zoom:bg-primary/80"
+                    animate={{ height: `${((zoomLevel - 1) / 2) * 100}%` }}
+                />
+            </div>
+            <button 
+                onClick={() => setZoomLevel(prev => Math.max(1, prev - 0.5))}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white transition-colors"
+                title="ซูมออก"
+            >
+                <Minus className="w-3.5 h-3.5" />
+            </button>
+            <button 
+                onClick={() => setZoomLevel(1)}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 text-primary/50 group-hover/zoom:text-primary transition-colors mt-0.5"
+                title="รีเซ็ต"
+            >
+                <RefreshCw className="w-3 h-3" />
+            </button>
+        </div>
+
         {chartType === "CAL" ? (
           <div className="grid grid-cols-1 gap-12 w-full max-w-5xl mx-auto py-10 px-4">
              {/* D1 Top Center */}
@@ -184,8 +217,25 @@ export function CenterPanel({
              </div>
           </div>
         ) : (
-          <div className="flex h-full w-full items-center justify-center p-4">
-            <div className="aspect-square h-full max-h-[calc(100vh-220px)] w-auto">
+          <>
+          <div 
+            className="relative flex-1 w-full h-full min-h-0 flex items-center justify-center p-4 overflow-hidden"
+            onWheel={(e) => {
+                if (e.deltaY < 0) {
+                    setZoomLevel(prev => Math.min(3, prev + 0.2));
+                } else {
+                    setZoomLevel(prev => Math.max(1, prev - 0.2));
+                }
+            }}
+          >
+            <motion.div 
+                className={`aspect-square w-full h-full max-w-full max-h-full flex items-center justify-center transition-shadow ${zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+                animate={{ scale: zoomLevel }}
+                drag={zoomLevel > 1}
+                dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
+                dragElastic={0.1}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
             <ZodiacWheel 
               planets={displayChartData?.planets || null} 
               transitPlanets={mode === "Synastry" ? (compareData?.person_b_chart.planets || null) : (showTransit ? (displayTransitData?.planets || null) : null)}
@@ -199,11 +249,12 @@ export function CenterPanel({
               isSynastry={mode === "Synastry"}
               synastryFocus={synastryFocus}
             />
-          </div>
+          </motion.div>
+        </div>
           
-          {/* Synastry Focus Toggle */}
+          {/* Synastry Focus Toggle (Moved left to avoid zoom controls) */}
           {mode === "Synastry" && (
-            <div className="absolute bottom-6 right-6 flex bg-card/90 backdrop-blur border border-white/10 rounded-full p-1 shadow-2xl z-20">
+            <div className="absolute bottom-8 right-20 flex bg-black/60 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-2xl z-20">
                 {[
                   { id: "A", label: "คนที่ 1", color: "bg-[#3b82f6] text-white" },
                   { id: "B", label: "คนที่ 2", color: "bg-white text-slate-900" },
@@ -221,19 +272,30 @@ export function CenterPanel({
                ))}
             </div>
           )}
-        </div>
+
+        {chartData && (
+          <>
+            <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur z-20">
+              วันกำเนิด · {chartData.julian_date.toFixed(4)}
+            </div>
+            <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur z-20">
+              ลัคนา · {chartData.lagna.longitude.toFixed(2)}°
+            </div>
+          </>
+        )}
+        </>
       )}
 
-      {/* Transit Controls (Bottom Left) */}
-      <div className="absolute bottom-4 left-4 flex items-center gap-1.5 z-20">
+      {/* Transit Controls (Back at the corner with HIGH visibility) */}
+      <div className="absolute bottom-4 left-4 flex items-center gap-2 z-40">
            <button
               onClick={() => setShowTransit(!showTransit)}
-              className={`flex h-7 items-center gap-1.5 rounded-full border px-2.5 transition-all shadow-xl backdrop-blur-md ${
-                showTransit ? "border-primary/40 bg-primary/20 text-primary" : "border-white/10 bg-card/60 text-muted-foreground"
+              className={`flex h-8 items-center gap-2 rounded-full border px-4 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl ${
+                showTransit ? "border-primary bg-primary text-black font-black" : "border-white/20 bg-black/60 text-white hover:bg-black/80"
               }`}
            >
-              <span className={`h-1.5 w-1.5 rounded-full ${showTransit ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
-              <span className="text-[10px] font-bold uppercase tracking-wide">แสดงดาวจร</span>
+              <span className={`h-2 w-2 rounded-full ${showTransit ? "bg-black animate-pulse" : "bg-white/40"}`} />
+              <span className="text-[11px] font-black uppercase tracking-wider">แสดงดาวจร</span>
            </button>
   
            {showTransit && (
@@ -247,36 +309,13 @@ export function CenterPanel({
                   setAge(newAge);
                   onAgeChange(newAge);
                 }}
-                className="flex h-7 items-center gap-1.5 rounded-full border border-white/10 bg-card/60 px-2.5 text-white hover:bg-muted transition-all shadow-xl backdrop-blur-md"
+                className="flex h-8 items-center gap-2 rounded-full border border-primary/50 bg-black/90 px-4 text-primary hover:bg-primary hover:text-black transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
              >
-                <Clock className="h-3 w-3 text-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-wide">ดาวจรปัจจุบัน</span>
+                <Clock className="h-4 w-4" />
+                <span className="text-[11px] font-black uppercase tracking-wider">ดาวจรปัจจุบัน</span>
              </button>
            )}
-        </div>
-
-        {chartData && (
-          <>
-            <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
-              วันกำเนิด · {chartData.julian_date.toFixed(4)}
-            </div>
-            <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur">
-              ลัคนา · {chartData.lagna.longitude.toFixed(2)}°
-            </div>
-          </>
-        )}
-
-        {transitData && !chartData && (
-          <div className="pointer-events-none absolute left-3 top-3 rounded border border-primary/20 bg-primary/10 px-2 py-1 font-mono text-[10px] text-primary backdrop-blur animate-pulse">
-            ดวงจรปัจจุบัน · {(transitData.julian_date).toFixed(4)}
-          </div>
-        )}
-
-        {!chartData && !transitData && !loading && (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/40 italic font-mono uppercase tracking-widest text-center px-10">
-            ระบบพร้อมทำงาน กรุณากรอกข้อมูลเพื่อคำนวณตำแหน่งดาว
-          </div>
-        )}
+      </div>
       </div>
 
       {/* Transit scrubber */}
@@ -335,6 +374,12 @@ export function CenterPanel({
                 className="bg-transparent text-primary font-bold text-center w-10 outline-none"
               />
             </div>
+            
+            <span className="mx-2 text-border">|</span>
+
+            <span className="mx-2 text-border">|</span>
+            
+            {/* Scale Selector */}
             
             {/* Scale Selector - Moved Here */}
             <span className="mx-2 text-border">|</span>
@@ -449,7 +494,17 @@ export function CenterPanel({
                         const width = ((displayEnd - displayStart) / windowDuration) * 100;
                         const left = ((displayStart - windowStartMs) / windowDuration) * 100;
 
-                        const colors: any = { Sun: "#FCD34D", Moon: "#E2E8F0", Mars: "#EF4444", Mercury: "#10B981", Jupiter: "#8B5CF6", Venus: "#EC4899", Saturn: "#4B5563", Rahu: "#1F2937", Ketu: "#9CA3AF" };
+                        const colors: any = { 
+                          Sun: "#FBBF24",     // Golden Yellow
+                          Moon: "#F8FAFC",    // Bright White
+                          Mars: "#F87171",    // Soft Red
+                          Mercury: "#34D399", // Emerald Green
+                          Jupiter: "#A78BFA", // Bright Purple
+                          Venus: "#F472B6",   // Vibrant Pink
+                          Saturn: "#94A3B8",  // Slate Blue (Lighter)
+                          Rahu: "#6366F1",    // Indigo (More visible)
+                          Ketu: "#FCD34D"     // Amber
+                        };
                         const nums: any = { Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔", Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙" };
                         
                         const targetMs = firstStart + (age * 31556926000); 
@@ -457,10 +512,10 @@ export function CenterPanel({
 
                         return (
                             <div key={d.planet + d.start}
-                                className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[9px] font-black text-black transition-all ${isActive ? "opacity-100 ring-2 ring-white/50 z-10 scale-y-110" : "opacity-30"}`}
+                                className={`absolute top-0 h-full flex items-center justify-center border-r border-black/10 text-[10px] font-black text-white drop-shadow-md transition-all ${isActive ? "opacity-100 ring-2 ring-white/70 z-10 scale-y-125" : "opacity-40"}`}
                                 style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
                             >
-                                {nums[d.planet]}
+                                <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">{nums[d.planet]}</span>
                             </div>
                         );
                     });

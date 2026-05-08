@@ -392,14 +392,6 @@ export function ZodiacWheel({
         );
       })}
 
-      {/* Center Label */}
-      <circle cx={CENTER} cy={CENTER} r={45} fill="oklch(0.18 0.02 260 / 0.8)" stroke="var(--border)" strokeWidth="1" />
-      <text x={CENTER} y={CENTER - 5} textAnchor="middle" className="text-[10px] uppercase tracking-[0.2em] fill-white/60 font-black">
-        {isSynastry ? "ดวงสมพงษ์" : (planets ? "พื้นดวง" : "ดวงจร")}
-      </text>
-      <text x={CENTER} y={CENTER + 15} textAnchor="middle" className={`text-[13px] font-black fill-white ${isSynastry ? "animate-pulse" : ""}`}>
-        {isSynastry ? "SYNASTRY" : (natalLagna ? `${SIGNS[Math.floor(natalLagna.longitude / 30)].name_th} ${Math.floor(natalLagna.longitude % 30)}°${Math.floor(((natalLagna.longitude % 30) % 1) * 60)}′` : "SKY MAP")}
-      </text>
     </svg>
   );
 }

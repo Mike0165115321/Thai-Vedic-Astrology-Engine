@@ -149,16 +149,6 @@ export function LocationSearch({ onSelect, labelColor = "text-primary", accentCo
 
   return (
     <div className="space-y-3 relative" ref={containerRef}>
-      {/* Current Location Button */}
-      <button
-        onClick={getCurrentLocation}
-        disabled={loading}
-        className={`flex w-full items-center justify-center gap-2 rounded border border-${accentColor}/30 bg-${accentColor}/5 py-1.5 text-[9px] font-bold uppercase tracking-widest text-${accentColor} hover:bg-${accentColor}/10 transition-all disabled:opacity-50`}
-      >
-        {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Crosshair className="h-3 w-3" />}
-        ใช้ตำแหน่งปัจจุบัน (Current Location)
-      </button>
-
       <div className="grid grid-cols-2 gap-2">
         <div className="relative">
           <label className={`text-[9px] uppercase ${labelColor} mb-1 block font-bold`}>จังหวัด (Province)</label>
