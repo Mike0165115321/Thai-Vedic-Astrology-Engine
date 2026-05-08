@@ -163,7 +163,6 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                     <th className="px-3 py-2.5 font-semibold">ดาว</th>
                     <th className="px-3 py-2.5 font-semibold">องศา/ราศี</th>
                     <th className="px-3 py-2.5 font-semibold">นพเคราะห์/ภพ</th>
-                    <th className="px-3 py-2.5 font-semibold">มาตรฐาน</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -188,7 +187,6 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                         <div className="text-white">{lagna.nakshatra}</div>
                         <div className="text-[11px] text-primary font-bold">{lagna.nakCategory}</div>
                       </td>
-                      <td className="px-3 py-2.5">—</td>
                     </tr>
                   )}
                   {planets.map((p, idx) => {
@@ -216,15 +214,6 @@ export function RightPanel({ chartData: natalData, compareData, mode, chartType,
                                 <span className="text-[11px] text-sky-400 font-bold whitespace-nowrap">{p.nakCategory}</span>
                                 <span className="text-[10px] text-white/40 italic whitespace-nowrap">ภพที่ {p.house}</span>
                             </div>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <div className="flex flex-wrap gap-1.5">
-                              {p.dignityList.map(s => (
-                                  <span key={s} className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[11px] font-bold leading-none transition-all whitespace-nowrap ${getDignityStyle(s)}`}>
-                                      {s}
-                                  </span>
-                              ))}
-                          </div>
                         </td>
                       </tr>
                     );

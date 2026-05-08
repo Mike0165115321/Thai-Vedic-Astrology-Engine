@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Filter } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Filter, Clock } from "lucide-react";
 import { ZodiacWheel } from "./ZodiacWheel";
 import { ASPECTS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
@@ -88,16 +88,6 @@ export function CenterPanel({
           <span className="font-semibold uppercase tracking-wider text-muted-foreground">องศาเล็ง (Aspects)</span>
         </div>
         <div className="flex flex-wrap gap-1">
-          <button
-            onClick={() => setShowTransit(!showTransit)}
-            className={`flex items-center gap-1.5 rounded border px-2 py-1 transition ${
-              showTransit ? "border-primary/50 bg-primary/10 text-primary" : "border-border/50 bg-transparent text-muted-foreground/60"
-            }`}
-          >
-            <span className={`h-2 w-2 rounded-full ${showTransit ? "bg-primary animate-pulse" : "bg-muted-foreground/40"}`} />
-            <span>ดาวจร</span>
-          </button>
-          <div className="mx-1 h-6 w-px bg-border/40" />
           {ASPECTS.map((a) => {
             const on = enabled.includes(a.type);
             return (
@@ -208,12 +198,12 @@ export function CenterPanel({
           
           {/* Synastry Focus Toggle */}
           {mode === "Synastry" && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex bg-card/80 backdrop-blur border border-primary/20 rounded-full p-1 shadow-xl z-20">
-               {[
-                 { id: "A", label: "คนที่ 1", color: "bg-[#3b82f6]" },
-                 { id: "B", label: "คนที่ 2", color: "bg-white !text-black" },
-                 { id: "Both", label: "ดูพร้อมกัน", color: "bg-primary" }
-               ].map(f => (
+            <div className="absolute bottom-6 right-6 flex bg-card/90 backdrop-blur border border-white/10 rounded-full p-1 shadow-2xl z-20">
+                {[
+                  { id: "A", label: "คนที่ 1", color: "bg-[#3b82f6] text-white" },
+                  { id: "B", label: "คนที่ 2", color: "bg-white text-slate-900" },
+                  { id: "Both", label: "ดูพร้อมกัน", color: "bg-primary text-slate-900" }
+                ].map(f => (
                  <button
                    key={f.id}
                    onClick={() => setSynastryFocus(f.id as any)}
@@ -228,6 +218,37 @@ export function CenterPanel({
           )}
         </div>
       )}
+
+      {/* Transit Controls (Bottom Left) */}
+      <div className="absolute bottom-4 left-4 flex items-center gap-1.5 z-20">
+         <button
+            onClick={() => setShowTransit(!showTransit)}
+            className={`flex h-7 items-center gap-1.5 rounded-full border px-2.5 transition-all shadow-xl backdrop-blur-md ${
+              showTransit ? "border-primary/40 bg-primary/20 text-primary" : "border-white/10 bg-card/60 text-muted-foreground"
+            }`}
+         >
+            <span className={`h-1.5 w-1.5 rounded-full ${showTransit ? "bg-primary animate-pulse" : "bg-muted-foreground/30"}`} />
+            <span className="text-[10px] font-bold uppercase tracking-wide">แสดงดาวจร</span>
+         </button>
+
+         {showTransit && (
+           <button
+              onClick={() => {
+                if (!chartData) return;
+                const now = new Date();
+                const birthMs = chartData.julian_date * 86400000 - 210866803200000;
+                const diffDays = (now.getTime() - birthMs) / (1000 * 3600 * 24);
+                const newAge = Math.max(0, diffDays / 365.2422);
+                setAge(newAge);
+                onAgeChange(newAge);
+              }}
+              className="flex h-7 items-center gap-1.5 rounded-full border border-white/10 bg-card/60 px-2.5 text-white hover:bg-muted transition-all shadow-xl backdrop-blur-md"
+           >
+              <Clock className="h-3 w-3 text-primary" />
+              <span className="text-[10px] font-bold uppercase tracking-wide">ดาวจรปัจจุบัน</span>
+           </button>
+         )}
+      </div>
 
         {chartData && (
           <>

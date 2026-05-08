@@ -63,8 +63,8 @@ Layer 1G — Dasha System
 
 API Layer
 [x] POST /calculate/chart
-[ ] POST /calculate/compare (ดวงคู่ Synastry)
-[ ] GET /calculate/transit
+[x] POST /calculate/compare (ดวงคู่ Synastry)
+[x] GET /calculate/transit
 [ ] GET /sky/realtime (WebSocket)
 
 
@@ -75,8 +75,8 @@ Frontend
 [x] Planet Table (องศา/ราศี/เรือน/สถานะ/นักษัตร)
 [x] D1/D3/D9 Tabs
 [x] Dasha Timeline (visual + ไฮไลต์ปัจจุบัน)
-[ ] Synastry View
-[x] Transit View
+[x] Synastry View (ดวงสมพงษ์แยกวงใน-นอก)
+[x] Transit View (แถบปรับอายุ / ดาวจรปัจจุบัน)
 [x] Settings (Ayanamsa / House System)
 
 ───────────────────────────────────────────────
@@ -112,3 +112,18 @@ Implementation (ทำทีหลัง ตอน API Layer):
   □ Cache key hashing: SHA256(birth_date|birth_time|lat|lon|ayanamsa)
   □ Cache miss → compute → store
   □ Cache hit → return immediately
+
+───────────────────────────────────────────────
+Plan 2 — Interpretation & Analysis (Next Steps)
+───────────────────────────────────────────────
+
+Computation & Logic:
+  [ ] Shadbala (กำลังดาว 6 ประการ) - คำนวณค่าตัวเลขจริง
+  [ ] Special Yogas (เกณฑ์พิเศษ) - ระบบ Rule Engine ตรวจสอบเกณฑ์ต่างๆ
+  [ ] Rashi Drishti (การเล็งระหว่างราศี)
+  [ ] Ashtakavarga (คะแนนความเข้มแข็งรายราศี)
+
+Persistence & System:
+  [ ] History Persistence (SQLite/PostgreSQL) - เก็บข้อมูลลง DB ถาวร
+  [ ] User Session / Multi-user support
+  [ ] PDF Export (ออกใบพยากรณ์)
