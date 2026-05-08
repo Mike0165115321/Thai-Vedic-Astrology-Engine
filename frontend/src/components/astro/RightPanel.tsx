@@ -1,5 +1,4 @@
 "use client";
-// Updated to support DASHA type
 
 import { useState, useMemo } from "react";
 import { SIGNS } from "./data";
@@ -58,11 +57,6 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
       Jupiter: "พฤหัสบดี", Venus: "ศุกร์", Saturn: "เสาร์", Rahu: "ราหู", Ketu: "เกตุ", Uranus: "มฤตยู"
   };
   
-  const planetThaiNumbers: { [key: string]: string } = {
-      Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔",
-      Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙", Uranus: "๐"
-  };
-
   const planetColors: { [key: string]: string } = {
       Sun: "var(--warning)", Moon: "#cfd6e4", Mars: "var(--destructive)",
       Jupiter: "var(--primary)", Venus: "#f5b8e0", Mercury: "var(--info)",
@@ -74,14 +68,13 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
   };
 
   const getDignityStyle = (dignity: string) => {
-    // Standardize to bright text colors for dark mode readability
-    if (dignity.includes("มหาอุจจ์")) return "bg-blue-600 text-white font-bold shadow-[0_0_8px_rgba(37,99,235,0.5)]";
-    if (dignity.includes("อุจจ์")) return "bg-blue-500/20 text-blue-300 border border-blue-500/40";
-    if (dignity.includes("เกษตร")) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
-    if (dignity.includes("มหาจักร")) return "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40";
-    if (dignity.includes("ราชาโชค") || dignity.includes("เทวีโชค")) return "bg-amber-500/20 text-amber-300 border border-amber-500/40";
-    if (dignity.includes("วรโคตม")) return "bg-sky-500/20 text-sky-300 border border-sky-500/40";
-    if (dignity.includes("พักร์") || dignity.includes("ดับ")) return "bg-rose-500/20 text-rose-300 border border-rose-500/40";
+    if (dignity.includes("มหาอุจจ์")) return "bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/30";
+    if (dignity.includes("อุจจ์")) return "bg-blue-500/20 text-blue-300 border border-blue-500/30";
+    if (dignity.includes("เกษตร")) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+    if (dignity.includes("มหาจักร")) return "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30";
+    if (dignity.includes("ราชาโชค") || dignity.includes("เทวีโชค")) return "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+    if (dignity.includes("วรโคตม")) return "bg-sky-500/20 text-sky-300 border border-sky-500/30";
+    if (dignity.includes("พักร์") || dignity.includes("ดับ")) return "bg-rose-500/20 text-rose-300 border border-rose-500/30";
     if (dignity.includes("ประ") || dignity.includes("นิจ")) return "bg-red-500/10 text-red-400/80 border border-red-500/20";
     return "bg-slate-700/50 text-slate-300 border border-slate-600/50";
   };
@@ -102,7 +95,6 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
         if (thaiSpeed[p.speed_status]) allStatuses.push(thaiSpeed[p.speed_status]);
     }
     
-    // Filter out "ปกติ" if there are other meaningful statuses
     const isNormal = (s: string) => s.trim() === "ปกติ" || s.includes("ปกติ");
     if (allStatuses.length > 1 && allStatuses.some(isNormal)) {
         allStatuses = allStatuses.filter(s => !isNormal(s));
@@ -110,6 +102,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
 
     return {
       name: planetThaiNames[name] || name,
+      nameInEng: name,
       symbol: p.symbol || name.substring(0, 2),
       lon: p.longitude,
       retro: p.is_retrograde,
@@ -124,38 +117,21 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
     }
   }) : [];
 
-  const lagna = chartData?.lagna ? {
-    name: "ลัคนา",
-    symbol: "ลั",
-    lon: chartData.lagna.longitude,
-    nakshatra: (() => {
-        const n = chartData.lunar_data.lagna_nakshatra;
-        const t = n ? getThaiNak(n.index) : null;
-        return t ? `${t.name} (${n.pada})` : "—";
-    })(),
-    nakCategory: (() => {
-        const n = chartData.lunar_data.lagna_nakshatra;
-        const t = n ? getThaiNak(n.index) : null;
-        return t ? `${t.category}ฤกษ์` : "";
-    })(),
-    color: "var(--warning)"
-  } : null;
-
   return (
-    <aside className="flex h-full flex-col border-l border-border bg-card/40 overflow-hidden">
-      <div className="flex flex-col gap-3 px-4 pt-4 pb-2 border-b border-border bg-card/30">
+    <aside className="flex h-full flex-col border-l border-border bg-card/40 overflow-hidden font-sans">
+      <div className="flex flex-col gap-4 px-5 pt-5 pb-3 border-b border-border bg-card/30">
           <div className="flex items-center justify-between">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <h2 className="text-[13px] font-black uppercase tracking-[0.15em] text-primary flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-glow" />
                   {mode === "Transit" ? "ข้อมูลดาวจรปัจจุบัน" : (mode === "Synastry" ? `ข้อมูลดวงชะตา (${personFocus === "A" ? "คนแรก" : "คนที่สอง"})` : "ข้อมูลดวงชะตา")}
               </h2>
           </div>
           
-          <div className="flex gap-1 p-1 bg-black/40 rounded-lg border border-white/5">
+          <div className="flex gap-1.5 p-1 bg-black/30 rounded-xl border border-white/5 shadow-inner">
         {(["ข้อมูลดาว", "การทำมุม"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 px-2 py-2 text-[10px] font-semibold uppercase tracking-wider transition ${
-              tab === t ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"
+            className={`flex-1 px-3 py-2 text-[11px] font-bold transition-all duration-300 rounded-lg ${
+              tab === t ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
             }`}>
             {t}
           </button>
@@ -163,43 +139,34 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto scrollbar-thin scrollbar-thumb-primary/10">
         {!chartData ? (
-          <div className="flex h-full items-center justify-center p-8 text-center text-xs text-muted-foreground/50 font-mono">
+          <div className="flex h-full items-center justify-center p-10 text-center text-[11px] text-muted-foreground/40 italic font-medium tracking-widest">
             รอการคำนวณข้อมูลชะตา...
           </div>
         ) : (
           <>
             {mode === "Synastry" && (
-                <div className="flex gap-1 p-2 bg-muted/20 border-b border-border/50">
-                    <button 
-                        onClick={() => setPersonFocus("A")}
-                        className={`flex-1 py-1.5 rounded text-[10px] font-black uppercase transition-all ${
-                            personFocus === "A" ? "bg-[#3b82f6] text-white shadow-lg" : "text-muted-foreground hover:bg-muted"
-                        }`}
-                    >
-                        คนที่ 1
-                    </button>
-                    <button 
-                        onClick={() => setPersonFocus("B")}
-                        className={`flex-1 py-1.5 rounded text-[10px] font-black uppercase transition-all ${
-                            personFocus === "B" ? "bg-white text-black shadow-lg" : "text-muted-foreground hover:bg-muted"
-                        }`}
-                    >
-                        คนที่ 2
-                    </button>
-                    <button 
-                        onClick={() => setPersonFocus("Both")}
-                        className={`flex-1 py-1.5 rounded text-[10px] font-black uppercase transition-all ${
-                            personFocus === "Both" ? "bg-(image:--gradient-gold) text-primary-foreground shadow-lg" : "text-muted-foreground hover:bg-muted"
-                        }`}
-                    >
-                        สัมพันธ์
-                    </button>
+                <div className="flex gap-2 p-3 bg-muted/20 border-b border-border/50">
+                    {[
+                        { id: "A", label: "คนที่ 1", color: "bg-blue-500 shadow-blue-500/30" },
+                        { id: "B", label: "คนที่ 2", color: "bg-pink-500 shadow-pink-500/30" },
+                        { id: "Both", label: "ดวงสมพงษ์", color: "bg-primary text-black shadow-primary/30" }
+                    ].map(f => (
+                        <button 
+                            key={f.id}
+                            onClick={() => setPersonFocus(f.id as any)}
+                            className={`flex-1 py-2 rounded-lg text-[11px] font-bold transition-all duration-300 ${
+                                personFocus === f.id ? `${f.color} text-white shadow-lg scale-105` : "text-muted-foreground hover:bg-white/5"
+                            } ${f.id === "Both" && personFocus === "Both" ? "text-black" : ""}`}
+                        >
+                            {f.label}
+                        </button>
+                    ))}
                 </div>
             )}
             {tab === "ข้อมูลดาว" && (
-              <div className="p-0 pb-10 divide-y divide-border/30">
+              <div className="p-0 pb-12 divide-y divide-border/20">
                   {(() => {
                       const getThaiNak = (index: number) => {
                           return THAI_NAKSHATRAS.find(n => n.id === index) || null;
@@ -222,17 +189,9 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                           retro: false
                       } : null;
                       
-                      const planetItems = planets.map((p, idx) => ({
-                          isLagna: false,
-                          nameInEng: Object.keys(chartData.planets)[idx],
-                          name: p.name,
-                          symbol: p.symbol,
-                          color: p.color,
-                          lon: p.lon,
-                          nakshatra: p.nakshatra,
-                          house: p.house,
-                          dignityList: p.dignityList,
-                          retro: p.retro
+                      const planetItems = planets.map((p) => ({
+                          ...p,
+                          isLagna: false
                       }));
 
                       const combinedData = [];
@@ -244,66 +203,65 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                           const isSelected = selectedPlanet === p.nameInEng;
                           const houseName = typeof p.house === 'number' ? HOUSE_NAMES_TH[p.house - 1] : "—";
                           
-                          // Find lordships
                           const lordOf = chartData.house_lords ? 
                                          Object.entries(chartData.house_lords)
                                                .filter(([_, data]) => (data as any).planet === p.nameInEng)
                                                .map(([hNum, _]) => HOUSE_NAMES_TH[parseInt(hNum) - 1]) 
                                          : [];
 
-                          // Find Yogas
                           const yogas = chartData.yogas ? chartData.yogas.filter(y => y.planet === p.nameInEng) : [];
 
                           return (
                               <div key={p.nameInEng} 
                                    onClick={() => onSelectPlanet(isSelected ? null : p.nameInEng)}
-                                   className={`p-4 transition-colors cursor-pointer ${isSelected ? "bg-primary/10" : "hover:bg-muted/20"}`}>
+                                   className={`p-5 transition-all duration-300 cursor-pointer border-l-4 ${isSelected ? "bg-primary/5 border-primary shadow-inner" : "hover:bg-white/5 border-transparent"}`}>
                                   
-                                  <div className="flex justify-between items-start mb-2.5">
-                                      <div className="flex items-center gap-3">
-                                          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-muted/40 font-black shadow-inner text-[15px]" style={{ color: p.color, textShadow: `0 0 5px ${p.color}40` }}>
+                                  <div className="flex justify-between items-start mb-3">
+                                      <div className="flex items-center gap-4">
+                                          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-muted/30 font-bold shadow-xl text-[18px] border border-white/5 transition-transform group-hover:scale-110" style={{ color: p.color }}>
                                               {p.symbol}
                                           </div>
                                           <div>
-                                              <div className="font-bold text-[13px] text-white flex items-center gap-1.5">
-                                                  {p.name} {p.isLagna && <span className="text-[9px] bg-warning/20 text-warning px-1 rounded uppercase tracking-wider">ลัคนา</span>}
-                                                  {p.retro && <span className="text-rose-500 font-black text-[10px]" title="โคจรพักร์ (ถอยหลัง)">℞</span>}
+                                              <div className="font-bold text-[15px] text-white flex items-center gap-2">
+                                                  {p.name} 
+                                                  {p.isLagna && <span className="text-[10px] bg-warning/20 text-warning px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">ลัคนา</span>}
+                                                  {p.retro && <span className="text-rose-500 font-bold text-[11px] bg-rose-500/10 px-1 rounded" title="โคจรพักร์ (ถอยหลัง)">พักร์</span>}
                                               </div>
-                                              <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                                              <div className="text-[11px] text-muted-foreground font-bold mt-1">
                                                   {d.deg}°{String(d.min).padStart(2, "0")}′ {d.sign.name_th}
                                               </div>
                                           </div>
                                       </div>
-                                      <div className="text-right flex flex-col items-end gap-1.5">
-                                          <div className="text-[12px] font-black text-amber-400">
+                                      <div className="text-right flex flex-col items-end gap-2">
+                                          <div className="text-[13px] font-black text-amber-400 tracking-wide">
                                               ภพ{houseName}
                                           </div>
-                                          <div className="flex flex-wrap gap-1 justify-end">
+                                          <div className="flex flex-wrap gap-1.5 justify-end">
                                               {p.dignityList.map((s: string) => (
-                                                  <span key={s} className={`px-1.5 py-0.5 rounded-[3px] text-[9px] font-bold ${getDignityStyle(s)}`}>{s}</span>
+                                                  <span key={s} className={`px-2 py-0.5 rounded-lg text-[10px] font-bold shadow-sm ${getDignityStyle(s)}`}>{s}</span>
                                               ))}
                                           </div>
                                       </div>
                                   </div>
 
-                                  <div className="grid grid-cols-2 gap-3 text-[10px] mt-3 bg-black/20 p-2.5 rounded border border-white/5">
+                                  <div className="grid grid-cols-2 gap-4 text-[11px] mt-4 bg-black/40 p-4 rounded-xl border border-white/5 shadow-inner">
                                       <div>
-                                          <span className="text-muted-foreground block text-[9px] uppercase tracking-wider mb-0.5">นักษัตร</span>
-                                          <span className="text-white/90">{p.nakshatra}</span>
+                                          <span className="text-muted-foreground/60 block text-[10px] font-bold uppercase tracking-wider mb-1">นักษัตร</span>
+                                          <span className="text-white font-bold">{p.nakshatra}</span>
                                       </div>
                                       {lordOf.length > 0 && (
                                           <div>
-                                              <span className="text-muted-foreground block text-[9px] uppercase tracking-wider mb-0.5">เจ้าเรือน</span>
-                                              <span className="text-sky-300 font-semibold">{lordOf.join(", ")}</span>
+                                              <span className="text-muted-foreground/60 block text-[10px] font-bold uppercase tracking-wider mb-1">เจ้าเรือน</span>
+                                              <span className="text-sky-300 font-bold">{lordOf.join(", ")}</span>
                                           </div>
                                       )}
                                   </div>
 
                                   {yogas.length > 0 && (
-                                      <div className="mt-2.5 text-[10px] leading-tight flex flex-wrap gap-1.5 items-center">
-                                          <span className="text-muted-foreground font-semibold">เกณฑ์/โยค:</span>
+                                      <div className="mt-4 text-[11px] leading-tight flex flex-wrap gap-2 items-center">
+                                          <span className="text-muted-foreground font-bold text-[10px] uppercase">เกณฑ์/โยค:</span>
                                           {yogas.map((y: any, i: number) => (
-                                              <span key={i} className={`px-1.5 py-0.5 rounded-[3px] bg-muted/40 font-bold border border-border/50 ${y.score < 0 ? "text-rose-400" : "text-emerald-400"}`} title={y.description}>
+                                              <span key={i} className={`px-2 py-1 rounded-lg bg-white/5 font-bold border border-border/30 transition-colors hover:border-primary/50 ${y.score < 0 ? "text-rose-400" : "text-emerald-400"}`} title={y.description}>
                                                   {y.name}
                                               </span>
                                           ))}
@@ -317,13 +275,13 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
             )}
 
             {tab === "การทำมุม" && (
-              <div className="p-0 pb-10">
-                <div className="bg-primary/5 p-3 border-b border-border">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <div className="p-0 pb-12">
+                <div className="bg-primary/5 p-5 border-b border-border/50">
+                    <h4 className="text-[12px] font-black uppercase tracking-widest text-primary flex items-center gap-2.5">
+                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-glow" />
                         {mode === "Synastry" && personFocus === "Both" ? "มุมสัมพันธ์ระหว่างบุคคล" : `มุมสัมพันธ์ระหว่างดาว (${chartType})`}
                     </h4>
-                    <p className="text-[10px] text-muted-foreground mt-1">แสดงกระแสสัมพันธ์และมุมองศาที่ดาวส่งถึงกันในดวงชะตา</p>
+                    <p className="text-[11px] text-muted-foreground mt-2 font-medium">แสดงกระแสสัมพันธ์และมุมองศาที่ดาวส่งถึงกันในดวงชะตา</p>
                 </div>
 
                 {(() => {
@@ -337,44 +295,44 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
 
                   if (!currentAspects || currentAspects.length === 0) {
                     return (
-                        <div className="p-10 text-center text-[10px] text-muted-foreground italic uppercase tracking-widest">
+                        <div className="p-16 text-center text-[11px] text-muted-foreground/30 italic font-medium tracking-widest">
                             ไม่พบการทำมุมที่สำคัญใน {mode === "Synastry" && personFocus === "Both" ? "ดวงสัมพงษ์" : chartType}
                         </div>
                     );
                   }
 
                   return (
-                    <div className="divide-y divide-border/30">
+                    <div className="divide-y divide-border/20">
                         {[0, 180, 120, 90, 60, 30, 150].map(angle => {
                             const group = currentAspects.filter(a => a.angle === angle);
                             if (group.length === 0) return null;
                             const info = ASPECT_LABELS[angle] || { label: `${angle}°`, color: "#fff", desc: "" };
 
                             return (
-                                <div key={angle} className="p-4 hover:bg-white/5 transition-colors">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: info.color }} />
-                                            <span className="font-black text-[12px] uppercase tracking-tighter" style={{ color: info.color }}>
+                                <div key={angle} className="p-5 hover:bg-white/5 transition-all">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="h-2.5 w-2.5 rounded-full shadow-lg" style={{ backgroundColor: info.color, boxShadow: `0 0 10px ${info.color}60` }} />
+                                            <span className="font-black text-[14px] tracking-tight" style={{ color: info.color }}>
                                                 {info.label}
                                             </span>
                                         </div>
-                                        <span className="text-[9px] font-bold text-muted-foreground/60 px-1.5 py-0.5 rounded border border-border">
+                                        <span className="text-[10px] font-bold text-muted-foreground/40 px-2 py-0.5 rounded-lg border border-border">
                                             ระยะเอื้อม ≤ 5°
                                         </span>
                                     </div>
-                                    <p className="text-[10px] text-muted-foreground mb-3 font-medium leading-relaxed">{info.desc}</p>
-                                    <div className="space-y-1.5">
+                                    <p className="text-[11px] text-muted-foreground/70 mb-4 font-medium leading-relaxed">{info.desc}</p>
+                                    <div className="space-y-2">
                                         {group.map((a, i) => (
-                                            <div key={i} className="flex items-center justify-between bg-black/20 rounded p-2 border border-white/5 group/aspect">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="font-bold text-white text-[11px]">{planetThaiNames[a.p1] || a.p1}</span>
-                                                        <span className="text-muted-foreground/40 text-[10px]">+</span>
-                                                        <span className="font-bold text-white text-[11px]">{planetThaiNames[a.p2] || a.p2}</span>
+                                            <div key={i} className="flex items-center justify-between bg-black/40 rounded-xl p-3 border border-white/5 hover:border-primary/20 transition-all group/aspect shadow-inner">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p1] || a.p1}</span>
+                                                        <span className="text-muted-foreground/30 text-[11px]">+</span>
+                                                        <span className="font-bold text-white text-[13px]">{planetThaiNames[a.p2] || a.p2}</span>
                                                     </div>
                                                 </div>
-                                                <div className="text-[10px] font-mono text-primary/80 bg-primary/5 px-1.5 rounded">
+                                                <div className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/20 shadow-sm">
                                                     {a.actual_diff.toFixed(1)}°
                                                 </div>
                                             </div>
@@ -387,8 +345,8 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                   );
                 })()}
                 
-                <div className="mt-6 p-4 border-t border-border/50 text-center">
-                    <p className="text-[10px] text-muted-foreground italic opacity-60">
+                <div className="mt-8 p-6 border-t border-border/30 text-center">
+                    <p className="text-[11px] text-muted-foreground italic opacity-40 font-medium">
                         * ข้อมูลนี้แสดงกระแสสัมพันธ์เชิงมุมแบบสากลและเวทผสมผสาน
                     </p>
                 </div>

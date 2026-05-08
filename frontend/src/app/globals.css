@@ -154,6 +154,11 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-size: 13px;
+    font-family: var(--font-ibm-plex-sans-thai), sans-serif;
+  }
+
+  svg text {
+    font-family: var(--font-ibm-plex-sans-thai), sans-serif;
   }
 
   /* Universal Webkit Scrollbar */

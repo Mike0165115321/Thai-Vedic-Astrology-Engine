@@ -74,12 +74,11 @@ export function CenterPanel({
     const month = parseInt(tMonth);
     const year = parseInt(tYear) - 543; // Convert BE to CE
     if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
-      // Assume transit at 12:00 PM for simple date entry
       const targetDate = new Date(year, month - 1, day, 12, 0);
       const targetMs = targetDate.getTime();
       const birthMs = chartData.julian_date * 86400000 - 210866803200000;
       const diffDays = (targetMs - birthMs) / (1000 * 3600 * 24);
-      const newAge = Math.max(0, diffDays / 365.2422); // Prevent negative age
+      const newAge = Math.max(0, diffDays / 365.2422);
       setAge(newAge);
       onAgeChange(newAge);
     }
@@ -89,69 +88,71 @@ export function CenterPanel({
     setEnabled((e) => (e.includes(t) ? e.filter((x) => x !== t) : [...e, t]));
 
   return (
-    <section className="flex flex-col h-full bg-(image:--gradient-cosmic) relative overflow-hidden">
-      {/* Aspect controls */}
-      <div className="flex items-center justify-between gap-2 border-b border-border bg-card/40 px-3 py-2 text-xs">
-        <div className="flex items-center gap-1.5">
-          <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-semibold uppercase tracking-wider text-muted-foreground">มุมสัมพันธ์</span>
+    <section className="flex flex-col h-full bg-(image:--gradient-cosmic) relative overflow-hidden font-sans">
+      {/* ส่วนควบคุมมุมสัมพันธ์ */}
+      <div className="flex items-center justify-between gap-4 border-b border-border bg-card/60 px-5 py-2.5">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-primary" />
+          <span className="text-[12px] font-bold uppercase tracking-widest text-foreground">มุมสัมพันธ์</span>
         </div>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {ASPECTS.map((a) => {
             const on = enabled.includes(a.type);
+            const thaiAspects: any = { Conjunction: "กุม", Opposition: "เล็ง", Trine: "ตรีโกณ", Square: "จตุโกณ", Sextile: "โยค" };
             return (
               <button
                 key={a.type}
                 onClick={() => toggle(a.type)}
-                className={`flex items-center gap-1.5 rounded border px-2 py-1 transition ${
-                  on ? "border-border bg-muted/60 text-foreground" : "border-border/50 bg-transparent text-muted-foreground/60"
+                className={`flex items-center gap-2 rounded-full border px-3 py-1 transition-all duration-300 text-[11px] font-bold ${
+                  on ? "border-primary/50 bg-primary/10 text-primary shadow-sm" : "border-border bg-transparent text-muted-foreground/40"
                 }`}
               >
-                <span className="h-2 w-2 rounded-full" style={{ background: a.color, opacity: on ? 1 : 0.4 }} />
-                <span className="font-mono">{a.angle}°</span>
-                <span className="hidden md:inline">{a.type}</span>
+                <span className="h-1.5 w-1.5 rounded-full" style={{ background: a.color, opacity: on ? 1 : 0.3 }} />
+                <span className="opacity-80">{a.angle}°</span>
+                <span className="hidden lg:inline">{thaiAspects[a.type] || a.type}</span>
               </button>
             );
           })}
         </div>
-        <div className="hidden font-mono text-[10px] text-muted-foreground md:block">
-          ระยะเอื้อม ≤ 5°  ·  ระบบนิรายนะ  ·  ลาหิรี
+        <div className="hidden text-[10px] font-medium text-muted-foreground/60 md:block tracking-wide">
+          ระยะเอื้อม ≤ 5°  ·  ระบบนิรายนะ  ·  อายนางศ: ลาหิรี
         </div>
       </div>
 
-      {/* Wheel Area */}
-      <div className="relative flex-1 flex flex-col overflow-hidden custom-scrollbar bg-black/20">
-        {/* Zoom Controls (More subtle, bottom-right) */}
-        <div className="absolute bottom-8 right-6 z-50 flex flex-col items-center gap-2 bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/5 p-1.5 rounded-full transition-all shadow-xl group/zoom">
+      {/* พื้นที่แสดงจักรราศี */}
+      <div className="relative flex-1 flex flex-col overflow-hidden bg-black/30">
+        
+        {/* ส่วนควบคุมการซูม */}
+        <div className="absolute bottom-10 right-8 z-50 flex flex-col items-center gap-3 bg-card/60 backdrop-blur-xl border border-border p-2 rounded-full shadow-2xl transition-all group/zoom">
             <button 
                 onClick={() => setZoomLevel(prev => Math.min(3, prev + 0.5))}
                 disabled={zoomLevel >= 3}
-                className={`w-7 h-7 flex items-center justify-center rounded-full transition-colors ${zoomLevel >= 3 ? "bg-white/5 text-white/20 cursor-not-allowed" : "bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white"}`}
-                title="ซูมเข้า"
+                className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${zoomLevel >= 3 ? "bg-white/5 text-white/10 cursor-not-allowed" : "bg-primary/10 hover:bg-primary text-primary hover:text-black"}`}
+                title="ขยาย"
             >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
             </button>
-            <div className="h-10 w-0.5 bg-white/10 rounded-full relative overflow-hidden">
+            <div className="h-12 w-1 bg-border rounded-full relative overflow-hidden">
                 <motion.div 
-                    className="absolute bottom-0 left-0 w-full bg-primary/40 group-hover/zoom:bg-primary/80"
+                    className="absolute bottom-0 left-0 w-full bg-primary"
                     animate={{ height: `${((zoomLevel - 1) / 2) * 100}%` }}
                 />
             </div>
             <button 
                 onClick={() => setZoomLevel(prev => Math.max(1, prev - 0.5))}
                 disabled={zoomLevel <= 1}
-                className={`w-7 h-7 flex items-center justify-center rounded-full transition-colors ${zoomLevel <= 1 ? "bg-white/5 text-white/20 cursor-not-allowed" : "bg-white/5 hover:bg-white/20 text-white/50 group-hover/zoom:text-white"}`}
-                title="ซูมออก"
+                className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${zoomLevel <= 1 ? "bg-white/5 text-white/10 cursor-not-allowed" : "bg-primary/10 hover:bg-primary text-primary hover:text-black"}`}
+                title="ย่อ"
             >
-                <Minus className="w-3.5 h-3.5" />
+                <Minus className="w-4 h-4" />
             </button>
             <button 
                 onClick={() => setZoomLevel(1)}
                 disabled={zoomLevel <= 1}
-                className={`w-7 h-7 flex items-center justify-center rounded-full mt-0.5 transition-colors ${zoomLevel <= 1 ? "bg-white/5 text-primary/30 cursor-not-allowed" : "bg-primary/10 hover:bg-primary/20 text-primary/50 group-hover/zoom:text-primary"}`}
-                title="รีเซ็ตตำแหน่ง"
+                className={`w-9 h-9 flex items-center justify-center rounded-full mt-1 transition-all ${zoomLevel <= 1 ? "bg-white/5 text-primary/20" : "bg-white/10 hover:bg-white/20 text-primary"}`}
+                title="รีเซ็ต"
             >
-                <RefreshCw className="w-3 h-3" />
+                <RefreshCw className="w-4 h-4" />
             </button>
         </div>
 
@@ -159,29 +160,25 @@ export function CenterPanel({
           <div 
             className="relative flex-1 w-full h-full min-h-0 overflow-hidden"
             onWheel={(e) => {
-                if (e.deltaY < 0) {
-                    setZoomLevel(prev => Math.min(3, prev + 0.2));
-                } else {
-                    setZoomLevel(prev => Math.max(1, prev - 0.2));
-                }
+                if (e.deltaY < 0) setZoomLevel(prev => Math.min(3, prev + 0.1));
+                else setZoomLevel(prev => Math.max(1, prev - 0.1));
             }}
           >
             <motion.div 
-              className={`w-full h-full flex flex-col items-center justify-center transition-shadow ${zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+              className={`w-full h-full flex flex-col items-center justify-center ${zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
               animate={zoomLevel === 1 ? { scale: 1, x: 0, y: 0 } : { scale: zoomLevel }}
               drag={zoomLevel > 1}
-              dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
-              dragElastic={0.1}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              dragConstraints={{ left: -800, right: 800, top: -800, bottom: 800 }}
+              transition={{ type: "spring", stiffness: 200, damping: 25 }}
             >
-              <div className="grid grid-cols-1 gap-12 w-full max-w-5xl mx-auto py-10 px-4">
-                 {/* D1 Top Center */}
+              <div className="grid grid-cols-1 gap-16 w-full max-w-6xl mx-auto py-12 px-6">
+                 {/* ราศีจักร (D1) */}
                  <div className="flex flex-col items-center">
-                    <div className="mb-2 flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 backdrop-blur-sm">
-                       <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                       <span className="text-[10px] font-bold uppercase tracking-widest text-primary">ดวงราศีจักร (Natal - D1)</span>
+                    <div className="mb-4 flex items-center gap-3 rounded-full border border-primary/40 bg-primary/10 px-5 py-1.5 backdrop-blur-md shadow-lg shadow-primary/10">
+                       <span className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-glow" />
+                       <span className="text-[12px] font-black uppercase tracking-[0.2em] text-primary">ราศีจักร (พื้นดวงหลัก)</span>
                     </div>
-                    <div className="aspect-square h-[420px] w-[420px]">
+                    <div className="aspect-square h-[450px] w-[450px]">
                       <ZodiacWheel 
                         planets={getDivisionalData(chartData, "D1")?.planets || null} 
                         transitPlanets={showTransit ? (getDivisionalData(transitData, "D1")?.planets || null) : null}
@@ -196,13 +193,13 @@ export function CenterPanel({
                     </div>
                  </div>
 
-                 <div className="flex flex-wrap justify-center gap-10">
-                    {/* D9 */}
+                 <div className="flex flex-wrap justify-center gap-14">
+                    {/* นวางศ์จักร (D9) */}
                     <div className="flex flex-col items-center group">
-                       <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">นวางศ์จักร (Navamsa - D9)</span>
+                       <div className="mb-3 flex items-center gap-2.5 rounded-full border border-border bg-card/60 px-4 py-1 transition-all group-hover:border-primary/40 group-hover:bg-primary/5">
+                          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">นวางศ์จักร (ไส้ในดวง)</span>
                        </div>
-                       <div className="aspect-square h-[280px] w-[280px]">
+                       <div className="aspect-square h-[300px] w-[300px]">
                          <ZodiacWheel 
                             planets={getDivisionalData(chartData, "D9")?.planets || null} 
                             transitPlanets={showTransit ? (getDivisionalData(transitData, "D9")?.planets || null) : null}
@@ -217,12 +214,12 @@ export function CenterPanel({
                        </div>
                     </div>
 
-                    {/* D3 */}
+                    {/* ตรียางศ์จักร (D3) */}
                     <div className="flex flex-col items-center group">
-                       <div className="mb-2 flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">ตรียางศ์จักร (Drekkana - D3)</span>
+                       <div className="mb-3 flex items-center gap-2.5 rounded-full border border-border bg-card/60 px-4 py-1 transition-all group-hover:border-primary/40 group-hover:bg-primary/5">
+                          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">ตรียางศ์จักร (พี่น้อง/ลาภผล)</span>
                        </div>
-                       <div className="aspect-square h-[280px] w-[280px]">
+                       <div className="aspect-square h-[300px] w-[300px]">
                          <ZodiacWheel 
                             planets={getDivisionalData(chartData, "D3")?.planets || null} 
                             transitPlanets={showTransit ? (getDivisionalData(transitData, "D3")?.planets || null) : null}
@@ -244,22 +241,18 @@ export function CenterPanel({
         ) : (
           <>
           <div 
-            className="relative flex-1 w-full h-full min-h-0 flex items-center justify-center p-4 overflow-hidden"
+            className="relative flex-1 w-full h-full min-h-0 flex items-center justify-center p-6 overflow-hidden"
             onWheel={(e) => {
-                if (e.deltaY < 0) {
-                    setZoomLevel(prev => Math.min(3, prev + 0.2));
-                } else {
-                    setZoomLevel(prev => Math.max(1, prev - 0.2));
-                }
+                if (e.deltaY < 0) setZoomLevel(prev => Math.min(3, prev + 0.1));
+                else setZoomLevel(prev => Math.max(1, prev - 0.1));
             }}
           >
             <motion.div 
-                className={`aspect-square w-full h-full max-w-full max-h-full flex items-center justify-center transition-shadow ${zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+                className={`aspect-square w-full h-full max-w-full max-h-full flex items-center justify-center ${zoomLevel > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
                 animate={zoomLevel === 1 ? { scale: 1, x: 0, y: 0 } : { scale: zoomLevel }}
                 drag={zoomLevel > 1}
-                dragConstraints={{ left: -1000, right: 1000, top: -1000, bottom: 1000 }}
-                dragElastic={0.1}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                dragConstraints={{ left: -800, right: 800, top: -800, bottom: 800 }}
+                transition={{ type: "spring", stiffness: 200, damping: 25 }}
             >
             <ZodiacWheel 
               planets={displayChartData?.planets || null} 
@@ -277,18 +270,18 @@ export function CenterPanel({
           </motion.div>
         </div>
           
-          {/* Synastry Focus Toggle (Moved left to avoid zoom controls) */}
+          {/* ตัวเลือกการเน้นดวงสมพงษ์ */}
           {mode === "Synastry" && (
-            <div className="absolute bottom-8 right-20 flex bg-black/60 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-2xl z-20">
+            <div className="absolute bottom-10 right-24 flex bg-black/60 backdrop-blur-2xl border border-border rounded-full p-1.5 shadow-2xl z-20">
                 {[
-                  { id: "A", label: "คนที่ 1", color: "bg-[#3b82f6] text-white" },
-                  { id: "B", label: "คนที่ 2", color: "bg-white text-slate-900" },
-                  { id: "Both", label: "ดูพร้อมกัน", color: "bg-primary text-slate-900" }
+                  { id: "A", label: "คนที่ 1", color: "bg-blue-500 text-white shadow-blue-500/40" },
+                  { id: "B", label: "คนที่ 2", color: "bg-pink-500 text-white shadow-pink-500/40" },
+                  { id: "Both", label: "ดูทั้งคู่", color: "bg-primary text-black shadow-primary/40" }
                 ].map(f => (
                  <button
                    key={f.id}
                    onClick={() => setSynastryFocus(f.id as any)}
-                   className={`px-4 py-1.5 rounded-full text-[11px] font-bold transition-all ${
+                   className={`px-5 py-2 rounded-full text-[12px] font-bold transition-all duration-300 ${
                      synastryFocus === f.id ? `${f.color} shadow-lg scale-105` : "text-muted-foreground hover:text-foreground"
                    }`}
                  >
@@ -300,27 +293,27 @@ export function CenterPanel({
 
         {chartData && (
           <>
-            <div className="pointer-events-none absolute left-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur z-20">
-              วันกำเนิด (JD) · {chartData.julian_date.toFixed(4)}
+            <div className="pointer-events-none absolute left-5 top-5 rounded-lg border border-border bg-card/70 px-3 py-1.5 text-[11px] font-bold text-muted-foreground backdrop-blur-md z-20 shadow-lg">
+              จูเลียนดีต (JD) · {chartData.julian_date.toFixed(4)}
             </div>
-            <div className="pointer-events-none absolute right-3 top-3 rounded border border-border bg-card/70 px-2 py-1 font-mono text-[10px] text-muted-foreground backdrop-blur z-20">
-              ลัคนา · {chartData.lagna.longitude.toFixed(2)}°
+            <div className="pointer-events-none absolute right-5 top-5 rounded-lg border border-border bg-card/70 px-3 py-1.5 text-[11px] font-bold text-muted-foreground backdrop-blur-md z-20 shadow-lg">
+              ลัคนาสะสม · {chartData.lagna.longitude.toFixed(2)}°
             </div>
           </>
         )}
         </>
       )}
 
-      {/* Transit Controls (Back at the corner with HIGH visibility) */}
-      <div className="absolute bottom-4 left-4 flex items-center gap-2 z-40">
+      {/* ส่วนควบคุมดาวจร (ปุ่มหลัก) */}
+      <div className="absolute bottom-6 left-6 flex items-center gap-3 z-40">
            <button
               onClick={() => setShowTransit(!showTransit)}
-              className={`flex h-8 items-center gap-2 rounded-full border px-4 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl ${
-                showTransit ? "border-primary bg-primary text-black font-black" : "border-white/20 bg-black/60 text-white hover:bg-black/80"
+              className={`flex h-10 items-center gap-3 rounded-full border px-5 transition-all shadow-2xl backdrop-blur-xl ${
+                showTransit ? "border-primary bg-primary text-black font-black" : "border-border bg-black/60 text-white hover:bg-black/80"
               }`}
            >
-              <span className={`h-2 w-2 rounded-full ${showTransit ? "bg-black animate-pulse" : "bg-white/40"}`} />
-              <span className="text-[11px] font-black uppercase tracking-wider">แสดงดาวจร</span>
+              <span className={`h-2.5 w-2.5 rounded-full ${showTransit ? "bg-black animate-pulse shadow-glow" : "bg-white/20"}`} />
+              <span className="text-[12px] font-black uppercase tracking-widest">แสดงตำแหน่งดาวจร</span>
            </button>
   
            {showTransit && (
@@ -334,36 +327,35 @@ export function CenterPanel({
                   setAge(newAge);
                   onAgeChange(newAge);
                 }}
-                className="flex h-8 items-center gap-2 rounded-full border border-primary/50 bg-black/90 px-4 text-primary hover:bg-primary hover:text-black transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                className="flex h-10 items-center gap-2.5 rounded-full border border-primary/40 bg-black/80 px-5 text-primary hover:bg-primary hover:text-black transition-all shadow-2xl backdrop-blur-xl group"
              >
-                <Clock className="h-4 w-4" />
-                <span className="text-[11px] font-black uppercase tracking-wider">ดาวจรปัจจุบัน</span>
+                <Clock className="h-4.5 w-4.5 transition-transform group-hover:rotate-12" />
+                <span className="text-[12px] font-black uppercase tracking-widest">ดาวจรปัจจุบัน</span>
              </button>
            )}
       </div>
       </div>
 
-      {/* Bottom Panel Toggle Button */}
+      {/* ปุ่มเปิด-ปิดแถบเวลาด้านล่าง */}
       <div className="relative z-50 flex justify-center w-full h-0">
           <button
             onClick={() => setShowBottomPanel(!showBottomPanel)}
-            className="absolute bottom-0 flex h-5 w-14 items-center justify-center rounded-t-md border border-b-0 border-border bg-card/90 text-muted-foreground hover:bg-primary hover:text-black transition-all shadow-[0_-5px_15px_rgba(0,0,0,0.5)] backdrop-blur-md"
-            title={showBottomPanel ? "ซ่อนแถบเวลา" : "แสดงแถบเวลา"}
+            className="absolute bottom-0 flex h-6 w-16 items-center justify-center rounded-t-xl border border-b-0 border-border bg-card/90 text-primary hover:bg-primary hover:text-black transition-all shadow-2xl backdrop-blur-lg"
           >
-            {showBottomPanel ? <span className="text-[10px]">▼</span> : <span className="text-[10px]">▲</span>}
+            {showBottomPanel ? <span className="text-[12px]">▼</span> : <span className="text-[12px]">▲</span>}
           </button>
       </div>
 
-      {/* Transit scrubber (Collapsible) */}
+      {/* แถบควบคุมเวลาและอายุ (Scrubber) */}
       <div 
-        className="grid transition-all duration-500 ease-in-out border-t border-border bg-card/60"
+        className="grid transition-all duration-700 ease-in-out border-t border-border bg-card/80 backdrop-blur-xl"
         style={{ gridTemplateRows: showBottomPanel ? "1fr" : "0fr" }}
       >
-        <div className="overflow-hidden px-4 py-3">
-        <div className="mb-2 flex items-center justify-between text-xs">
-          <div className="font-mono text-xs text-foreground flex items-center gap-3">
-            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">อายุชะตา:</span>
-            <div className="flex items-center gap-1">
+        <div className="overflow-hidden px-6 py-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-xs text-foreground flex items-center gap-3">
+            <span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[10px]">อายุชะตา:</span>
+            <div className="flex items-center gap-2">
                 <input 
                     type="number" 
                     value={Math.floor(age)} 
@@ -372,15 +364,15 @@ export function CenterPanel({
                         setAge(v + (age % 1));
                         onAgeChange(v + (age % 1));
                     }}
-                    className="w-10 bg-primary/10 border border-primary/30 rounded px-1 py-0.5 text-center text-primary font-bold"
+                    className="w-12 bg-primary/10 border border-primary/30 rounded-lg px-2 py-1 text-center text-primary font-black shadow-inner"
                 />
-                <span className="text-muted-foreground">ปี</span>
-                <span className="text-primary font-bold ml-1">{Math.floor((age % 1) * 12)}</span>
-                <span className="text-muted-foreground">ด.</span>
+                <span className="text-muted-foreground font-bold">ปี</span>
+                <span className="text-primary font-black ml-1.5 text-lg">{Math.floor((age % 1) * 12)}</span>
+                <span className="text-muted-foreground font-bold">เดือน</span>
             </div>
-            <span className="mx-2 text-border">|</span>
-            <span className="text-muted-foreground font-bold">วันที่ดาวจร: </span>
-            <div className="flex gap-1 items-center bg-primary/10 border border-primary/30 rounded px-1 py-0.5">
+            <span className="mx-3 text-border/30">|</span>
+            <span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[10px]">วันที่ดาวจร:</span>
+            <div className="flex gap-1.5 items-center bg-primary/5 border border-primary/20 rounded-lg px-3 py-1 shadow-inner">
               <input 
                 type="text" 
                 value={tDay}
@@ -388,10 +380,9 @@ export function CenterPanel({
                 onChange={(e) => setTDay(e.target.value)}
                 onBlur={handleDateSubmit}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
-                placeholder="วว"
-                className="bg-transparent text-primary font-bold text-center w-6 outline-none"
+                className="bg-transparent text-primary font-black text-center w-7 outline-none"
               />
-              <span className="text-primary/50">/</span>
+              <span className="text-primary/30">/</span>
               <input 
                 type="text" 
                 value={tMonth}
@@ -399,10 +390,9 @@ export function CenterPanel({
                 onChange={(e) => setTMonth(e.target.value)}
                 onBlur={handleDateSubmit}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
-                placeholder="ดด"
-                className="bg-transparent text-primary font-bold text-center w-6 outline-none"
+                className="bg-transparent text-primary font-black text-center w-7 outline-none"
               />
-              <span className="text-primary/50">/</span>
+              <span className="text-primary/30">/</span>
               <input 
                 type="text" 
                 value={tYear}
@@ -410,13 +400,10 @@ export function CenterPanel({
                 onChange={(e) => setTYear(e.target.value)}
                 onBlur={handleDateSubmit}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
-                placeholder="พ.ศ."
-                className="bg-transparent text-primary font-bold text-center w-10 outline-none"
+                className="bg-transparent text-primary font-black text-center w-12 outline-none"
               />
             </div>
             
-            <span className="mx-2 text-border">|</span>
-
             <button 
               onClick={() => {
                 if (!chartData) return;
@@ -427,19 +414,13 @@ export function CenterPanel({
                 setAge(currentAge);
                 onAgeChange(currentAge);
               }}
-              className="flex items-center gap-1 px-2 py-0.5 rounded bg-primary text-black font-black hover:bg-primary/80 transition-all text-[10px]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-black font-black hover:brightness-110 transition-all text-[11px] shadow-lg shadow-primary/20 ml-2"
             >
-              <RefreshCw className="h-3 w-3" />
+              <RefreshCw className="h-3.5 w-3.5" />
               ปัจจุบัน
             </button>
-
-            <span className="mx-2 text-border">|</span>
             
-            {/* Scale Selector */}
-            
-            {/* Scale Selector - Moved Here */}
-            <span className="mx-2 text-border">|</span>
-            <div className="flex gap-1 items-center bg-black/20 rounded-lg p-0.5 border border-white/5">
+            <div className="flex gap-1.5 items-center bg-black/30 rounded-xl p-1 border border-border ml-4 shadow-inner">
                 {timelineScale < 120 && (
                    <button 
                      onClick={() => {
@@ -448,9 +429,9 @@ export function CenterPanel({
                         setAge(nextOffset);
                         onAgeChange(nextOffset);
                      }}
-                     className="px-1.5 py-0.5 text-muted-foreground hover:text-primary transition-colors"
+                     className="px-2 py-1 text-muted-foreground hover:text-primary transition-colors"
                    >
-                     <ChevronLeft className="h-3 w-3" />
+                     <ChevronLeft className="h-4 w-4" />
                    </button>
                 )}
                 {[30, 60, 90, 120].map((s) => (
@@ -460,9 +441,9 @@ export function CenterPanel({
                           setTimelineScale(s as any);
                           setTimelineOffset(Math.floor(age / s) * s);
                         }}
-                        className={`px-2 py-0.5 rounded text-[9px] font-black transition-all ${
+                        className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all duration-300 ${
                         timelineScale === s 
-                        ? "bg-primary text-black shadow-[0_0_10px_rgba(var(--primary-rgb),0.4)]" 
+                        ? "bg-white/10 text-primary shadow-glow border border-primary/30" 
                         : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                         }`}
                     >
@@ -477,33 +458,33 @@ export function CenterPanel({
                         setAge(nextOffset);
                         onAgeChange(nextOffset);
                      }}
-                     className="px-1.5 py-0.5 text-muted-foreground hover:text-primary transition-colors"
+                     className="px-2 py-1 text-muted-foreground hover:text-primary transition-colors"
                    >
-                     <ChevronRight className="h-3 w-3" />
+                     <ChevronRight className="h-4 w-4" />
                    </button>
                 )}
             </div>
           </div>
-          <div className="flex gap-1 text-[10px] text-muted-foreground">
-            <button 
-                onClick={() => { const v = age + (1/365.25); setAge(v); onAgeChange(v); }}
-                className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
-            >+1 วัน</button>
-            <button 
-                onClick={() => { const v = age + (1/12); setAge(v); onAgeChange(v); }}
-                className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
-            >+1 ด.</button>
-            <button 
-                onClick={() => { const v = age + 1; setAge(v); onAgeChange(v); }}
-                className="rounded border border-border px-1.5 py-0.5 hover:text-foreground hover:bg-muted"
-            >+1 ปี</button>
+
+          <div className="flex gap-1.5">
+            {[
+                { label: "+1 วัน", val: 1/365.25 },
+                { label: "+1 เดือน", val: 1/12 },
+                { label: "+1 ปี", val: 1 }
+            ].map(b => (
+                <button 
+                    key={b.label}
+                    onClick={() => { const v = age + b.val; setAge(v); onAgeChange(v); }}
+                    className="rounded-lg border border-border px-3 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all active:scale-95"
+                >{b.label}</button>
+            ))}
           </div>
         </div>
-        {/* Dasha Scrubber Integration with Zoom */}
+
+        {/* แถบดวงวัย (Dasha) */}
         {chartData?.dasha_timeline && (
-          <div className="relative mb-6">
-             <div className="flex justify-end mb-1">
-                {/* Antardasha Micro-indicator */}
+          <div className="relative mb-8">
+             <div className="flex justify-end mb-1.5">
                 {(() => {
                     const tl = chartData.dasha_timeline;
                     const firstStart = new Date(tl[0].start).getTime();
@@ -514,25 +495,21 @@ export function CenterPanel({
                     if (!currentA) return null;
                     
                     return (
-                        <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
-                            <span className="text-[9px] font-black text-primary uppercase tracking-widest">
-                                {planetThaiNames[currentM.planet]} / {planetThaiNames[currentA.planet]}
+                        <div className="flex items-center gap-2.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 shadow-lg shadow-primary/5">
+                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
+                                มหาทศา: {planetThaiNames[currentM.planet]}  /  อนุทศา: {planetThaiNames[currentA.planet]}
                             </span>
                         </div>
                     );
                 })()}
              </div>
 
-             {/* The Bar */}
-             <div className="relative h-4 w-full rounded-full overflow-hidden border border-white/5 bg-black/40 shadow-inner group">
+             <div className="relative h-5 w-full rounded-full overflow-hidden border border-white/10 bg-black/60 shadow-2xl group">
                 {(() => {
                     const tl = chartData.dasha_timeline;
                     const firstStart = new Date(tl[0].start).getTime();
-                    
-                    // Window Logic
                     const windowStartAge = timelineOffset;
                     const windowEndAge = Math.min(120, timelineOffset + timelineScale);
-                    
                     const windowStartMs = firstStart + (windowStartAge * 31556926000);
                     const windowEndMs = firstStart + (windowEndAge * 31556926000);
                     const windowDuration = windowEndMs - windowStartMs;
@@ -540,26 +517,16 @@ export function CenterPanel({
                     return tl.map((d) => {
                         const start = new Date(d.start).getTime();
                         const end = new Date(d.end).getTime();
-                        
-                        // Crop to window
                         const displayStart = Math.max(start, windowStartMs);
                         const displayEnd = Math.min(end, windowEndMs);
-                        
                         if (displayStart >= displayEnd) return null;
 
                         const width = ((displayEnd - displayStart) / windowDuration) * 100;
                         const left = ((displayStart - windowStartMs) / windowDuration) * 100;
 
                         const colors: any = { 
-                          Sun: "#FBBF24",     // Golden Yellow
-                          Moon: "#F8FAFC",    // Bright White
-                          Mars: "#F87171",    // Soft Red
-                          Mercury: "#34D399", // Emerald Green
-                          Jupiter: "#A78BFA", // Bright Purple
-                          Venus: "#F472B6",   // Vibrant Pink
-                          Saturn: "#94A3B8",  // Slate Blue (Lighter)
-                          Rahu: "#6366F1",    // Indigo (More visible)
-                          Ketu: "#FCD34D"     // Amber
+                          Sun: "#FBBF24", Moon: "#F8FAFC", Mars: "#F87171", Mercury: "#34D399",
+                          Jupiter: "#A78BFA", Venus: "#F472B6", Saturn: "#94A3B8", Rahu: "#6366F1", Ketu: "#FCD34D"
                         };
                         const nums: any = { Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔", Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙" };
                         
@@ -568,10 +535,10 @@ export function CenterPanel({
 
                         return (
                             <div key={d.planet + d.start}
-                                className={`absolute top-0 h-full flex items-center justify-center border-r border-black/10 text-[10px] font-black text-white drop-shadow-md transition-all ${isActive ? "opacity-100 ring-2 ring-white/70 z-10 scale-y-125" : "opacity-40"}`}
+                                className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[11px] font-black text-white transition-all duration-500 ${isActive ? "opacity-100 ring-2 ring-white/80 z-10 scale-y-125 shadow-glow" : "opacity-30"}`}
                                 style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
                             >
-                                <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">{nums[d.planet]}</span>
+                                <span className="drop-shadow-lg">{nums[d.planet]}</span>
                             </div>
                         );
                     });
@@ -591,9 +558,9 @@ export function CenterPanel({
             setAge(v);
             onAgeChange(v);
           }}
-          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-border accent-primary transition-all hover:bg-muted focus:outline-none"
+          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-border/40 accent-primary transition-all hover:bg-border/60 focus:outline-none"
         />
-        <div className="mt-2 flex justify-between px-1 text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+        <div className="mt-3 flex justify-between px-1 text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">
           {(() => {
              const windowStartAge = timelineOffset;
              const birthYear = chartData?.dasha_timeline ? new Date(chartData.dasha_timeline[0].start).getFullYear() + 543 : 2549;
@@ -602,9 +569,9 @@ export function CenterPanel({
                 const markerAge = windowStartAge + (i * (timelineScale / 4));
                 if (markerAge > 120) return null;
                 return (
-                    <div key={i} className={`flex flex-col ${i === 0 ? "items-start" : i === 4 ? "items-end" : "items-center"}`}>
-                        <span>{markerAge} ปี</span>
-                        <span className="text-[7px] opacity-60">พ.ศ. {birthYear + Math.floor(markerAge)}</span>
+                    <div key={i} className={`flex flex-col gap-1 ${i === 0 ? "items-start" : i === 4 ? "items-end" : "items-center"}`}>
+                        <span className="text-muted-foreground/60">{markerAge} ปี</span>
+                        <span className="text-[9px] opacity-40 font-medium">พ.ศ. {birthYear + Math.floor(markerAge)}</span>
                     </div>
                 );
              });
