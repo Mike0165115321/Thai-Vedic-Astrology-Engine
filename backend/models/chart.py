@@ -25,7 +25,11 @@ class BirthChart(BaseModel):
     lunar_data: Dict[str, Any]
     dasha_timeline: List[Dict[str, Any]]
     house_lords: Dict[int, Any] | None = None
+    d3_house_lords: Dict[int, Any] | None = None
+    d9_house_lords: Dict[int, Any] | None = None
     yogas: List[Dict[str, Any]] | None = None
+    d3_yogas: List[Dict[str, Any]] | None = None
+    d9_yogas: List[Dict[str, Any]] | None = None
 
 
 

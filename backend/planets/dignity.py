@@ -198,7 +198,7 @@ def get_dignity(planet_id, longitude):
     
     rules = THAI_TRADITIONAL_DIGNITIES.get(planet_id)
     if not rules:
-        return "ปกติ"
+        return ["ปกติ"]
         
     status_list = []
     

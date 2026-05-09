@@ -13,3 +13,4 @@ frontend/.next/
 Thumbs.db
 
 backend/data/astrology.db
+/data/astrology.db

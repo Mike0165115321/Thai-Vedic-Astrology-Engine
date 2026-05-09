@@ -483,65 +483,106 @@ export function CenterPanel({
 
         {/* แถบดวงวัย (Dasha) */}
         {chartData?.dasha_timeline && (
-          <div className="relative mb-8">
-             <div className="flex justify-end mb-1.5">
+          <div className="relative mb-8 bg-white/5 p-4 rounded-2xl border border-white/5 backdrop-blur-sm shadow-inner">
+             <div className="flex justify-between items-center mb-3">
                 {(() => {
-                    const tl = chartData.dasha_timeline;
-                    const firstStart = new Date(tl[0].start).getTime();
-                    const targetMs = firstStart + (age * 31556926000);
-                    const currentM = tl.find(d => targetMs >= new Date(d.start).getTime() && targetMs < new Date(d.end).getTime()) || tl[0];
-                    if (!currentM || !currentM.antardashas) return null;
-                    const currentA = currentM.antardashas.find(a => targetMs >= new Date(a.start).getTime() && targetMs < new Date(a.end).getTime());
-                    if (!currentA) return null;
-                    
+                    const getDashaInfo = (tl: any[]) => {
+                        const firstStart = new Date(tl[0].start).getTime();
+                        const targetMs = firstStart + (age * 31556926000);
+                        const currentM = tl.find(d => targetMs >= new Date(d.start).getTime() && targetMs < new Date(d.end).getTime()) || tl[0];
+                        if (!currentM || !currentM.antardashas) return { currentM, currentA: null };
+                        const currentA = currentM.antardashas.find((a: any) => targetMs >= new Date(a.start).getTime() && targetMs < new Date(a.end).getTime());
+                        return { currentM, currentA };
+                    };
+
+                    if (mode === "Synastry" && compareData?.person_b_chart) {
+                        const infoA = getDashaInfo(chartData.dasha_timeline);
+                        const infoB = getDashaInfo(compareData.person_b_chart.dasha_timeline);
+                        return (
+                            <div className="flex flex-col gap-2 w-full">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-glow" />
+                                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">คนที่ 1:</span>
+                                        <span className="text-[11px] font-bold text-white/80">
+                                            {infoA.currentM ? planetThaiNames[infoA.currentM.planet] : "—"} / {infoA.currentA ? planetThaiNames[infoA.currentA.planet] : "—"}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black text-pink-400 uppercase tracking-tighter">คนที่ 2:</span>
+                                        <span className="text-[11px] font-bold text-white/80">
+                                            {infoB.currentM ? planetThaiNames[infoB.currentM.planet] : "—"} / {infoB.currentA ? planetThaiNames[infoB.currentA.planet] : "—"}
+                                        </span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-pink-400 shadow-glow" />
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+
+                    const { currentM, currentA } = getDashaInfo(chartData.dasha_timeline);
                     return (
-                        <div className="flex items-center gap-2.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 shadow-lg shadow-primary/5">
+                        <div className="flex items-center gap-2.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30">
                             <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
-                                มหาทศา: {planetThaiNames[currentM.planet]}  /  อนุทศา: {planetThaiNames[currentA.planet]}
+                                มหาทศา: {currentM ? planetThaiNames[currentM.planet] : "—"} / อนุทศา: {currentA ? planetThaiNames[currentA.planet] : "—"}
                             </span>
                         </div>
                     );
                 })()}
              </div>
 
-             <div className="relative h-5 w-full rounded-full overflow-hidden border border-white/10 bg-black/60 shadow-2xl group">
+             <div className="flex flex-col gap-2">
                 {(() => {
-                    const tl = chartData.dasha_timeline;
-                    const firstStart = new Date(tl[0].start).getTime();
-                    const windowStartAge = timelineOffset;
-                    const windowEndAge = Math.min(120, timelineOffset + timelineScale);
-                    const windowStartMs = firstStart + (windowStartAge * 31556926000);
-                    const windowEndMs = firstStart + (windowEndAge * 31556926000);
-                    const windowDuration = windowEndMs - windowStartMs;
-
-                    return tl.map((d) => {
-                        const start = new Date(d.start).getTime();
-                        const end = new Date(d.end).getTime();
-                        const displayStart = Math.max(start, windowStartMs);
-                        const displayEnd = Math.min(end, windowEndMs);
-                        if (displayStart >= displayEnd) return null;
-
-                        const width = ((displayEnd - displayStart) / windowDuration) * 100;
-                        const left = ((displayStart - windowStartMs) / windowDuration) * 100;
-
-                        const colors: any = { 
-                          Sun: "#FBBF24", Moon: "#F8FAFC", Mars: "#F87171", Mercury: "#34D399",
-                          Jupiter: "#A78BFA", Venus: "#F472B6", Saturn: "#94A3B8", Rahu: "#6366F1", Ketu: "#FCD34D"
-                        };
-                        const nums: any = { Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔", Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙" };
-                        
-                        const targetMs = firstStart + (age * 31556926000); 
-                        const isActive = targetMs >= start && targetMs < end;
+                    const renderTimeline = (tl: any[]) => {
+                        const firstStart = new Date(tl[0].start).getTime();
+                        const windowStartAge = timelineOffset;
+                        const windowEndAge = Math.min(120, timelineOffset + timelineScale);
+                        const windowStartMs = firstStart + (windowStartAge * 31556926000);
+                        const windowEndMs = firstStart + (windowEndAge * 31556926000);
+                        const windowDuration = windowEndMs - windowStartMs;
 
                         return (
-                            <div key={d.planet + d.start}
-                                className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[11px] font-black text-white transition-all duration-500 ${isActive ? "opacity-100 ring-2 ring-white/80 z-10 scale-y-125 shadow-glow" : "opacity-30"}`}
-                                style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
-                            >
-                                <span className="drop-shadow-lg">{nums[d.planet]}</span>
+                            <div className="relative h-5 w-full rounded-full overflow-hidden border border-white/10 bg-black/60 shadow-2xl group transition-all">
+                                {tl.map((d) => {
+                                    const start = new Date(d.start).getTime();
+                                    const end = new Date(d.end).getTime();
+                                    const displayStart = Math.max(start, windowStartMs);
+                                    const displayEnd = Math.min(end, windowEndMs);
+                                    if (displayStart >= displayEnd) return null;
+
+                                    const width = ((displayEnd - displayStart) / windowDuration) * 100;
+                                    const left = ((displayStart - windowStartMs) / windowDuration) * 100;
+
+                                    const colors: any = { 
+                                      Sun: "#FBBF24", Moon: "#F8FAFC", Mars: "#F87171", Mercury: "#34D399",
+                                      Jupiter: "#A78BFA", Venus: "#F472B6", Saturn: "#94A3B8", Rahu: "#6366F1", Ketu: "#FCD34D"
+                                    };
+                                    const nums: any = { Sun: "๑", Moon: "๒", Mars: "๓", Mercury: "๔", Jupiter: "๕", Venus: "๖", Saturn: "๗", Rahu: "๘", Ketu: "๙" };
+                                    
+                                    const targetMs = firstStart + (age * 31556926000); 
+                                    const isActive = targetMs >= start && targetMs < end;
+
+                                    return (
+                                        <div key={d.planet + d.start}
+                                            className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[11px] font-black text-white transition-all duration-500 ${isActive ? "opacity-100 ring-2 ring-white/80 z-10 scale-y-125 shadow-glow" : "opacity-30"}`}
+                                            style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
+                                        >
+                                            <span className="drop-shadow-lg">{nums[d.planet]}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         );
-                    });
+                    };
+
+                    return (
+                        <>
+                            {renderTimeline(chartData.dasha_timeline)}
+                            {mode === "Synastry" && compareData?.person_b_chart && (
+                                renderTimeline(compareData.person_b_chart.dasha_timeline)
+                            )}
+                        </>
+                    );
                 })()}
              </div>
           </div>

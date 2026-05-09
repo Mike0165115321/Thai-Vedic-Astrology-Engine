@@ -65,19 +65,20 @@ API Layer
 [x] POST /calculate/chart
 [x] POST /calculate/compare (ดวงคู่ Synastry)
 [x] GET /calculate/transit
+[x] GET /history (SQLite history system)
 [ ] GET /sky/realtime (WebSocket)
 
 
 Frontend
-[x] Birth Input Form
-[x] Zodiac Wheel SVG (ดาวเคลื่อนจริง)
-[x] เส้น Aspects บนวงล้อ
-[x] Planet Table (องศา/ราศี/เรือน/สถานะ/นักษัตร)
-[x] D1/D3/D9 Tabs
-[x] Dasha Timeline (visual + ไฮไลต์ปัจจุบัน)
-[x] Synastry View (ดวงสมพงษ์แยกวงใน-นอก)
-[x] Transit View (แถบปรับอายุ / ดาวจรปัจจุบัน)
-[x] Settings (Ayanamsa / House System)
+[x] Birth Input Form & Vault (History) system
+[x] Zodiac Wheel SVG (Smooth animations with Framer Motion)
+[x] Aspect Lines on Zodiac Wheel
+[x] Planet Table (Dignity / Nakshatra / Coordinates)
+[x] D1/D3/D9 Tabs (Divisional calculation integration)
+[x] Dasha Timeline (Single & Dual mode for Synastry)
+[x] Synastry View (Side-by-side comparison + Aspect Matrix)
+[x] Transit View (Age Scrubber 0-120 with birth-anchor calculation)
+[x] Settings (Ayanamsa / House System / Node Type)
 
 ───────────────────────────────────────────────
 Architecture Rules: The 3-Layer Framework
@@ -133,4 +134,6 @@ Phase 2.2: The Narrative Dashboard
 
 Phase 2.3: System & Persistence
   [ ] History Persistence (SQLite/PostgreSQL) - เก็บข้อมูลลง DB ถาวร
-  [ ] PDF/Report Export - ระบบออกใบพยากรณ์สวยงาม
+  [ ] Export System (Current Focus)
+    - [ ] PDF Report Export - ระบบออกใบพยากรณ์สวยงาม
+    - [ ] JSON Data Export - สำหรับนำข้อมูลไปประมวลผลต่อ

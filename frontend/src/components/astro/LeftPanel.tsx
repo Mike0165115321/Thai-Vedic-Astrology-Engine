@@ -132,17 +132,22 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                                     <Clock className="h-3 w-3" />
                                     ดึงจากคลัง
                                 </button>
-                                <div className="absolute right-0 top-full mt-1.5 w-48 max-h-56 overflow-y-auto bg-card/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl z-50 hidden group-hover:block animate-in fade-in slide-in-from-top-1 duration-200">
-                                    <div className="p-2 text-[9px] bg-muted/50 text-muted-foreground border-b border-border font-medium">เลือกรายชื่อจากคลัง</div>
-                                    {history.map(item => (
-                                        <button 
-                                            key={item.id}
-                                            onClick={() => setFormData(item.formData)}
-                                            className="w-full text-left px-3 py-2 text-[11px] hover:bg-blue-500/20 hover:text-blue-200 transition-colors border-b border-white/5 last:border-0 truncate"
-                                        >
-                                            {item.name}
-                                        </button>
-                                    ))}
+                                <div className="absolute right-0 top-full pt-1.5 w-48 z-50 hidden group-hover:block animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <div className="bg-card/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl overflow-hidden max-h-56 overflow-y-auto">
+                                        <div className="p-2 text-[9px] bg-muted/50 text-muted-foreground border-b border-border font-medium">เลือกรายชื่อจากคลัง</div>
+                                        {history.map(item => (
+                                            <button 
+                                                key={item.id}
+                                                onClick={() => {
+                                                    setFormData(item.formData);
+                                                    onSelectHistory(item);
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-[11px] hover:bg-blue-500/20 hover:text-blue-200 transition-colors border-b border-white/5 last:border-0 truncate"
+                                            >
+                                                {item.name}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -156,17 +161,22 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                                     <Clock className="h-3 w-3" />
                                     ดึงจากคลัง
                                 </button>
-                                <div className="absolute right-0 top-full mt-1.5 w-48 max-h-56 overflow-y-auto bg-card/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl z-50 hidden group-hover:block animate-in fade-in slide-in-from-top-1 duration-200">
-                                    <div className="p-2 text-[9px] bg-muted/50 text-muted-foreground border-b border-border text-center">คลังข้อมูลดวง</div>
-                                    {history.map(item => (
-                                        <button 
-                                            key={item.id}
-                                            onClick={() => setFormData(item.formData)}
-                                            className="w-full text-left px-3 py-2 text-[11px] hover:bg-primary/20 hover:text-primary transition-colors border-b border-white/5 last:border-0 truncate"
-                                        >
-                                            {item.name}
-                                        </button>
-                                    ))}
+                                <div className="absolute right-0 top-full pt-1.5 w-48 z-50 hidden group-hover:block animate-in fade-in slide-in-from-top-1 duration-200">
+                                    <div className="bg-card/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl overflow-hidden max-h-56 overflow-y-auto">
+                                        <div className="p-2 text-[9px] bg-muted/50 text-muted-foreground border-b border-border text-center font-medium">คลังข้อมูลดวง</div>
+                                        {history.map(item => (
+                                            <button 
+                                                key={item.id}
+                                                onClick={() => {
+                                                    setFormData(item.formData);
+                                                    onSelectHistory(item);
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-[11px] hover:bg-primary/20 hover:text-primary transition-colors border-b border-white/5 last:border-0 truncate"
+                                            >
+                                                {item.name}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -228,17 +238,22 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                                 ดึงจากคลัง
                             </button>
                             
-                            <div className="absolute right-0 top-full mt-1.5 w-48 max-h-56 overflow-y-auto bg-card/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl z-50 hidden group-hover:block animate-in fade-in slide-in-from-top-1 duration-200">
-                                <div className="p-2 text-[9px] bg-muted/50 text-muted-foreground border-b border-border font-medium">เลือกรายชื่อจากคลัง</div>
-                                {history.map(item => (
-                                    <button 
-                                        key={item.id}
-                                        onClick={() => setFormDataB(item.formData)}
-                                        className="w-full text-left px-3 py-2 text-[11px] hover:bg-pink-500/20 hover:text-pink-200 transition-colors border-b border-white/5 last:border-0 truncate"
-                                    >
-                                        {item.name}
-                                    </button>
-                                ))}
+                            <div className="absolute right-0 top-full pt-1.5 w-48 z-50 hidden group-hover:block animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="bg-card/95 backdrop-blur-xl border border-border rounded-lg shadow-2xl overflow-hidden max-h-56 overflow-y-auto">
+                                    <div className="p-2 text-[9px] bg-muted/50 text-muted-foreground border-b border-border font-medium">เลือกรายชื่อจากคลัง</div>
+                                    {history.map(item => (
+                                        <button 
+                                            key={item.id}
+                                            onClick={() => {
+                                                setFormDataB(item.formData);
+                                                onSelectHistory(item);
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-[11px] hover:bg-pink-500/20 hover:text-pink-200 transition-colors border-b border-white/5 last:border-0 truncate"
+                                        >
+                                            {item.name}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                       )}
