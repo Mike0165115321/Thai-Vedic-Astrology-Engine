@@ -209,7 +209,17 @@ def get_dignity(planet_id, longitude):
         if abs(degree_in_sign - target_deg) <= 1.0:
             status_list.append("มหาอุจจ์")
 
-    # 2. มาตรฐานอื่นๆ
+    # 2. มูลตรีโกณ (Moolatrikona)
+    mool = rules.get('มูลตรีโกณ')
+    if mool:
+        if isinstance(mool, list):
+            if sign_index in mool:
+                status_list.append("มูลตรีโกณ")
+        elif isinstance(mool, dict):
+            if sign_index == mool['sign'] and mool['start'] <= degree_in_sign <= mool['end']:
+                status_list.append("มูลตรีโกณ")
+
+    # 3. มาตรฐานอื่นๆ
     if sign_index in rules.get('อุจจ์', []) and "มหาอุจจ์" not in status_list: 
         status_list.append("อุจจ์")
         
@@ -221,11 +231,9 @@ def get_dignity(planet_id, longitude):
     if sign_index in rules.get('ราชาโชค', []): status_list.append("ราชาโชค")
     if sign_index in rules.get('เทวีโชค', []): status_list.append("เทวีโชค")
 
-    # 3. เกษตรจากเจ้าเรือน (SIGN_LORDS fallback) - ตรวจเสมอ ไม่ใช่แค่ตอน status ว่าง
+    # 4. เกษตรจากเจ้าเรือน (SIGN_LORDS fallback)
     SIGN_LORDS = [2, 5, 3, 1, 0, 3, 5, 2, 4, 6, 6, 4]
     lord_id = SIGN_LORDS[sign_index]
-    
-    # เพิ่ม เกษตร เฉพาะถ้ายังไม่มีใน list (เช่น บางตำราระบุชัดใน rules['เกษตร'] แล้ว)
     if planet_id == lord_id and "เกษตร" not in status_list:
         status_list.append("เกษตร")
 

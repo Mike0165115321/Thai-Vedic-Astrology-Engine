@@ -31,23 +31,24 @@ def scan_transits_endpoint(data: TransitScanRequest):
                 for field in blacklist:
                     chart["planets"][name].pop(field, None)
             
-            # Clean divisional charts if present
-            for div in ["d3", "d9"]:
-                if div in chart:
-                    for name in chart[div]:
-                        for field in blacklist:
-                            chart[div][name].pop(field, None)
+            # Keep only selected divisional charts
+            selected_divs = [d.lower() for d in data.divisional_charts]
+            all_divs = ["d3", "d9"]
+            for div in all_divs:
+                if div not in selected_divs:
+                    chart.pop(div, None) # Remove if not selected
+                    chart.pop(f"{div}_lagna", None) # Remove lagna too
+                else:
+                    # Clean the selected divisional chart
+                    if div in chart:
+                        for name in chart[div]:
+                            for field in blacklist:
+                                chart[div][name].pop(field, None)
             
             # Clean lagna
             if "lagna" in chart:
                 for field in blacklist:
                     chart["lagna"].pop(field, None)
-            if "d3_lagna" in chart:
-                for field in blacklist:
-                    chart["d3_lagna"].pop(field, None)
-            if "d9_lagna" in chart:
-                for field in blacklist:
-                    chart["d9_lagna"].pop(field, None)
                     
             return chart
 

@@ -22,6 +22,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
   const [selectedPlanets, setSelectedPlanets] = useState<string[]>([
     "Jupiter", "Saturn", "Rahu", "Uranus"
   ]);
+  const [selectedDivisions, setSelectedDivisions] = useState<string[]>(["D1"]);
 
   const months = [
     "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
@@ -44,6 +45,12 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
   const handleTogglePlanet = (id: string) => {
     setSelectedPlanets(prev => 
       prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
+  };
+
+  const handleToggleDivision = (id: string) => {
+    setSelectedDivisions(prev => 
+      prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
     );
   };
 
@@ -73,7 +80,8 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
       end_year: endYear - 543,
       end_month: endMonth,
       end_day: 28,
-      planets: selectedPlanets
+      planets: selectedPlanets,
+      divisional_charts: selectedDivisions
     });
     
     setLoading(false);
@@ -215,6 +223,37 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
                   <span className="text-xs font-bold">{planet.name.split(" ")[1]}</span>
                   <span className="text-[9px] uppercase tracking-tighter opacity-70">{planet.id}</span>
                   {selectedPlanets.includes(planet.id) && (
+                    <div className="absolute top-1 right-1">
+                      <Check className="h-2 w-2" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Step 4: Divisional Charts */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-foreground flex items-center justify-between">
+              <span>ข้อมูลจักรอะไรบ้าง</span>
+              <span className="text-[10px] text-muted-foreground">{selectedDivisions.length} จักรที่เลือก</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {["D1", "D3", "D9"].map(div => (
+                <button
+                  key={div}
+                  onClick={() => handleToggleDivision(div)}
+                  className={`relative flex flex-col items-center justify-center rounded-xl border p-2 text-center transition-all ${
+                    selectedDivisions.includes(div) 
+                      ? "border-primary/50 bg-primary/10 text-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.1)]" 
+                      : "border-border bg-muted/20 text-muted-foreground hover:border-border-hover hover:bg-muted/40"
+                  }`}
+                >
+                  <span className="text-xs font-bold">{div}</span>
+                  <span className="text-[9px] uppercase tracking-tighter opacity-70">
+                    {div === "D1" ? "ราศีจักร" : div === "D3" ? "ตรียางศ์" : "นวางศ์"}
+                  </span>
+                  {selectedDivisions.includes(div) && (
                     <div className="absolute top-1 right-1">
                       <Check className="h-2 w-2" />
                     </div>

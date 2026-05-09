@@ -65,8 +65,28 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
     const setter = isB ? setFormDataB : setFormData;
     
     if (numericFields.includes(key)) {
-        const numVal = val === "" ? 0 : parseFloat(val);
-        setter((prev) => ({ ...prev, [key]: numVal }));
+        let numVal = val === "" ? 0 : parseFloat(val);
+        
+        // Immediate validation for bounds
+        if (key === "month") numVal = Math.max(0, Math.min(12, numVal));
+        if (key === "hour") numVal = Math.max(0, Math.min(23, numVal));
+        if (key === "minute") numVal = Math.max(0, Math.min(59, numVal));
+        if (key === "day") numVal = Math.max(0, Math.min(31, numVal));
+
+        setter((prev) => {
+            const newState = { ...prev, [key]: numVal };
+            
+            // Contextual validation: Day must not exceed max days in month
+            if (key === "day" || key === "month" || key === "year") {
+                const year = (key === "year" ? numVal : newState.year);
+                const month = (key === "month" ? numVal : newState.month);
+                if (month > 0) {
+                    const maxDays = new Date(year, month, 0).getDate();
+                    if (newState.day > maxDays) newState.day = maxDays;
+                }
+            }
+            return newState;
+        });
     } else {
         setter((prev) => ({ ...prev, [key]: val }));
     }
@@ -193,18 +213,18 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                   />
                 </div>
                 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="mb-1 block text-[10px] font-bold text-primary/60">วัน</label>
-                    <input type="number" value={formData.day} onChange={(e) => handleInputChange("day", e.target.value)} className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] outline-none focus:border-primary/40 font-medium" />
+                    <input type="number" min="1" max="31" value={formData.day || ""} onChange={(e) => handleInputChange("day", e.target.value)} className="w-full rounded-lg border border-border bg-muted/20 px-2 py-2 text-[13px] outline-none focus:border-primary/40 font-medium" />
                   </div>
                   <div>
                     <label className="mb-1 block text-[10px] font-bold text-primary/60">เดือน</label>
-                    <input type="number" value={formData.month} onChange={(e) => handleInputChange("month", e.target.value)} className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] outline-none focus:border-primary/40 font-medium" />
+                    <input type="number" min="1" max="12" value={formData.month || ""} onChange={(e) => handleInputChange("month", e.target.value)} className="w-full rounded-lg border border-border bg-muted/20 px-2 py-2 text-[13px] outline-none focus:border-primary/40 font-medium" />
                   </div>
                   <div>
                     <label className="mb-1 block text-[10px] font-bold text-primary/60">ปี (พ.ศ.)</label>
-                    <input type="number" value={formData.year + 543} onChange={(e) => handleInputChange("year", (parseInt(e.target.value) - 543).toString())} className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] outline-none focus:border-primary/40 font-medium" />
+                    <input type="number" value={formData.year + 543 || ""} onChange={(e) => handleInputChange("year", (parseInt(e.target.value) - 543).toString())} className="w-full rounded-lg border border-border bg-muted/20 px-2 py-2 text-[13px] outline-none focus:border-primary/40 font-medium" />
                   </div>
                 </div>
 
@@ -262,18 +282,18 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                     <label className="mb-1.5 block text-[10px] font-bold text-primary/70 uppercase">ชื่อ-นามสกุล</label>
                     <input type="text" value={formDataB.name} onChange={(e) => handleInputChange("name", e.target.value, true)} placeholder="ระบุชื่อคนที่สอง..." className="w-full rounded-lg border border-border bg-muted/20 px-3 py-2 text-[13px] outline-none focus:border-primary/50 transition-all font-medium" />
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <div>
                         <label className="mb-1 block text-[10px] font-bold text-primary/60">วัน</label>
-                        <input type="number" value={formDataB.day} onChange={(e) => handleInputChange("day", e.target.value, true)} className="w-full rounded-lg border border-border bg-muted/10 px-3 py-2 text-[13px] outline-none font-medium" />
+                        <input type="number" min="1" max="31" value={formDataB.day || ""} onChange={(e) => handleInputChange("day", e.target.value, true)} className="w-full rounded-lg border border-border bg-muted/10 px-2 py-2 text-[13px] outline-none font-medium" />
                     </div>
                     <div>
                         <label className="mb-1 block text-[10px] font-bold text-primary/60">เดือน</label>
-                        <input type="number" value={formDataB.month} onChange={(e) => handleInputChange("month", e.target.value, true)} className="w-full rounded-lg border border-border bg-muted/10 px-3 py-2 text-[13px] outline-none font-medium" />
+                        <input type="number" min="1" max="12" value={formDataB.month || ""} onChange={(e) => handleInputChange("month", e.target.value, true)} className="w-full rounded-lg border border-border bg-muted/10 px-2 py-2 text-[13px] outline-none font-medium" />
                     </div>
                     <div>
                         <label className="mb-1 block text-[10px] font-bold text-primary/60">ปี (พ.ศ.)</label>
-                        <input type="number" value={formDataB.year + 543} onChange={(e) => handleInputChange("year", (parseInt(e.target.value) - 543).toString(), true)} className="w-full rounded-lg border border-border bg-muted/10 px-3 py-2 text-[13px] outline-none font-medium" />
+                        <input type="number" value={formDataB.year + 543 || ""} onChange={(e) => handleInputChange("year", (parseInt(e.target.value) - 543).toString(), true)} className="w-full rounded-lg border border-border bg-muted/10 px-2 py-2 text-[13px] outline-none font-medium" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">

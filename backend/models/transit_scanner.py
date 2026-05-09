@@ -14,6 +14,7 @@ class TransitScanRequest(BaseModel):
     planets: List[str] = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Uranus"]
     step_days: float = 1.0
     ayanamsa_mode: str = "LAHIRI"
+    divisional_charts: List[str] = ["D1", "D3", "D9"]
     # Optional natal data to calculate houses and natal aspects
     natal_data: Optional[BirthData] = None
 
