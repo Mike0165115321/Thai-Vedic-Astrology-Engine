@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, Calendar, User, Download, Info, Check } from "lucide-react";
+import { X, Calendar, User, Download, Info, Check, FileJson, FileText } from "lucide-react";
 import { BirthFormData, ChartData } from "@/types/chart";
 import { HistoryItem } from "./LeftPanel";
 
@@ -19,6 +19,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
   const [endMonth, setEndMonth] = useState(12);
   const [endYear, setEndYear] = useState(currentYearBE + 10);
   const [loading, setLoading] = useState(false);
+  const [exportType, setExportType] = useState<"timeline" | "json">("timeline");
   const [selectedPlanets, setSelectedPlanets] = useState<string[]>([
     "Jupiter", "Saturn", "Rahu", "Uranus"
   ]);
@@ -57,7 +58,6 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
   const handleRun = async () => {
     setLoading(true);
     
-    // Find the actual birth data
     let birthData: BirthFormData | null = null;
     if (selectedPersonId === "current") {
       birthData = currentNatalData;
@@ -81,7 +81,8 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
       end_month: endMonth,
       end_day: 28,
       planets: selectedPlanets,
-      divisional_charts: selectedDivisions
+      divisional_charts: selectedDivisions,
+      export_type: exportType
     });
     
     setLoading(false);
@@ -89,7 +90,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
 
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl">
+      <div className="relative w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-6 py-4">
           <div className="flex items-center gap-3">
@@ -106,7 +107,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-primary/20">
           {/* Step 1: Select Person */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -124,7 +125,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
             </select>
           </div>
 
-          {/* Step 2: Time Range (Month/Year for both) */}
+          {/* Step 2: Time Range */}
           <div className="space-y-4">
             <div className="bg-muted/20 p-4 rounded-2xl border border-border/50 space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -149,12 +150,6 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
                     className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:border-primary focus:outline-none transition-all"
                   />
                 </div>
-              </div>
-
-              <div className="flex items-center justify-center py-1">
-                <div className="h-px bg-border flex-1"></div>
-                <span className="px-3 text-[10px] font-black text-muted-foreground uppercase tracking-tighter">ถึง</span>
-                <div className="h-px bg-border flex-1"></div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -183,26 +178,6 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
             </div>
           </div>
 
-          {(() => {
-            const getBirthYear = () => {
-              if (selectedPersonId === "current") return currentNatalData?.year || new Date().getFullYear();
-              return history.find(p => p.id === selectedPersonId)?.formData.year || new Date().getFullYear();
-            };
-            const bYear = getBirthYear() + 543;
-            const sAge = startYear - bYear;
-            const eAge = endYear - bYear;
-            return (
-              <div className="mt-[-12px] px-2">
-                <p className="text-xs font-bold text-primary">
-                  ✨ วิเคราะห์ช่วงอายุประมาณ {sAge} - {eAge} ปี
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  * ข้อมูลจะถูกสแกนตั้งแต่เดือนเริ่มต้นที่เลือก ไปจนถึงสิ้นเดือนของปีและเดือนที่สิ้นสุด
-                </p>
-              </div>
-            );
-          })()}
-
           {/* Step 3: Planets */}
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground flex items-center justify-between">
@@ -220,13 +195,8 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
                       : "border-border bg-muted/20 text-muted-foreground hover:border-border-hover hover:bg-muted/40"
                   }`}
                 >
-                  <span className="text-xs font-bold">{planet.name.split(" ")[1]}</span>
+                  <span className="text-xs font-bold">{planet.name.split(" ")[1] || planet.name}</span>
                   <span className="text-[9px] uppercase tracking-tighter opacity-70">{planet.id}</span>
-                  {selectedPlanets.includes(planet.id) && (
-                    <div className="absolute top-1 right-1">
-                      <Check className="h-2 w-2" />
-                    </div>
-                  )}
                 </button>
               ))}
             </div>
@@ -251,15 +221,41 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
                 >
                   <span className="text-xs font-bold">{div}</span>
                   <span className="text-[9px] uppercase tracking-tighter opacity-70">
-                    {div === "D1" ? "ราศีจักร" : div === "D3" ? "ตรียางศ์" : "นวางศ์"}
+                    {div === "D1" ? "ราศีจักร" : div === "D3" ? "ตรียางค์" : "นวางศ์"}
                   </span>
-                  {selectedDivisions.includes(div) && (
-                    <div className="absolute top-1 right-1">
-                      <Check className="h-2 w-2" />
-                    </div>
-                  )}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Step 5: Export Mode */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-foreground">เลือกรูปแบบที่ต้องการ</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => setExportType("timeline")}
+                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                  exportType === "timeline" ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20" : "border-border bg-muted/20 text-muted-foreground"
+                }`}
+              >
+                <FileText className="h-6 w-6" />
+                <div className="text-center">
+                  <p className="text-xs font-bold">Timeline (PDF)</p>
+                  <p className="text-[9px] opacity-60">สำหรับพิมพ์รายงาน</p>
+                </div>
+              </button>
+              <button 
+                onClick={() => setExportType("json")}
+                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                  exportType === "json" ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20" : "border-border bg-muted/20 text-muted-foreground"
+                }`}
+              >
+                <FileJson className="h-6 w-6" />
+                <div className="text-center">
+                  <p className="text-xs font-bold">Raw JSON</p>
+                  <p className="text-[9px] opacity-60">สำหรับเก็บข้อมูลดิบ</p>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -281,9 +277,9 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
           <button 
             onClick={handleRun}
             disabled={loading}
-            className="flex-2 rounded-xl bg-(image:--gradient-gold) px-4 py-3 text-sm font-bold text-primary-foreground shadow-(--shadow-glow) hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-wait"
+            className="flex-2 rounded-xl bg-(image:--gradient-gold) px-4 py-3 text-sm font-bold text-primary-foreground shadow-(--shadow-glow) hover:opacity-90 transition-all disabled:opacity-50"
           >
-            {loading ? "กำลังวิเคราะห์จักรวาล..." : "เริ่มการวิเคราะห์และดาวน์โหลด JSON"}
+            {loading ? "กำลังวิเคราะห์..." : "เริ่มวิเคราะห์และส่งออก"}
           </button>
         </div>
       </div>

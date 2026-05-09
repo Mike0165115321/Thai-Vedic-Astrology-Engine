@@ -2,14 +2,14 @@ import { Download, Settings, FileJson } from "lucide-react";
 
 export function TopBar({ 
   onSettings, 
-  onExportPDF,
-  onExportJSON,
+  onExportNatalJSON,
+  onTransitScan,
   currentChartType, 
   onChartTypeChange 
 }: { 
   onSettings: () => void,
-  onExportPDF?: () => void,
-  onExportJSON?: () => void,
+  onExportNatalJSON?: () => void,
+  onTransitScan?: () => void,
   currentChartType: string,
   onChartTypeChange: (type: 'D1' | 'D3' | 'D9' | 'CAL') => void
 }) {
@@ -48,16 +48,16 @@ export function TopBar({
 
       <div className="flex items-center gap-1.5">
         <button 
-          onClick={onExportPDF}
-          className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted"
+          onClick={onExportNatalJSON}
+          className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted text-primary font-bold"
         >
-          <Download className="h-3.5 w-3.5" /> PDF
+          <FileJson className="h-3.5 w-3.5" /> JSON กำเนิด
         </button>
         <button 
-          onClick={onExportJSON}
+          onClick={onTransitScan}
           className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted"
         >
-          <FileJson className="h-3.5 w-3.5" /> JSON
+          <Download className="h-3.5 w-3.5" /> สแกนดาวจร (Timeline)
         </button>
         <button onClick={onSettings} className="rounded border border-border bg-muted/40 p-1.5 hover:bg-muted">
           <Settings className="h-4 w-4" />

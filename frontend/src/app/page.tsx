@@ -11,6 +11,7 @@ import { SettingsModal } from "@/components/astro/SettingsModal";
 import { TransitScannerModal } from "@/components/astro/TransitScannerModal";
 import TransitReport from "@/components/astro/TransitReport";
 import { ChartData, BirthFormData, CompareResponse } from "@/types/chart";
+import { TransitTimelineReport } from "@/components/astro/TransitTimelineReport";
 import { API_ENDPOINTS } from "@/config/api";
 
 
@@ -28,6 +29,7 @@ export default function Home() {
   const [hasMounted, setHasMounted] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
   const [showReport, setShowReport] = useState(false);
+  const [timelineData, setTimelineData] = useState<any>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [globalSettings, setGlobalSettings] = useState<Partial<BirthFormData>>({
     ayanamsa_mode: "LAHIRI",
@@ -296,18 +298,26 @@ export default function Home() {
 
       if (response.ok) {
         const data = await response.json();
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-        const birthData = config.natal_data;
-        const firstName = birthData.name.split(" ")[0];
-        const fileName = `Scan_${firstName}_${config.start_year + 543}-${config.end_year + 543}.json`;
         
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        if (config.export_type === "json") {
+          // Download JSON only
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+          const birthData = config.natal_data;
+          const firstName = birthData.name.split(" ")[0];
+          const fileName = `Scan_${firstName}_${config.start_year + 543}-${config.end_year + 543}.json`;
+          
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        } else {
+          // Show Timeline Report (which also has a download button if needed)
+          setTimelineData(data);
+        }
+        
         setExportModal(false);
       } else {
         alert("Failed to generate scan report");
@@ -317,20 +327,32 @@ export default function Home() {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportNatalJSON = () => {
     if (!chartData) {
         alert("กรุณาเลือกหรือคำนวณดวงชะตาก่อน");
         return;
     }
-    setReportData({
-        natal_chart: {
-            ...chartData,
-            name: currentBirthData.current?.name || "ไม่ระบุชื่อ",
-            birth_date: `${currentBirthData.current?.day || '-'}/${currentBirthData.current?.month || '-'}/${(currentBirthData.current?.year || 0) + 543}`,
-            location: `พิกัด: ${currentBirthData.current?.lat || '-'}, ${currentBirthData.current?.lon || '-'}`
-        }
-    });
-    setShowReport(true);
+    
+    // Pure Natal Data Export (No Transits)
+    const exportData = {
+        type: "NATAL_REPORT",
+        name: currentBirthData.current?.name || "ไม่ระบุชื่อ",
+        birth_data: currentBirthData.current,
+        chart_data: chartData,
+        exported_at: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const firstName = exportData.name.split(" ")[0];
+    const fileName = `Natal_${firstName}_${new Date().getTime()}.json`;
+    
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   if (!hasMounted) return null;
@@ -339,8 +361,8 @@ export default function Home() {
     <div className="dark flex h-screen flex-col overflow-hidden bg-background text-foreground font-sans">
       <TopBar 
         onSettings={() => setSettings(true)} 
-        onExportJSON={() => setExportModal(true)}
-        onExportPDF={handleExportPDF}
+        onTransitScan={() => setExportModal(true)}
+        onExportNatalJSON={handleExportNatalJSON}
         currentChartType={chartType}
         onChartTypeChange={setChartType}
       />
@@ -465,6 +487,13 @@ export default function Home() {
         <TransitReport 
           data={reportData} 
           onClose={() => setShowReport(false)} 
+        />
+      )}
+
+      {timelineData && (
+        <TransitTimelineReport 
+          data={timelineData} 
+          onClose={() => setTimelineData(null)} 
         />
       )}
       

@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Thai } from "next/font/google";
+import { IBM_Plex_Sans_Thai, Sarabun } from "next/font/google";
 import "./globals.css";
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
   weight: ["100", "200", "300", "400", "500", "600", "700"],
   subsets: ["thai", "latin"],
   variable: "--font-ibm-plex-sans-thai",
+});
+
+const sarabun = Sarabun({
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
+  subsets: ["thai", "latin"],
+  variable: "--font-sarabun",
 });
 
 export const metadata: Metadata = {
@@ -21,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${ibmPlexSansThai.variable} h-full antialiased`}
+      className={`${ibmPlexSansThai.variable} ${sarabun.variable} h-full antialiased`}
     >
       <body className={`${ibmPlexSansThai.className} min-h-full flex flex-col`}>
         {children}
