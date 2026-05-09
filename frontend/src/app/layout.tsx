@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="th"
       className={`${ibmPlexSansThai.variable} ${sarabun.variable} h-full antialiased`}
     >
-      <body className={`${ibmPlexSansThai.className} min-h-full flex flex-col`}>
+      <body className={`${sarabun.className} min-h-full flex flex-col`}>
         {children}
       </body>
     </html>

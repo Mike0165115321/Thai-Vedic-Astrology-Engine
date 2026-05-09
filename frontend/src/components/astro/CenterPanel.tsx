@@ -176,7 +176,7 @@ export function CenterPanel({
                  <div className="flex flex-col items-center">
                     <div className="mb-4 flex items-center gap-3 rounded-full border border-primary/40 bg-primary/10 px-5 py-1.5 backdrop-blur-md shadow-lg shadow-primary/10">
                        <span className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-glow" />
-                       <span className="text-[12px] font-black uppercase tracking-[0.2em] text-primary">ราศีจักร (พื้นดวงหลัก)</span>
+                       <span className="text-[12px] font-extrabold uppercase tracking-[0.2em] text-primary">ราศีจักร (พื้นดวงหลัก)</span>
                     </div>
                     <div className="aspect-square h-[450px] w-[450px]">
                       <ZodiacWheel 
@@ -309,7 +309,7 @@ export function CenterPanel({
            <button
               onClick={() => setShowTransit(!showTransit)}
               className={`flex h-10 items-center gap-3 rounded-full border px-5 transition-all shadow-2xl backdrop-blur-xl ${
-                showTransit ? "border-primary bg-primary text-black font-black" : "border-border bg-black/60 text-white hover:bg-black/80"
+                showTransit ? "border-primary bg-primary text-black font-extrabold" : "border-border bg-black/60 text-white hover:bg-black/80"
               }`}
               style={{ fontFamily: 'var(--font-sarabun), sans-serif' }}
            >
@@ -331,7 +331,7 @@ export function CenterPanel({
                 className="flex h-10 items-center gap-2.5 rounded-full border border-primary/40 bg-black/80 px-5 text-primary hover:bg-primary hover:text-black transition-all shadow-2xl backdrop-blur-xl group"
              >
                 <Clock className="h-4.5 w-4.5 transition-transform group-hover:rotate-12" />
-                <span className="text-[12px] font-black uppercase tracking-widest">ดาวจรปัจจุบัน</span>
+                <span className="text-[12px] font-extrabold uppercase tracking-widest">ดาวจรปัจจุบัน</span>
              </button>
            )}
       </div>
@@ -355,54 +355,60 @@ export function CenterPanel({
         <div className="overflow-hidden px-6 py-4">
         <div className="mb-3 flex items-center justify-between">
           <div className="text-xs text-foreground flex items-center gap-3">
-            <span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[10px]">อายุชะตา:</span>
-            <div className="flex items-center gap-2">
-                <input 
-                    type="number" 
-                    value={Math.floor(age)} 
-                    onChange={(e) => {
-                        const v = Math.max(0, Math.min(120, parseFloat(e.target.value) || 0));
-                        setAge(v + (age % 1));
-                        onAgeChange(v + (age % 1));
-                    }}
-                    className="w-12 bg-primary/10 border border-primary/30 rounded-lg px-2 py-1 text-center text-primary font-black shadow-inner"
-                />
-                <span className="text-muted-foreground font-bold">ปี</span>
-                <span className="text-primary font-black ml-1.5 text-lg">{Math.floor((age % 1) * 12)}</span>
-                <span className="text-muted-foreground font-bold">เดือน</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[9px]">อายุชะตา:</span>
+              <div className="flex items-center gap-2">
+                  <input 
+                      type="number" 
+                      value={Math.floor(age)} 
+                      onChange={(e) => {
+                          const v = Math.max(0, Math.min(120, parseFloat(e.target.value) || 0));
+                          setAge(v + (age % 1));
+                          onAgeChange(v + (age % 1));
+                      }}
+                      className="w-12 bg-primary/10 border border-primary/30 rounded-lg px-2 py-1 text-center text-primary font-extrabold shadow-inner"
+                  />
+                  <span className="text-muted-foreground font-bold text-[11px]">ปี</span>
+                  <span className="text-primary font-extrabold ml-1.5 text-lg">{Math.floor((age % 1) * 12)}</span>
+                  <span className="text-muted-foreground font-bold text-[11px]">เดือน</span>
+              </div>
             </div>
-            <span className="mx-3 text-border/30">|</span>
-            <span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[10px]">วันที่ดาวจร:</span>
-            <div className="flex gap-1.5 items-center bg-primary/5 border border-primary/20 rounded-lg px-3 py-1 shadow-inner">
-              <input 
-                type="text" 
-                value={tDay}
-                onFocus={() => setIsEditingDate(true)}
-                onChange={(e) => setTDay(e.target.value)}
-                onBlur={handleDateSubmit}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
-                className="bg-transparent text-primary font-black text-center w-7 outline-none"
-              />
-              <span className="text-primary/30">/</span>
-              <input 
-                type="text" 
-                value={tMonth}
-                onFocus={() => setIsEditingDate(true)}
-                onChange={(e) => setTMonth(e.target.value)}
-                onBlur={handleDateSubmit}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
-                className="bg-transparent text-primary font-black text-center w-7 outline-none"
-              />
-              <span className="text-primary/30">/</span>
-              <input 
-                type="text" 
-                value={tYear}
-                onFocus={() => setIsEditingDate(true)}
-                onChange={(e) => setTYear(e.target.value)}
-                onBlur={handleDateSubmit}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
-                className="bg-transparent text-primary font-black text-center w-12 outline-none"
-              />
+
+            <span className="mx-3 h-8 w-px bg-border/30 self-end mb-1"></span>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[9px]">วันที่ดาวจร:</span>
+              <div className="flex gap-1.5 items-center bg-primary/5 border border-primary/20 rounded-lg px-3 py-1 shadow-inner">
+                <input 
+                  type="text" 
+                  value={tDay}
+                  onFocus={() => setIsEditingDate(true)}
+                  onChange={(e) => setTDay(e.target.value)}
+                  onBlur={handleDateSubmit}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
+                  className="bg-transparent text-primary font-extrabold text-center w-7 outline-none"
+                />
+                <span className="text-primary/30">/</span>
+                <input 
+                  type="text" 
+                  value={tMonth}
+                  onFocus={() => setIsEditingDate(true)}
+                  onChange={(e) => setTMonth(e.target.value)}
+                  onBlur={handleDateSubmit}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
+                  className="bg-transparent text-primary font-extrabold text-center w-7 outline-none"
+                />
+                <span className="text-primary/30">/</span>
+                <input 
+                  type="text" 
+                  value={tYear}
+                  onFocus={() => setIsEditingDate(true)}
+                  onChange={(e) => setTYear(e.target.value)}
+                  onBlur={handleDateSubmit}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleDateSubmit(); }}
+                  className="bg-transparent text-primary font-extrabold text-center w-12 outline-none"
+                />
+              </div>
             </div>
             
             <button 
@@ -415,7 +421,7 @@ export function CenterPanel({
                 setAge(currentAge);
                 onAgeChange(currentAge);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-black font-black hover:brightness-110 transition-all text-[11px] shadow-lg shadow-primary/20 ml-2"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-black font-extrabold hover:brightness-110 transition-all text-[11px] shadow-lg shadow-primary/20 ml-2"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               ปัจจุบัน
@@ -442,7 +448,7 @@ export function CenterPanel({
                           setTimelineScale(s as any);
                           setTimelineOffset(Math.floor(age / s) * s);
                         }}
-                        className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all duration-300 ${
+                        className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition-all duration-300 ${
                         timelineScale === s 
                         ? "bg-white/10 text-primary shadow-glow border border-primary/30" 
                         : "text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -504,13 +510,13 @@ export function CenterPanel({
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-glow" />
-                                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-tighter">คนที่ 1:</span>
+                                        <span className="text-[10px] font-extrabold text-blue-400 uppercase tracking-tighter">คนที่ 1:</span>
                                         <span className="text-[11px] font-bold text-white/80">
                                             {infoA.currentM ? planetThaiNames[infoA.currentM.planet] : "—"} / {infoA.currentA ? planetThaiNames[infoA.currentA.planet] : "—"}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-black text-pink-400 uppercase tracking-tighter">คนที่ 2:</span>
+                                        <span className="text-[10px] font-extrabold text-pink-400 uppercase tracking-tighter">คนที่ 2:</span>
                                         <span className="text-[11px] font-bold text-white/80">
                                             {infoB.currentM ? planetThaiNames[infoB.currentM.planet] : "—"} / {infoB.currentA ? planetThaiNames[infoB.currentA.planet] : "—"}
                                         </span>
@@ -524,7 +530,7 @@ export function CenterPanel({
                     const { currentM, currentA } = getDashaInfo(chartData.dasha_timeline);
                     return (
                         <div className="flex items-center gap-2.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30">
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">
+                            <span className="text-[10px] font-extrabold text-primary uppercase tracking-[0.2em]">
                                 มหาทศา: {currentM ? planetThaiNames[currentM.planet] : "—"} / อนุทศา: {currentA ? planetThaiNames[currentA.planet] : "—"}
                             </span>
                         </div>
@@ -565,7 +571,7 @@ export function CenterPanel({
 
                                     return (
                                         <div key={d.planet + d.start}
-                                            className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[11px] font-black text-white transition-all duration-500 ${isActive ? "opacity-100 ring-2 ring-white/80 z-10 scale-y-125 shadow-glow" : "opacity-30"}`}
+                                            className={`absolute top-0 h-full flex items-center justify-center border-r border-black/20 text-[11px] font-extrabold text-white transition-all duration-500 ${isActive ? "opacity-100 ring-2 ring-white/80 z-10 scale-y-125 shadow-glow" : "opacity-30"}`}
                                             style={{ left: `${left}%`, width: `${width}%`, background: colors[d.planet] }}
                                         >
                                             <span className="drop-shadow-lg">{nums[d.planet]}</span>

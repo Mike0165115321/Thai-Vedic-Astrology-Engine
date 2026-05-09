@@ -357,27 +357,19 @@ export function ZodiacWheel({
                 e.stopPropagation(); 
                 if (!p.isLagna) onSelectPlanet(p.name); 
              }}>
-              <g style={{ filter: isSelected ? `drop-shadow(0 0 8px ${p.color})` : "none" }}>
-                {/* Background glow */}
-                <circle cx={0} cy={0} r={(p.isTransit && !isSynastry) ? 10 : 14} fill={p.color} opacity={isSelected || p.isLagna ? 0.3 : 0.1} />
+              <g>
+                {/* Subtle background glow for presence */}
+                <circle cx={0} cy={0} r={isSelected ? 16 : 12} fill={p.color} opacity={isSelected ? 0.35 : 0.08} />
                 
-                {/* Icon circle */}
-                <circle 
-                  cx={0} cy={0} r={(p.isTransit && !isSynastry) ? 8 : 12} 
-                  fill="var(--background)" 
-                  stroke={p.color} 
-                  strokeWidth={isSelected || p.isLagna ? 2 : 1}
-                  opacity={(p.isTransit && !isSynastry) ? 0.8 : 1}
-                />
-                
-                {/* Symbol */}
+                {/* Planet Symbol (Thai Character/Number) */}
                 <text
                   textAnchor="middle"
-                  dy={(p.isTransit && !isSynastry) ? "3.5" : "4.5"}
-                  fontSize={(p.isTransit && !isSynastry) ? "10" : "13"}
+                  dy="4.5"
+                  fontSize={isSelected ? "16" : "14"}
                   fill={p.color}
-                  fontWeight={p.isLagna ? 900 : 700}
-                  className="select-none"
+                  fontWeight={isSelected || p.isLagna ? 900 : 700}
+                  className="select-none transition-all duration-300"
+                  style={{ filter: isSelected ? `drop-shadow(0 0 4px ${p.color})` : "drop-shadow(0 0 1px oklch(0 0 0 / 0.5))" }}
                 >
                   {p.symbol}
                 </text>

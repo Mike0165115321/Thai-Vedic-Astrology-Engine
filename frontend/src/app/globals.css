@@ -61,6 +61,7 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
+  --font-sans: var(--font-sarabun);
 }
 
 :root {
@@ -150,15 +151,19 @@
     scrollbar-color: var(--border) transparent;
   }
 
+  input, button, textarea, select {
+    font-family: inherit;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-size: 13px;
-    font-family: var(--font-ibm-plex-sans-thai), sans-serif;
+    font-family: var(--font-sarabun), var(--font-ibm-plex-sans-thai), sans-serif;
   }
 
   svg text {
-    font-family: var(--font-ibm-plex-sans-thai), sans-serif;
+    font-family: var(--font-sarabun), var(--font-ibm-plex-sans-thai), sans-serif;
   }
 
   /* Universal Webkit Scrollbar */

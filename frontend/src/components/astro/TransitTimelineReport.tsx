@@ -204,7 +204,7 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
   };
 
   return (
-    <div className="fixed inset-0 z-100 bg-slate-50 overflow-y-auto print:static print:bg-white text-slate-900" style={{ fontFamily: 'var(--font-sarabun), sans-serif' }}>
+    <div className="fixed inset-0 z-100 bg-slate-50 overflow-y-auto print:static print:bg-white text-slate-900">
       <style>{`
         @media print {
           @page {
