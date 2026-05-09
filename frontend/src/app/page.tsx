@@ -348,7 +348,7 @@ export default function Home() {
       <main className="flex flex-1 overflow-hidden relative">
         {/* Left Panel (Sliding Drawer) */}
         <div 
-          className="h-full flex-shrink-0 border-r border-border/40 bg-background transition-all duration-500 ease-in-out z-20 overflow-hidden"
+          className="h-full shrink-0 border-r border-border/40 bg-background transition-all duration-500 ease-in-out z-20 overflow-hidden"
           style={{ width: showLeftPanel ? "280px" : "0px" }}
         >
           <div 
@@ -419,7 +419,7 @@ export default function Home() {
         
         {/* Right Panel (Sliding Drawer) */}
         <div 
-          className="h-full flex-shrink-0 border-l border-border/40 bg-background transition-all duration-500 ease-in-out z-20 overflow-hidden"
+          className="h-full shrink-0 border-l border-border/40 bg-background transition-all duration-500 ease-in-out z-20 overflow-hidden"
           style={{ width: showRightPanel ? "340px" : "0px" }}
         >
           <div 

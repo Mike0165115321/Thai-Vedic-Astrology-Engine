@@ -16,7 +16,7 @@ export function TopBar({
   return (
     <header className="flex items-center justify-between gap-4 border-b border-border bg-card/70 px-4 py-2 backdrop-blur">
       <div className="flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded bg-(image:--gradient-gold) font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
+        <div className="flex h-7 w-7 items-center justify-center rounded bg-(image:--gradient-gold) font-bold text-primary-foreground shadow-(--shadow-glow)">
           A
         </div>
         <span className="text-sm font-bold tracking-widest text-foreground">

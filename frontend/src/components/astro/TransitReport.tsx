@@ -89,7 +89,7 @@ const TransitReport: React.FC<TransitReportProps> = ({ data, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-100 overflow-y-auto print:static print:bg-white font-sans">
+    <div className="fixed inset-0 z-100 bg-slate-100 overflow-y-auto print:static print:bg-white font-sans">
       <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 print:hidden shadow-sm">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-50 rounded-lg">

@@ -293,7 +293,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
               {/* การตั้งค่าปฏิทิน */}
               <div className="pt-5 border-t border-border/40 space-y-4">
                 <div>
-                  <label className="mb-2 block text-[10px] font-bold text-primary uppercase tracking-[0.1em]">ปฏิทินโหราศาสตร์</label>
+                  <label className="mb-2 block text-[10px] font-bold text-primary uppercase tracking-widest">ปฏิทินโหราศาสตร์</label>
                   <select
                     value={formData.ayanamsa_mode}
                     onChange={(e) => {

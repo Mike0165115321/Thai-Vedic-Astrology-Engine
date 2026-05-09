@@ -15,7 +15,7 @@ export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-lg border border-border bg-card p-5 shadow-[var(--shadow-panel)]" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg rounded-lg border border-border bg-card p-5 shadow-(--shadow-panel)" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">ตั้งค่าการคำนวณ</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>

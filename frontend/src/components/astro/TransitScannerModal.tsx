@@ -80,7 +80,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
       <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border/50 bg-muted/30 px-6 py-4">
@@ -226,7 +226,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
 
           {/* Info Box */}
           <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 text-[11px] text-blue-200/70 flex gap-3">
-            <Info className="h-4 w-4 flex-shrink-0 text-blue-400" />
+            <Info className="h-4 w-4 shrink-0 text-blue-400" />
             <p>ระบบจะสแกนหาเหตุการณ์ "ดาวเปลี่ยนราศี" และ "การเปลี่ยนทิศทางการเดิน" พร้อมวิเคราะห์มุมสัมพันธ์กับดวงเดิมโดยละเอียดตลอดช่วงอายุที่เลือก</p>
           </div>
         </div>
@@ -242,7 +242,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
           <button 
             onClick={handleRun}
             disabled={loading}
-            className="flex-[2] rounded-xl bg-(image:--gradient-gold) px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-glow)] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-wait"
+            className="flex-2 rounded-xl bg-(image:--gradient-gold) px-4 py-3 text-sm font-bold text-primary-foreground shadow-(--shadow-glow) hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-wait"
           >
             {loading ? "กำลังวิเคราะห์จักรวาล..." : "เริ่มการวิเคราะห์และดาวน์โหลด JSON"}
           </button>
