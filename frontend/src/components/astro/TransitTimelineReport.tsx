@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Info, Star, AlertTriangle, ArrowRight, Download, Printer, X } from 'lucide-react';
+import { Clock, Info, Star, AlertTriangle, ArrowRight, Download, Printer, X, Calendar } from 'lucide-react';
 
 interface TransitTimelineReportProps {
   data: any;
@@ -31,25 +31,66 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
     "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
   ];
 
+  const getEventTier = (planet: string) => {
+    if (["Jupiter", "Saturn", "Rahu", "Ketu"].includes(planet)) return "MAJOR";
+    if (["Mars", "Uranus"].includes(planet)) return "IMPORTANT";
+    return "MINOR";
+  };
+
+  const getHouseKeywords = (planet: string) => {
+    if (!natal_chart || !natal_chart.planets) return "";
+    
+    const keywords: { [key: number]: string } = {
+      1: "ตนเอง/วาสนา", 2: "เงินทอง/รายได้", 3: "เพื่อน/สังคม", 4: "บ้าน/แม่/ครอบครัว", 
+      5: "บุตร/การลงทุน", 6: "อุปสรรค/หนี้สิน", 7: "คู่ครอง/หุ้นส่วน", 8: "มรดก/พ้นสภาพ", 
+      9: "ความสำเร็จ/โชค", 10: "การงาน/ชื่อเสียง", 11: "โชคลาภ/กำไร", 12: "รายจ่าย/เบื้องหลัง"
+    };
+
+    // Calculate which houses this planet rules in the natal chart
+    // Sign Lords mapping (Thai Standard)
+    const signLords = [0, 2, 5, 3, 1, 0, 3, 5, 2, 4, 6, 6, 4]; // Index 1-12
+    const planetToId: { [key: string]: number } = {
+      "Sun": 0, "Moon": 1, "Mars": 2, "Mercury": 3, "Jupiter": 4, "Venus": 5, "Saturn": 6, "Rahu": 7
+    };
+
+    const targetPlanetId = planetToId[planet];
+    if (targetPlanetId === undefined) return "";
+
+    const ruledHouses = [];
+    const lagnaSign = natal_chart.lagna.sign; // 1-12
+
+    for (let sign = 1; sign <= 12; sign++) {
+        if (signLords[sign] === targetPlanetId) {
+            // Find house number: (Sign - LagnaSign + 12) % 12 + 1
+            const houseNum = (sign - lagnaSign + 12) % 12 + 1;
+            ruledHouses.push(keywords[houseNum]);
+        }
+    }
+
+    return ruledHouses.length > 0 ? `(${ruledHouses.join("/")})` : "";
+  };
+
   const getEventColorClass = (event: any) => {
+    const tier = getEventTier(event.planet);
     const dignity = event.dignity || "";
     const isGood = ["อุจจ์", "เกษตร", "ราชาโชค", "มหาจักร", "เทวีโชค", "มูลตรีโกณ"].some(d => dignity.includes(d));
     const isBad = ["นิจ", "ประ"].some(d => dignity.includes(d));
-    const isRetro = event.status === "Retrograde";
+    const isRetro = event.status === "RETROGRADE";
     
+    if (tier === "MAJOR") return isBad || isRetro ? "major-bad" : "major-good";
     if (isGood && !isRetro) return "good";
     if (isBad || isRetro) return "warn";
-    if (event.type === "Zodiac Entry") return "info";
     return "neutral";
   };
 
   const getEventDotColor = (colorClass: string) => {
     switch (colorClass) {
-      case "good": return "#1D9E75";
-      case "warn": return "#BA7517";
-      case "bad": return "#E24B4A";
-      case "info": return "#378ADD";
-      default: return "#888780";
+      case "major-good": return "#8B5CF6"; // Purple for Major Good
+      case "major-bad": return "#EF4444"; // Strong Red for Major Bad
+      case "good": return "#10B981"; // Emerald
+      case "warn": return "#F59E0B"; // Amber
+      case "info": return "#3B82F6"; // Blue
+      default: return "#94A3B8"; // Slate
     }
   };
 
@@ -64,20 +105,21 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
   };
 
   const getPillLabel = (event: any) => {
+    const tier = getEventTier(event.planet);
     const dignity = event.dignity || "";
     const isRetro = event.status === "RETROGRADE";
     
-    // Priority 1: Retrograde / Bad Dignity (Warnings)
-    if (isRetro) return "พักร (ถอยหลัง)";
-    if (["นิจ", "ประ"].some(d => dignity.includes(d))) return "ระวัง";
-    
-    // Priority 2: High Dignity (Good)
-    if (["อุจจ์", "เกษตร", "มูลตรีโกณ"].some(d => dignity.includes(d))) return "ดีมาก";
-    if (["ราชาโชค", "มหาจักร", "เทวีโชค"].some(d => dignity.includes(d))) return "ดี";
-    
-    // Priority 3: Special Events
-    if (event.type === "INGRESS") return "ย้ายราศี";
-    return null;
+    // Tiered Label
+    let prefix = "";
+    if (tier === "MAJOR") prefix = "🔥 จุดเปลี่ยนชีวิต: ";
+    else if (tier === "IMPORTANT") prefix = "📌 สำคัญ: ";
+
+    if (isRetro) return prefix + "พักร (ถอยหลัง)";
+    if (["นิจ", "ประ"].some(d => dignity.includes(d))) return prefix + "ระวัง";
+    if (["อุจจ์", "เกษตร", "มูลตรีโกณ"].some(d => dignity.includes(d))) return prefix + "ดีมาก";
+    if (["ราชาโชค", "มหาจักร", "เทวีโชค"].some(d => dignity.includes(d))) return prefix + "ดี";
+    if (event.type === "INGRESS") return prefix + "ย้ายราศี";
+    return prefix || null;
   };
 
   const handleDownloadJSON = () => {
@@ -88,6 +130,58 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
     const a = document.createElement("a");
     a.href = url;
     a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const handleExportICS = () => {
+    let icsContent = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Aetox Astro//Timeline//TH",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "X-WR-CALNAME:ดวงชะตา - " + (data.natal_chart.name || "Aetox"),
+      "X-WR-TIMEZONE:Asia/Bangkok"
+    ];
+
+    events.forEach((event: any, idx: number) => {
+      const date = new Date(event.timestamp);
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hour = String(date.getUTCHours()).padStart(2, '0');
+      const min = String(date.getUTCMinutes()).padStart(2, '0');
+      
+      const stamp = `${year}${month}${day}T${hour}${min}00Z`;
+      const summary = event.description;
+      let description = `เหตุการณ์: ${event.description}\\n`;
+      if (event.dignity) description += `ตำแหน่งดาว: ${event.dignity}\\n`;
+      if (event.natal_aspects && event.natal_aspects.length > 0) {
+        description += `มุมสัมพันธ์ดวงเดิม:\\n`;
+        event.natal_aspects.forEach((a: any) => {
+          description += `- กุมกับ ${a.p2} (${a.aspect})\\n`;
+        });
+      }
+
+      icsContent.push("BEGIN:VEVENT");
+      icsContent.push(`UID:${Date.now()}-${idx}@aetox.astro`);
+      icsContent.push(`DTSTAMP:${stamp}`);
+      icsContent.push(`DTSTART:${stamp}`);
+      icsContent.push(`DTEND:${stamp}`); // Instant event
+      icsContent.push(`SUMMARY:${summary}`);
+      icsContent.push(`DESCRIPTION:${description}`);
+      icsContent.push("END:VEVENT");
+    });
+
+    icsContent.push("END:VCALENDAR");
+
+    const blob = new Blob([icsContent.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Astro_Timeline_${data.natal_chart.name || 'User'}.ics`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -139,6 +233,9 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
           </button>
           <button onClick={handleDownloadJSON} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2">
             <Download className="h-4 w-4" /> บันทึก JSON
+          </button>
+          <button onClick={handleExportICS} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> บันทึกปฏิทิน (.ics)
           </button>
           <button onClick={() => window.print()} className="px-6 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-lg hover:bg-black active:scale-95 transition-all flex items-center gap-2">
             <Printer className="h-4 w-4" /> พิมพ์รายงาน
@@ -193,6 +290,7 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
                     </div>
                     <div className="pl-6 py-1 space-y-4">
                       {groupedEvents[year][month].map((event, idx) => {
+                        const tier = getEventTier(event.planet);
                         const colorClass = getEventColorClass(event);
                         const pillLabel = getPillLabel(event);
                         const eventDate = new Date(event.timestamp);
@@ -212,38 +310,36 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
                         const description = event.description;
 
                         return (
-                          <div key={idx} className="group">
+                          <div key={idx} className={`group ${tier === 'MAJOR' ? 'bg-slate-50/50 p-4 rounded-2xl border border-slate-100 -mx-4' : ''}`}>
                             <div className="flex items-start gap-3">
                               <div 
-                                className="mt-2 w-2 h-2 rounded-full shrink-0 shadow-sm" 
+                                className={`mt-2 rounded-full shrink-0 shadow-sm ${tier === 'MAJOR' ? 'w-3 h-3' : 'w-2 h-2'}`} 
                                 style={{ background: getEventDotColor(colorClass) }}
                               ></div>
                               <div className="space-y-1">
-                                <p className="text-[14px] font-medium leading-relaxed">
-                                  <span className="font-bold text-slate-400 mr-2">{dayTh} {monthsTh[month]}</span>
-                                  <span className="text-slate-800">{description}</span>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="font-bold text-slate-400 text-sm">{dayTh} {monthsTh[month]}</span>
+                                  <span className={`text-slate-800 ${tier === 'MAJOR' ? 'text-lg font-black' : 'text-[14px] font-medium'}`}>
+                                    {description}
+                                  </span>
                                   {pillLabel && (
-                                    <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${getPillClass(colorClass)}`}>
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${getPillClass(colorClass)}`}>
                                       {pillLabel}
                                     </span>
                                   )}
-                                </p>
+                                </div>
                                 
                                 {/* Secondary Info: Aspects to Natal */}
                                 {event.natal_aspects && event.natal_aspects.length > 0 && (
-                                  <div className="mt-2 pl-4 border-l-2 border-slate-50 space-y-1">
-                                    {event.natal_aspects.slice(0, 3).map((aspect: any, aIdx: number) => (
+                                  <div className="mt-2 pl-4 border-l-2 border-slate-50 space-y-1.5">
+                                    {event.natal_aspects.slice(0, 5).map((aspect: any, aIdx: number) => (
                                       <p key={aIdx} className="text-[11px] text-slate-500 font-medium">
-                                        • {aspectNameTh[aspect.aspect] || aspect.aspect}กับ {planetNameTh[aspect.p2] || aspect.p2} เดิม (orb {aspect.orb_diff?.toFixed(2) || '0.00'}°)
+                                        • {aspectNameTh[aspect.aspect] || aspect.aspect}กับ {planetNameTh[aspect.p2] || aspect.p2} เดิม 
+                                        <span className="text-indigo-400 ml-1">{getHouseKeywords(aspect.p2)}</span>
+                                        <span className="opacity-50 ml-1">(orb {aspect.orb_diff?.toFixed(2) || '0.00'}°)</span>
                                       </p>
                                     ))}
                                   </div>
-                                ) || (
-                                  event.type === "Zodiac Entry" && event.dignity_list && event.dignity_list.length > 0 && (
-                                    <p className="text-[11px] text-indigo-500/70 font-bold ml-1">
-                                      ✨ ได้ตำแหน่ง: {event.dignity_list.join(", ")}
-                                    </p>
-                                  )
                                 )}
                               </div>
                             </div>
