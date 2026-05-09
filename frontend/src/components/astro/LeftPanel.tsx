@@ -22,7 +22,7 @@ type Props = {
   onCalculateCompare?: (dataA: BirthFormData, dataB: BirthFormData) => void;
   loading: boolean;
   history: HistoryItem[];
-  onSelectHistory: (item: HistoryItem) => void;
+  onSelectHistory: (item: HistoryItem, isB?: boolean) => void;
   onDeleteHistory: (id: string) => void;
 };
 
@@ -160,7 +160,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                                                 key={item.id}
                                                 onClick={() => {
                                                     setFormData(item.formData);
-                                                    onSelectHistory(item);
+                                                    onSelectHistory(item, false);
                                                 }}
                                                 className="w-full text-left px-3 py-2 text-[11px] hover:bg-blue-500/20 hover:text-blue-200 transition-colors border-b border-white/5 last:border-0 truncate"
                                             >
@@ -266,7 +266,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                                             key={item.id}
                                             onClick={() => {
                                                 setFormDataB(item.formData);
-                                                onSelectHistory(item);
+                                                onSelectHistory(item, true);
                                             }}
                                             className="w-full text-left px-3 py-2 text-[11px] hover:bg-pink-500/20 hover:text-pink-200 transition-colors border-b border-white/5 last:border-0 truncate"
                                         >
@@ -389,7 +389,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                 className="group relative cursor-pointer px-5 py-4 hover:bg-primary/5 transition-all border-l-4 border-transparent hover:border-primary active:bg-primary/10"
                 onClick={() => {
                     setFormData(item.formData);
-                    onSelectHistory(item);
+                    onSelectHistory(item, false);
                 }}
               >
                 <div className="flex items-center justify-between">

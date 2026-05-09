@@ -205,11 +205,28 @@ export default function Home() {
         };
     }
 
-    return { ...data, planets: divPlanets, lagna: divLagna };
+    const lordsKey = type.toLowerCase() + "_house_lords" as "d3_house_lords" | "d9_house_lords";
+    const divLords = (data as any)[lordsKey] || data.house_lords;
+
+    const yogasKey = type.toLowerCase() + "_yogas" as "d3_yogas" | "d9_yogas";
+    const divYogas = (data as any)[yogasKey] || data.yogas;
+
+    const aspectsKey = type.toLowerCase() + "_western_aspects" as "d3_western_aspects" | "d9_western_aspects";
+    const divAspects = (data as any)[aspectsKey] || data.western_aspects;
+
+    return { 
+        ...data, 
+        planets: divPlanets, 
+        lagna: divLagna, 
+        house_lords: divLords, 
+        yogas: divYogas,
+        western_aspects: divAspects
+    };
   }, []);
 
   const displayChartData = useMemo(() => getDivisionalData(chartData, chartType), [chartData, chartType, getDivisionalData]);
   const displayTransitData = useMemo(() => getDivisionalData(transitData, chartType), [transitData, chartType, getDivisionalData]);
+  const displayCompareDataB = useMemo(() => compareData ? getDivisionalData(compareData.person_b_chart, chartType) : null, [compareData, chartType, getDivisionalData]);
 
   const calculateChart = async (formData: BirthFormData) => {
     setLoading(true);
@@ -367,7 +384,13 @@ export default function Home() {
               onCalculateCompare={calculateCompare}
               loading={loading}
               history={history}
-              onSelectHistory={(item) => calculateChart(item.formData)}
+              onSelectHistory={(item, isB) => {
+                  if (isB) {
+                      // Just update form, don't trigger single calculation
+                      return;
+                  }
+                  calculateChart(item.formData);
+              }}
               onDeleteHistory={async (id) => {
                   await fetch(`${API_ENDPOINTS.HISTORY}${id}`, { method: "DELETE" });
                   setHistory(history.filter(h => h.id !== id));
@@ -385,6 +408,7 @@ export default function Home() {
             mode={mode}
             displayChartData={displayChartData}
             displayTransitData={displayTransitData}
+            displayCompareDataB={displayCompareDataB}
             getDivisionalData={getDivisionalData}
             loading={loading}
             chartType={chartType}
@@ -435,6 +459,7 @@ export default function Home() {
               chartData={displayChartData}
               transitData={displayTransitData}
               compareData={compareData}
+              displayCompareDataB={displayCompareDataB}
               mode={mode}
               chartType={chartType}
               selectedPlanet={selectedPlanet}

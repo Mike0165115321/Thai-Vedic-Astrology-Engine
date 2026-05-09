@@ -12,6 +12,7 @@ type Props = {
   transitData: ChartData | null;
   displayChartData: ChartData | null;
   displayTransitData: ChartData | null;
+  displayCompareDataB: ChartData | null;
   compareData?: CompareResponse | null;
   mode?: "Natal" | "Synastry" | "Transit";
   loading: boolean;
@@ -34,6 +35,7 @@ export function CenterPanel({
   transitData, 
   displayChartData, 
   displayTransitData, 
+  displayCompareDataB,
   compareData,
   mode,
   loading, 
@@ -256,11 +258,14 @@ export function CenterPanel({
             >
             <ZodiacWheel 
               planets={displayChartData?.planets || null} 
-              transitPlanets={mode === "Synastry" ? (compareData?.person_b_chart.planets || null) : (showTransit ? (displayTransitData?.planets || null) : null)}
+              comparePlanets={mode === "Synastry" ? (displayCompareDataB?.planets || null) : null}
+              transitPlanets={showTransit ? (displayTransitData?.planets || null) : null}
               natalLagna={displayChartData?.lagna || null}
-              transitLagna={mode === "Synastry" ? (compareData?.person_b_chart.lagna || null) : (showTransit ? (displayTransitData?.lagna || null) : null)}
+              compareLagna={mode === "Synastry" ? (displayCompareDataB?.lagna || null) : null}
+              transitLagna={showTransit ? (displayTransitData?.lagna || null) : null}
               natalHouses={displayChartData?.houses || null}
-              transitHouses={mode === "Synastry" ? (compareData?.person_b_chart.houses || null) : (showTransit ? (displayTransitData?.houses || null) : null)}
+              compareHouses={mode === "Synastry" ? (displayCompareDataB?.houses || null) : null}
+              transitHouses={showTransit ? (displayTransitData?.houses || null) : null}
               enabledAspects={enabled} 
               selectedPlanet={selectedPlanet}
               onSelectPlanet={onSelectPlanet}

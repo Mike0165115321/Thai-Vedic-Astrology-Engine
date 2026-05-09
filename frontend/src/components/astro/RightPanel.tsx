@@ -18,6 +18,7 @@ type Props = {
   chartData: ChartData | null;
   transitData: ChartData | null;
   compareData?: CompareResponse | null;
+  displayCompareDataB: ChartData | null;
   mode?: "Natal" | "Synastry" | "Transit";
   chartType: "D1" | "D3" | "D9" | "CAL";
   selectedPlanet: string | null;
@@ -133,17 +134,19 @@ function processChartPlanets(cData: any, ownerTag: string | null = null, ownerCo
     return res;
 }
 
-export function RightPanel({ chartData: natalData, transitData, compareData, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
+export function RightPanel({ chartData: natalData, transitData, compareData, displayCompareDataB, mode, chartType, selectedPlanet, onSelectPlanet }: Props) {
   const [tab, setTab] = useState<Tab>("ข้อมูลดาว");
   const [personFocus, setPersonFocus] = useState<"A" | "B" | "Both">("A");
 
   const chartData = useMemo(() => {
     if (mode === "Transit") return transitData;
     if (mode === "Synastry") {
-      return personFocus === "B" ? compareData?.person_b_chart : natalData;
+      const data = personFocus === "B" ? displayCompareDataB : natalData;
+      // Fallback to natalData if focusing on B but data not yet ready, to avoid blank screen
+      return data || natalData;
     }
     return natalData;
-  }, [mode, personFocus, natalData, transitData, compareData]);
+  }, [mode, personFocus, natalData, transitData, compareData, displayCompareDataB]);
 
   return (
     <aside className="flex h-full flex-col border-l border-border bg-card/40 overflow-hidden font-sans">
@@ -198,7 +201,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                   {(() => {
                       if (mode === "Synastry" && personFocus === "Both") {
                           const dataA = processChartPlanets(natalData, "คนที่ 1", "bg-blue-500/20 text-blue-300 border-blue-500/30");
-                          const dataB = processChartPlanets(compareData?.person_b_chart, "คนที่ 2", "bg-pink-500/20 text-pink-300 border-pink-500/30");
+                          const dataB = processChartPlanets(displayCompareDataB, "คนที่ 2", "bg-pink-500/20 text-pink-300 border-pink-500/30");
                           
                           const order = ["Lagna", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Uranus"];
                           
@@ -279,7 +282,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                       }
 
                       // Single Chart View Logic
-                      const currentPlanetDict = chartType === "D3" ? chartData?.d3 : chartType === "D9" ? chartData?.d9 : chartData?.planets;
+                      const currentPlanetDict = chartData?.planets;
                       const currentPlanets = currentPlanetDict ? Object.entries(currentPlanetDict).map(([name, p]: [string, any]) => {
                         const naks = chartData?.lunar_data?.planet_nakshatras?.[name];
                         const thaiNak = naks ? getThaiNak(naks.index) : null;
@@ -317,7 +320,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                       }) : [];
 
                       const combinedData = [];
-                      const currentLagnaData = chartType === "D3" ? chartData?.d3_lagna : chartType === "D9" ? chartData?.d9_lagna : chartData?.lagna;
+                      const currentLagnaData = chartData?.lagna;
                       if (currentLagnaData) {
                           const n = chartData?.lunar_data?.lagna_nakshatra;
                           const t = n ? getThaiNak(n.index) : null;
@@ -342,14 +345,14 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                           const isSelected = selectedPlanet === p.nameInEng;
                           const houseName = typeof p.house === 'number' ? HOUSE_NAMES_TH[p.house - 1] : "—";
                           
-                          const currentLords = chartType === "D3" ? p.cData?.d3_house_lords : chartType === "D9" ? p.cData?.d9_house_lords : p.cData?.house_lords;
+                          const currentLords = chartData?.house_lords;
                           const lordOf = currentLords ? 
                                          Object.entries(currentLords)
                                                .filter(([_, data]) => (data as any).planet === p.nameInEng)
                                                .map(([hNum, _]) => HOUSE_NAMES_TH[parseInt(hNum) - 1]) 
                                          : [];
 
-                          const currentYogas = chartType === "D3" ? p.cData?.d3_yogas : chartType === "D9" ? p.cData?.d9_yogas : p.cData?.yogas;
+                          const currentYogas = chartData?.yogas;
                           let yogas = currentYogas ? currentYogas.filter((y: any) => {
                             if (p.isLagna) {
                               const relevantCategories = [
@@ -470,9 +473,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, mod
                 </div>
 
                 {(() => {
-                  let currentAspects = chartType === "D3" ? natalData?.d3_western_aspects : 
-                                       chartType === "D9" ? natalData?.d9_western_aspects : 
-                                       natalData?.western_aspects;
+                  let currentAspects = chartData?.western_aspects;
                   
                   if (mode === "Synastry" && personFocus === "Both") {
                     currentAspects = compareData?.synastry_aspects;

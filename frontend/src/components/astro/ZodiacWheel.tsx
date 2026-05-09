@@ -7,10 +7,13 @@ import { Planet, Lagna } from "@/types/chart";
 
 type Props = {
   planets: { [key: string]: Planet } | null;
-  transitPlanets: { [key: string]: Planet } | null;
+  comparePlanets?: { [key: string]: Planet } | null; // Person B
+  transitPlanets: { [key: string]: Planet } | null; // Real-time
   natalLagna: Lagna | null;
+  compareLagna?: Lagna | null;
   transitLagna: Lagna | null;
   natalHouses: { [key: string]: number } | null;
+  compareHouses?: { [key: string]: number } | null;
   transitHouses: { [key: string]: number } | null;
   enabledAspects: string[];
   selectedPlanet: string | null;
@@ -24,9 +27,9 @@ const NAK_SIZE = 360 / 27;
 const CENTER = SIZE / 2;
 const R_OUTER = 280;
 const R_SIGNS = 250;
-const R_TRANSITS = 225; // Clearly outside the house grid
+const R_TRANSITS = 225; 
 const R_HOUSES = 200;
-const R_PLANETS = 160; // Natal planets
+const R_PLANETS = 160; 
 const R_INNER = 110;
 
 const HOUSE_NAMES_TH = [
@@ -104,10 +107,27 @@ const resolveOverlaps = (list: any[], baseRadius: number) => {
 };
 
 export function ZodiacWheel({ 
-  planets, transitPlanets, natalLagna, transitLagna, 
-  natalHouses, transitHouses, enabledAspects, 
-  selectedPlanet, onSelectPlanet, isSynastry, synastryFocus = "Both" 
+  planets, comparePlanets, transitPlanets, 
+  natalLagna, compareLagna, transitLagna, 
+  natalHouses, compareHouses, transitHouses, 
+  enabledAspects, selectedPlanet, onSelectPlanet, 
+  isSynastry, synastryFocus = "Both" 
 }: Props) {
+  const currentSIZE = isSynastry ? 650 : 560;
+  const currentCENTER = currentSIZE / 2;
+  const rOuter = isSynastry ? 310 : 280;
+  const rSigns = isSynastry ? 280 : 250;
+  const rHouses = isSynastry ? 220 : 200;
+  const rPlanets = isSynastry ? 110 : 160;
+  const rCompare = isSynastry ? 180 : 180;
+  const rTransits = isSynastry ? 250 : 225;
+  const rInner = isSynastry ? 75 : 110;
+
+  const dynamicPolar = (deg: number, r: number) => {
+    const rad = ((90 + deg - 15) * Math.PI) / 180;
+    return { x: currentCENTER + r * Math.cos(rad), y: currentCENTER - r * Math.sin(rad) };
+  };
+
   const natalList = useMemo(() => {
     let list: any[] = [];
     if (planets) {
@@ -117,7 +137,7 @@ export function ZodiacWheel({
             symbol: p.symbol || name.substring(0, 2),
             lon: p.longitude,
             retro: p.is_retrograde,
-            color: isSynastry ? "#3b82f6" : getPlanetColor(name), // Fixed Blue for Person A
+            color: getPlanetColor(name),
             isTransit: false,
             isLagna: false
         }));
@@ -134,8 +154,39 @@ export function ZodiacWheel({
             isLagna: true
         });
     }
-    return resolveOverlaps(list, R_PLANETS);
-  }, [planets, natalLagna, isSynastry]);
+    return resolveOverlaps(list, rPlanets);
+  }, [planets, natalLagna, isSynastry, rPlanets]);
+
+  const compareList = useMemo(() => {
+    let list: any[] = [];
+    if (comparePlanets) {
+        list = Object.entries(comparePlanets).map(([name, p]) => ({
+            id: `c-${name}`,
+            name,
+            symbol: p.symbol || name.substring(0, 2),
+            lon: p.longitude,
+            retro: p.is_retrograde,
+            color: getPlanetColor(name),
+            isCompare: true,
+            isTransit: false,
+            isLagna: false
+        }));
+    }
+    if (compareLagna) {
+        list.push({
+            id: 'c-lagna',
+            name: 'Lagna',
+            symbol: 'ลั',
+            lon: compareLagna.longitude,
+            retro: false,
+            color: '#f472b6', // Pink for Person B Lagna
+            isCompare: true,
+            isTransit: false,
+            isLagna: true
+        });
+    }
+    return resolveOverlaps(list, rCompare);
+  }, [comparePlanets, compareLagna, rCompare]);
 
   const transitList = useMemo(() => {
     let list: any[] = [];
@@ -146,29 +197,31 @@ export function ZodiacWheel({
             symbol: p.symbol || name.substring(0, 2),
             lon: p.longitude,
             retro: p.is_retrograde,
-            color: isSynastry ? "#ffffff" : getPlanetColor(name), // Fixed White for Person B
+            color: getPlanetColor(name),
             isTransit: true,
+            isCompare: false,
             isLagna: false
         }));
     }
     if (transitLagna) {
         list.push({
             id: 't-lagna',
-            name: 'TransitLagna',
+            name: 'Lagna',
             symbol: 'ลั',
             lon: transitLagna.longitude,
             retro: false,
-            color: isSynastry ? "#ffffff" : '#34d399',
+            color: '#fbbf24',
             isTransit: true,
+            isCompare: false,
             isLagna: true
         });
     }
-    return resolveOverlaps(list, R_TRANSITS);
-  }, [transitPlanets, transitLagna, isSynastry]);
+    return resolveOverlaps(list, rTransits);
+  }, [transitPlanets, transitLagna, rTransits]);
 
   const combinedList = useMemo(() => {
-    return [...natalList, ...transitList];
-  }, [natalList, transitList]);
+    return [...natalList, ...compareList, ...transitList];
+  }, [natalList, compareList, transitList]);
 
   const aspectLines = useMemo(() => {
     const lines: { a: any; b: any; type: string; color: string }[] = [];
@@ -203,11 +256,11 @@ export function ZodiacWheel({
         }
         // Person B individual aspects
         if (synastryFocus === "B" || synastryFocus === "Both") {
-            calculateFor(transitList);
+            calculateFor(compareList);
         }
         // Inter-person aspects (The core Synastry)
         if (synastryFocus === "Both") {
-            calculateFor(natalList, transitList);
+            calculateFor(natalList, compareList);
         }
     } else {
         const source = planets ? natalList : transitList;
@@ -215,12 +268,12 @@ export function ZodiacWheel({
     }
     
     return lines;
-  }, [natalList, transitList, isSynastry, synastryFocus, enabledAspects, planets]);
+  }, [natalList, compareList, transitList, isSynastry, synastryFocus, enabledAspects, planets, rInner]);
 
   const ascDeg = natalLagna?.longitude || 0;
 
   return (
-    <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="w-full h-full" onClick={() => onSelectPlanet(null)}>
+    <svg viewBox={`0 0 ${currentSIZE} ${currentSIZE}`} className="w-full h-full" onClick={() => onSelectPlanet(null)}>
       <defs>
         <radialGradient id="wheelBg" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="oklch(0.22 0.04 280)" />
@@ -231,35 +284,35 @@ export function ZodiacWheel({
         <filter id="strongGlow"><feGaussianBlur stdDeviation="5" /></filter>
       </defs>
 
-      <circle cx={CENTER} cy={CENTER} r={R_OUTER} fill="url(#wheelBg)" stroke="var(--border)" />
+      <circle cx={currentCENTER} cy={currentCENTER} r={rOuter} fill="url(#wheelBg)" stroke="var(--border)" />
       
       {/* Nakshatra Ticks (27 Divisions) */}
       {Array.from({ length: 27 }).map((_, i) => {
         const angle = i * NAK_SIZE;
-        const p1 = polar(angle, R_OUTER);
-        const p2 = polar(angle, R_OUTER + 8);
+        const p1 = dynamicPolar(angle, rOuter);
+        const p2 = dynamicPolar(angle, rOuter + 8);
         return (
           <line key={`nak-${i}`} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="var(--primary)" strokeWidth="1" opacity={0.4} />
         );
       })}
-      <circle cx={CENTER} cy={CENTER} r={R_OUTER + 8} fill="none" stroke="var(--border)" strokeWidth="0.5" opacity={0.3} />
+      <circle cx={currentCENTER} cy={currentCENTER} r={rOuter + 8} fill="none" stroke="var(--border)" strokeWidth="0.5" opacity={0.3} />
 
-      <circle cx={CENTER} cy={CENTER} r={R_SIGNS} fill="none" stroke="var(--border)" />
-      <circle cx={CENTER} cy={CENTER} r={R_HOUSES} fill="none" stroke="var(--border)" strokeDasharray="2 4" />
-      <circle cx={CENTER} cy={CENTER} r={R_INNER} fill="none" stroke="var(--border)" />
+      <circle cx={currentCENTER} cy={currentCENTER} r={rSigns} fill="none" stroke="var(--border)" />
+      <circle cx={currentCENTER} cy={currentCENTER} r={rHouses} fill="none" stroke="var(--border)" strokeDasharray="2 4" />
+      <circle cx={currentCENTER} cy={currentCENTER} r={rInner} fill="none" stroke="var(--border)" />
 
       {/* Sign sectors */}
       {SIGNS.map((s, i) => {
-        const start = polar(i * 30, R_OUTER);
-        const end = polar((i + 1) * 30, R_OUTER);
-        const startIn = polar(i * 30, R_SIGNS);
-        const path = `M ${startIn.x} ${startIn.y} L ${start.x} ${start.y} A ${R_OUTER} ${R_OUTER} 0 0 0 ${end.x} ${end.y} L ${polar((i+1)*30, R_SIGNS).x} ${polar((i+1)*30, R_SIGNS).y} A ${R_SIGNS} ${R_SIGNS} 0 0 1 ${startIn.x} ${startIn.y} Z`;
+        const start = dynamicPolar(i * 30, rOuter);
+        const end = dynamicPolar((i + 1) * 30, rOuter);
+        const startIn = dynamicPolar(i * 30, rSigns);
+        const endIn = dynamicPolar((i + 1) * 30, rSigns);
+        const path = `M ${startIn.x} ${startIn.y} L ${start.x} ${start.y} A ${rOuter} ${rOuter} 0 0 0 ${end.x} ${end.y} L ${endIn.x} ${endIn.y} A ${rSigns} ${rSigns} 0 0 1 ${startIn.x} ${startIn.y} Z`;
         const fill = i % 2 === 0 ? "oklch(0.22 0.025 260 / 0.7)" : "oklch(0.18 0.02 260 / 0.5)";
-        const labelPos = polar(i * 30 + 15, (R_OUTER + R_SIGNS) / 2);
         return (
           <g key={s.name}>
             <path d={path} fill={fill} stroke="var(--border)" strokeWidth={0.5} />
-            <text x={polar(i * 30 + 15, (R_HOUSES + R_INNER) / 2 + 4).x} y={polar(i * 30 + 15, (R_HOUSES + R_INNER) / 2 + 4).y} textAnchor="middle" fontSize="10" fontWeight="bold"
+            <text x={dynamicPolar(i * 30 + 15, (rHouses + rInner) / 2 + 4).x} y={dynamicPolar(i * 30 + 15, (rHouses + rInner) / 2 + 4).y} textAnchor="middle" fontSize="10" fontWeight="bold"
               fill={s.element === "fire" ? "var(--destructive)" :
                     s.element === "earth" ? "var(--success)" :
                     s.element === "air" ? "var(--info)" : "var(--accent)"}>
@@ -271,8 +324,8 @@ export function ZodiacWheel({
 
       {/* Degree ticks */}
       {Array.from({ length: 360 }).map((_, deg) => {
-        const inner = polar(deg, R_SIGNS);
-        const outer = polar(deg, deg % 10 === 0 ? R_SIGNS - 10 : deg % 5 === 0 ? R_SIGNS - 6 : R_SIGNS - 3);
+        const inner = dynamicPolar(deg, rSigns);
+        const outer = dynamicPolar(deg, deg % 10 === 0 ? rSigns - 10 : deg % 5 === 0 ? rSigns - 6 : rSigns - 3);
         return <line key={deg} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke="var(--muted-foreground)" strokeOpacity={deg % 10 === 0 ? 0.55 : 0.25} strokeWidth={0.5} />;
       })}
 
@@ -287,13 +340,9 @@ export function ZodiacWheel({
         }
 
         const cuspAngle = i * 30;
-        const a = polar(cuspAngle, R_HOUSES);
-        const b = polar(cuspAngle, R_INNER);
+        const a = dynamicPolar(cuspAngle, rHouses);
+        const b = dynamicPolar(cuspAngle, rInner);
         
-        // House label position
-        const labelAngle = i * 30 + 15;
-        const pName = polar(labelAngle, (R_HOUSES + R_INNER) / 2 + 4);
-
         return (
           <g key={i}>
             {/* House cusp line (Now Outer and Solid) */}
@@ -301,7 +350,7 @@ export function ZodiacWheel({
             
             {houseNum > 0 && (
               <g opacity={0.85}>
-                <text x={polar(i * 30 + 15, (R_OUTER + R_SIGNS) / 2 + 4).x} y={polar(i * 30 + 15, (R_OUTER + R_SIGNS) / 2 + 4).y} textAnchor="middle" fontSize="10" fontWeight="900" fill="var(--muted-foreground)">
+                <text x={dynamicPolar(i * 30 + 15, (rOuter + rSigns) / 2 + 4).x} y={dynamicPolar(i * 30 + 15, (rOuter + rSigns) / 2 + 4).y} textAnchor="middle" fontSize="10" fontWeight="900" fill="var(--muted-foreground)">
                   {HOUSE_NAMES_TH[houseNum - 1]}
                 </text>
               </g>
@@ -314,8 +363,8 @@ export function ZodiacWheel({
       <g opacity={0.85}>
         {aspectLines.map((l, i) => {
           const isSelected = selectedPlanet === l.a.name || selectedPlanet === l.b.name;
-          const a = polar(l.a.lon, R_INNER);
-          const b = polar(l.b.lon, R_INNER);
+          const a = dynamicPolar(l.a.lon, rInner);
+          const b = dynamicPolar(l.b.lon, rInner);
           return (
             <line 
                 key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} 
@@ -329,12 +378,12 @@ export function ZodiacWheel({
       </g>
 
       {/* Outer transit ring for reference */}
-      <circle cx={CENTER} cy={CENTER} r={R_TRANSITS} fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.2" />
+      <circle cx={currentCENTER} cy={currentCENTER} r={rTransits} fill="none" stroke="var(--primary)" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.2" />
 
       {/* Planets and Lagnas (Stacked) */}
       {combinedList.map((p) => {
         const isSelected = selectedPlanet === p.name;
-        const pos = polar(p.lon, p.visualRadius);
+        const pos = dynamicPolar(p.lon, p.visualRadius);
         
         return (
           <motion.g 
@@ -350,8 +399,8 @@ export function ZodiacWheel({
              className="cursor-pointer"
              style={{
                 opacity: (isSynastry && synastryFocus !== "Both") 
-                  ? (p.isTransit ? (synastryFocus === "B" ? 1 : 0.15) : (synastryFocus === "A" ? 1 : 0.15))
-                  : 1
+                  ? (p.isCompare ? (synastryFocus === "B" ? 1 : 0.15) : (p.isTransit ? 0.3 : (synastryFocus === "A" ? 1 : 0.15)))
+                  : (p.isTransit ? 0.6 : 1) // Slightly dim real-time transits by default for clarity
              }}
              onClick={(e) => { 
                 e.stopPropagation(); 
