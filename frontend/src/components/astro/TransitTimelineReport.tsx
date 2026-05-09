@@ -147,31 +147,47 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
     ];
 
     events.forEach((event: any, idx: number) => {
+      const tier = getEventTier(event.planet);
       const date = new Date(event.timestamp);
       const year = date.getUTCFullYear();
       const month = String(date.getUTCMonth() + 1).padStart(2, '0');
       const day = String(date.getUTCDate()).padStart(2, '0');
-      const hour = String(date.getUTCHours()).padStart(2, '0');
-      const min = String(date.getUTCMinutes()).padStart(2, '0');
       
-      const stamp = `${year}${month}${day}T${hour}${min}00Z`;
-      const summary = event.description;
-      let description = `เหตุการณ์: ${event.description}\\n`;
+      const dateStr = `${year}${month}${day}`;
+      
+      // Emoji based on Tier and Status
+      let emoji = "✨";
+      if (tier === "MAJOR") emoji = event.status === "RETROGRADE" ? "⚠️🔥" : "🔥";
+      else if (tier === "IMPORTANT") emoji = "📌";
+      else if (event.status === "RETROGRADE") emoji = "🔄";
+
+      const summary = `${emoji} ${event.description}`;
+      
+      let description = `🔭 วิเคราะห์โหราศาสตร์โดย Aetox\\n\\n`;
+      description += `เหตุการณ์: ${event.description}\\n`;
       if (event.dignity) description += `ตำแหน่งดาว: ${event.dignity}\\n`;
+      description += `ความสำคัญ: ${tier}\\n\\n`;
+      
       if (event.natal_aspects && event.natal_aspects.length > 0) {
-        description += `มุมสัมพันธ์ดวงเดิม:\\n`;
+        description += `💥 มุมสัมพันธ์ดวงเดิม:\\n`;
         event.natal_aspects.forEach((a: any) => {
-          description += `- กุมกับ ${a.p2} (${a.aspect})\\n`;
+          const keywords = getHouseKeywords(a.p2);
+          description += `- ${a.aspect}กับ ${a.p2}เดิม ${keywords}\\n`;
         });
       }
 
       icsContent.push("BEGIN:VEVENT");
       icsContent.push(`UID:${Date.now()}-${idx}@aetox.astro`);
-      icsContent.push(`DTSTAMP:${stamp}`);
-      icsContent.push(`DTSTART:${stamp}`);
-      icsContent.push(`DTEND:${stamp}`); // Instant event
+      icsContent.push(`DTSTAMP:${dateStr}T000000Z`);
+      icsContent.push(`DTSTART;VALUE=DATE:${dateStr}`);
+      icsContent.push(`DTEND;VALUE=DATE:${dateStr}`);
       icsContent.push(`SUMMARY:${summary}`);
       icsContent.push(`DESCRIPTION:${description}`);
+      icsContent.push("BEGIN:VALARM");
+      icsContent.push("ACTION:DISPLAY");
+      icsContent.push(`DESCRIPTION:แจ้งเตือนเหตุการณ์ดวงชะตา: ${event.description}`);
+      icsContent.push("TRIGGER:-PT9H"); // Alert at 9 AM
+      icsContent.push("END:VALARM");
       icsContent.push("END:VEVENT");
     });
 

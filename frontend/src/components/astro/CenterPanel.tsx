@@ -311,9 +311,10 @@ export function CenterPanel({
               className={`flex h-10 items-center gap-3 rounded-full border px-5 transition-all shadow-2xl backdrop-blur-xl ${
                 showTransit ? "border-primary bg-primary text-black font-black" : "border-border bg-black/60 text-white hover:bg-black/80"
               }`}
+              style={{ fontFamily: 'var(--font-sarabun), sans-serif' }}
            >
               <span className={`h-2.5 w-2.5 rounded-full ${showTransit ? "bg-black animate-pulse shadow-glow" : "bg-white/20"}`} />
-              <span className="text-[12px] font-black uppercase tracking-widest">แสดงตำแหน่งดาวจร</span>
+              <span className="text-[14px] font-bold tracking-tight">แสดงตำแหน่งดาวจร</span>
            </button>
   
            {showTransit && (

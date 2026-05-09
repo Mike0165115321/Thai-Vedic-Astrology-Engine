@@ -299,25 +299,8 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         
-        if (config.export_type === "json") {
-          // Download JSON only
-          const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-          const birthData = config.natal_data;
-          const firstName = birthData.name.split(" ")[0];
-          const fileName = `Scan_${firstName}_${config.start_year + 543}-${config.end_year + 543}.json`;
-          
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        } else {
-          // Show Timeline Report (which also has a download button if needed)
-          setTimelineData(data);
-        }
-        
+        // Always show the Timeline Report (user can download JSON/ICS inside the report)
+        setTimelineData(data);
         setExportModal(false);
       } else {
         alert("Failed to generate scan report");

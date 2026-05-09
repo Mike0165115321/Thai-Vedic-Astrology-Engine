@@ -19,7 +19,6 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
   const [endMonth, setEndMonth] = useState(12);
   const [endYear, setEndYear] = useState(currentYearBE + 10);
   const [loading, setLoading] = useState(false);
-  const [exportType, setExportType] = useState<"timeline" | "json">("timeline");
   const [selectedPlanets, setSelectedPlanets] = useState<string[]>([
     "Jupiter", "Saturn", "Rahu", "Uranus"
   ]);
@@ -81,8 +80,7 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
       end_month: endMonth,
       end_day: 28,
       planets: selectedPlanets,
-      divisional_charts: selectedDivisions,
-      export_type: exportType
+      divisional_charts: selectedDivisions
     });
     
     setLoading(false);
@@ -225,37 +223,6 @@ export function TransitScannerModal({ onClose, history, currentNatalData, onGene
                   </span>
                 </button>
               ))}
-            </div>
-          </div>
-
-          {/* Step 5: Export Mode */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-foreground">เลือกรูปแบบที่ต้องการ</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={() => setExportType("timeline")}
-                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
-                  exportType === "timeline" ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20" : "border-border bg-muted/20 text-muted-foreground"
-                }`}
-              >
-                <FileText className="h-6 w-6" />
-                <div className="text-center">
-                  <p className="text-xs font-bold">Timeline (PDF)</p>
-                  <p className="text-[9px] opacity-60">สำหรับพิมพ์รายงาน</p>
-                </div>
-              </button>
-              <button 
-                onClick={() => setExportType("json")}
-                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
-                  exportType === "json" ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20" : "border-border bg-muted/20 text-muted-foreground"
-                }`}
-              >
-                <FileJson className="h-6 w-6" />
-                <div className="text-center">
-                  <p className="text-xs font-bold">Raw JSON</p>
-                  <p className="text-[9px] opacity-60">สำหรับเก็บข้อมูลดิบ</p>
-                </div>
-              </button>
             </div>
           </div>
 
