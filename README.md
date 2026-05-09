@@ -8,13 +8,15 @@ A professional-grade Thai Vedic Astrology engine built with a modern full-stack 
 
 - **Astronomical Precision**: Powered by `pyswisseph` (Swiss Ephemeris) for high-accuracy planetary positions (Layer 1A).
 - **Thai-Vedic Integration**: Supports custom Ayanamsa, localized Thai Nakshatra classification, and the traditional Thai zodiac system.
-- **Divisional Charts (Varga)**: Real-time calculation and visualization of D1 (Rasi), D3 (Drekkana), and D9 (Navamsa) charts.
+- **Divisional Charts (Varga)**: Real-time calculation and visualization of D1 (Rasi), D3 (Drekkana), and D9 (Navamsa) charts with full data parity (House Lords, Yogas, Aspects).
 - **Advanced Synastry (Comparison)**:
-    - **Side-by-Side Analysis**: Compare planetary positions and dignities of two people simultaneously in a dual-column layout.
+    - **Adaptive Triple-Layer View**: Simultaneously visualize Person A, Person B, and Real-time Transits in a single zodiac wheel without overlaps.
+    - **Side-by-Side Analysis**: Compare planetary positions and dignities of two people in a dual-column layout.
     - **Dual Dasha Timelines**: Stacked Vimshottari timelines for direct life-period comparison.
     - **Comparison Aspect Matrix**: Cross-chart aspect detection between two natal charts.
 - **Dynamic Transit System**:
     - Real-time transit tracking with an interactive **Age Scrubber** (0-120 years).
+    - **Adaptive Dynamic Layout**: The UI automatically expands from a compact 560px single-view to a 650px triple-view when entering Synastry mode.
 - **Vimshottari Dasha**: Comprehensive dasha timeline (Mahadasha to Pratyantardasha) with active period highlighting.
 - **Aspect Analysis**: Automated detection of conjunctions, oppositions, trines, squares, and sextiles with visual markers.
 - **AI-Ready Architecture**: Structured data output designed for integration with LLMs for astrological interpretation.
@@ -75,7 +77,7 @@ npm run dev
 - [x] Layer 1A-1G: Core Astronomical Engine, Dasha & Initial UI.
 - [x] Layer 2A: Advanced Synastry & Dual Timelines.
 - [x] Layer 2B: Aspect Analysis & Cross-Chart Matrix.
-- [ ] Layer 2C: House Lord Mapping & Basic Yoga Engine.
+- [x] Layer 2C: House Lord Mapping, Yoga Engine & Triple Chart Visualization.
 - [ ] Layer 3: Shadbala, Strength Systems & Astro Score.
 - [ ] Layer 4: AI Interpretation & Narrative Engine.
 
