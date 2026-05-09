@@ -11,6 +11,8 @@ import { SettingsModal } from "@/components/astro/SettingsModal";
 import { TransitScannerModal } from "@/components/astro/TransitScannerModal";
 import TransitReport from "@/components/astro/TransitReport";
 import { ChartData, BirthFormData, CompareResponse } from "@/types/chart";
+import { API_ENDPOINTS } from "@/config/api";
+
 
 export default function Home() {
   const [chartData, setChartData] = useState<ChartData | null>(null);
@@ -42,7 +44,7 @@ export default function Home() {
     // Load history from backend
     const fetchHistory = async () => {
         try {
-            const response = await fetch("http://localhost:8000/history/");
+            const response = await fetch(API_ENDPOINTS.HISTORY);
             if (response.ok) {
                 const data = await response.json();
                 // Map backend data to HistoryItem
@@ -95,7 +97,7 @@ export default function Home() {
 
   const calculateInitialTransits = async (formData: BirthFormData) => {
     try {
-      const response = await fetch("http://localhost:8000/calculate/chart/", {
+      const response = await fetch(API_ENDPOINTS.CALCULATE_CHART, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -132,7 +134,7 @@ export default function Home() {
       };
       
       try {
-        const response = await fetch("http://localhost:8000/calculate/chart/", {
+        const response = await fetch(API_ENDPOINTS.CALCULATE_CHART, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData),
@@ -218,7 +220,7 @@ export default function Home() {
         aspect_orb: formData.aspect_orb || globalSettings.aspect_orb
       };
 
-      const response = await fetch("http://localhost:8000/calculate/chart/", {
+      const response = await fetch(API_ENDPOINTS.CALCULATE_CHART, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -230,7 +232,7 @@ export default function Home() {
       setTransitData(data);
 
       // Add to backend history
-      await fetch("http://localhost:8000/history/", {
+      await fetch(API_ENDPOINTS.HISTORY, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -240,7 +242,7 @@ export default function Home() {
       });
       
       // Refresh history list
-      const histResp = await fetch("http://localhost:8000/history/");
+      const histResp = await fetch(API_ENDPOINTS.HISTORY);
       if (histResp.ok) {
           const histData = await histResp.json();
           const mapped: HistoryItem[] = histData.map((item: any) => ({
@@ -264,7 +266,7 @@ export default function Home() {
   const calculateCompare = async (dataA: BirthFormData, dataB: BirthFormData) => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/calculate/compare/", {
+      const response = await fetch(API_ENDPOINTS.CALCULATE_COMPARE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ person_a: dataA, person_b: dataB }),
@@ -286,7 +288,7 @@ export default function Home() {
 
   const handleExportScanner = async (config: any) => {
     try {
-      const response = await fetch("http://localhost:8000/calculate/transit-scanner/scan", {
+      const response = await fetch(API_ENDPOINTS.TRANSIT_SCANNER, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
@@ -362,7 +364,7 @@ export default function Home() {
               history={history}
               onSelectHistory={(item) => calculateChart(item.formData)}
               onDeleteHistory={async (id) => {
-                  await fetch(`http://localhost:8000/history/${id}`, { method: "DELETE" });
+                  await fetch(`${API_ENDPOINTS.HISTORY}${id}`, { method: "DELETE" });
                   setHistory(history.filter(h => h.id !== id));
               }}
             />
