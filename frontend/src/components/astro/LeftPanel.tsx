@@ -38,9 +38,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
     minute: 0,
     lat: 13.7563,
     lon: 100.5018,
-    timezone: "Asia/Bangkok",
-    ayanamsa_mode: "LAHIRI",
-    custom_ayanamsa_offset: 0
+    timezone: "Asia/Bangkok"
   };
 
   const [formData, setFormData] = useState<BirthFormData>(defaultFormData);
@@ -61,7 +59,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
   }, [formData]);
 
   const handleInputChange = (key: keyof BirthFormData, val: string, isB = false) => {
-    const numericFields: (keyof BirthFormData)[] = ["year", "month", "day", "hour", "minute", "lat", "lon", "custom_ayanamsa_offset"];
+    const numericFields: (keyof BirthFormData)[] = ["year", "month", "day", "hour", "minute", "lat", "lon"];
     const setter = isB ? setFormDataB : setFormData;
     
     if (numericFields.includes(key)) {
@@ -92,13 +90,6 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
     }
   };
 
-  const AYANAMSAS = [
-    { value: "LAHIRI", label: "ลาหิรี (สากล)" },
-    { value: "SURYASIDDHANTA", label: "สุริยยาตร์ (ไทย)" },
-    { value: "RAMAN", label: "รามัน" },
-    { value: "KRISHNAMURTI", label: "กฤษณะมูรติ" },
-    { value: "CUSTOM", label: "กำหนดค่าเอง" },
-  ];
 
   return (
     <aside className="h-full flex flex-col gap-4 border-r border-border bg-card/40 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/10">
@@ -310,43 +301,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                 </div>
               )}
 
-              {/* การตั้งค่าปฏิทิน */}
-              <div className="pt-5 border-t border-border/40 space-y-4">
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold text-primary uppercase tracking-widest">ปฏิทินโหราศาสตร์</label>
-                  <select
-                    value={formData.ayanamsa_mode}
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        setFormData(p => ({ ...p, ayanamsa_mode: val }));
-                        setFormDataB(p => ({ ...p, ayanamsa_mode: val }));
-                    }}
-                    className="w-full rounded-lg border border-border bg-muted/40 px-3 py-2.5 text-[13px] outline-none cursor-pointer focus:border-primary/50 transition-all font-medium"
-                  >
-                    {AYANAMSAS.map((a) => (
-                      <option key={a.value} value={a.value} className="bg-background">{a.label}</option>
-                    ))}
-                  </select>
-                </div>
 
-                {formData.ayanamsa_mode === "CUSTOM" && (
-                    <div className="animate-in fade-in slide-in-from-top-2 duration-400 p-3 rounded-lg bg-orange-500/5 border border-orange-500/20">
-                        <label className="mb-1.5 block text-[10px] font-bold text-orange-400 uppercase">กำหนดค่าออฟเซ็ตเอง</label>
-                        <input 
-                            type="number" 
-                            step="0.0001"
-                            value={formData.custom_ayanamsa_offset}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                setFormData(p => ({ ...p, custom_ayanamsa_offset: parseFloat(val) || 0 }));
-                                setFormDataB(p => ({ ...p, custom_ayanamsa_offset: parseFloat(val) || 0 }));
-                            }}
-                            className="w-full rounded border border-orange-500/30 bg-transparent px-3 py-2 text-[13px] outline-none text-orange-200 font-bold"
-                            placeholder="0.0000"
-                        />
-                    </div>
-                )}
-              </div>
 
               <button
                 onClick={() => mode === "Synastry" ? onCalculateCompare?.(formData, formDataB) : onCalculate(formData)}

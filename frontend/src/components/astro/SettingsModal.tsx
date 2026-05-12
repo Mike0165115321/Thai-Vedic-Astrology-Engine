@@ -23,9 +23,16 @@ export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProp
         <div className="space-y-4 text-xs">
           <Section 
             title="ปฏิทินอายนางศ (Ayanamsa)" 
-            options={["LAHIRI", "RAMAN", "KRISHNAMURTI", "FAGAN_BRADLEY", "TROPICAL"]} 
+            options={["LAHIRI", "RAMAN", "KRISHNAMURTI", "FAGAN_BRADLEY", "JN_BHASIN", "YUKTESHWAR", "SURYASIDDHANTA", "SURYASIDDHANTA_MSUN", "SURYAYART", "TRUE_CITRA", "TROPICAL"]} 
             active={ayanamsa} 
             onChange={(val) => onUpdate({ ayanamsa_mode: val })}
+            labels={{
+              "SURYAYART": "สุริยยาตร์ (ไทย)",
+              "LAHIRI": "ลาหิรี (Vedic)",
+              "TROPICAL": "สายนะ (Western)",
+              "SURYASIDDHANTA": "สุริยสิทธันตะ",
+              "SURYASIDDHANTA_MSUN": "สุริยสิทธันตะ (MSun)"
+            }}
           />
           <Section 
             title="ระบบเรือนชะตา (House System)" 
@@ -34,11 +41,18 @@ export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProp
             onChange={(val) => onUpdate({ house_system: val })}
           />
           <Section 
-            title="การคำนวณราหู/เกตุ (Node)" 
+            title="การคำนวณราหู (Node)" 
             options={["MEAN", "TRUE"]} 
             active={nodeType} 
             onChange={(val) => onUpdate({ node_type: val as "MEAN" | "TRUE" })}
             labels={{ "MEAN": "เฉลี่ย (Mean)", "TRUE": "จริง (True)" }}
+          />
+          <Section 
+            title="การคำนวณเกตุ (Ketu Mode)" 
+            options={["vedic", "thai"]} 
+            active={settings.ketu_mode || "vedic"} 
+            onChange={(val) => onUpdate({ ketu_mode: val as "vedic" | "thai" })}
+            labels={{ "vedic": "สากล (Rahu + 180°)", "thai": "เกตุไทย (เกตุ ๙)" }}
           />
           <Section 
             title="ระยะเอื้อมมุมสัมพันธ์ (Aspect Orb °)" 

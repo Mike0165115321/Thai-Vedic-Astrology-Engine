@@ -9,22 +9,28 @@ AYANAMSA_MODES = {
     "JN_BHASIN": swe.SIDM_JN_BHASIN,
     "YUKTESHWAR": swe.SIDM_YUKTESHWAR,
     "SURYASIDDHANTA": swe.SIDM_SURYASIDDHANTA,
-    "CUSTOM": -1 # Special flag for custom offset
+    "SURYASIDDHANTA_MSUN": swe.SIDM_SURYASIDDHANTA_MSUN,
+    "SURYAYART": swe.SIDM_SURYASIDDHANTA,  # Using Surya Siddhanta as the base for Suriyayart
+    "TRUE_CITRA": swe.SIDM_TRUE_CITRA,
+    "TROPICAL": -1, # Flag for Tropical (no sidereal mode)
 }
 
-def set_ayanamsa(mode_name="LAHIRI", custom_offset=None):
+def set_ayanamsa(mode_name="LAHIRI"):
     """
     Sets the sidereal mode for Swiss Ephemeris.
-    If mode_name is "CUSTOM", custom_offset (in degrees) must be provided.
     """
     mode_key = mode_name.upper()
 
-    if mode_key == "CUSTOM" and custom_offset is not None:
-        # Use J2000.0 (JD 2451545.0) as the reference date for the custom offset
-        swe.set_sid_mode(swe.SIDM_USER, 2451545.0, custom_offset)
+    if mode_key == "TROPICAL":
+        # For Tropical, we don't call set_sid_mode, but we need to ensure 
+        # subsequent calculations don't use the SIDEREAL flag.
+        # However, the current engine uses the SIDEREAL flag in calc_ut.
+        # We will handle TROPICAL by checking the mode in the calculator.
+        pass
     else:
         mode = AYANAMSA_MODES.get(mode_key, swe.SIDM_LAHIRI)
-        swe.set_sid_mode(mode)
+        if mode != -1:
+            swe.set_sid_mode(mode)
 
 def get_ayanamsa_value(jd):
     """Returns the ayanamsa value (in degrees) for a given Julian Date."""

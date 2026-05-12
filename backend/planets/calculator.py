@@ -15,12 +15,14 @@ PLANET_IDS = {
     "Uranus": swe.URANUS,
 }
 
-def calculate_planet_position(jd, planet_id):
-    """Calculates the sidereal position of a planet."""
+def calculate_planet_position(jd, planet_id, is_sidereal=True):
+    """Calculates the position of a planet."""
     
-    # Calculate position (Longitude, Latitude, Distance, Speed)
-    # Using SEFLG_SPEED to get velocity (needed for retrograde check)
-    res, ret = swe.calc_ut(jd, planet_id, swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED)
+    flags = swe.FLG_SWIEPH | swe.FLG_SPEED
+    if is_sidereal:
+        flags |= swe.FLG_SIDEREAL
+        
+    res, ret = swe.calc_ut(jd, planet_id, flags)
     
     longitude = res[0]
     latitude = res[1]
@@ -39,9 +41,11 @@ def calculate_planet_position(jd, planet_id):
     }
 
 
-def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
+def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode="LAHIRI"):
     """Calculates positions for all 9 planets (including Ketu)."""
     results = {}
+    
+    is_sidereal = (ayanamsa_mode.upper() != "TROPICAL")
     
     # Set Rahu ID based on node_type
     rahu_id = swe.MEAN_NODE if node_type.upper() == "MEAN" else swe.TRUE_NODE
@@ -50,10 +54,10 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
     standard_planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Uranus"]
     for name in standard_planets:
         p_id = PLANET_IDS[name]
-        results[name] = calculate_planet_position(jd, p_id)
+        results[name] = calculate_planet_position(jd, p_id, is_sidereal=is_sidereal)
         
     # Calculate Rahu
-    results["Rahu"] = calculate_planet_position(jd, rahu_id)
+    results["Rahu"] = calculate_planet_position(jd, rahu_id, is_sidereal=is_sidereal)
     
     # Calculate Ketu based on mode
     if ketu_mode.lower() == "vedic":
@@ -71,7 +75,24 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
         }
 
     elif ketu_mode.lower() == "thai":
-        raise NotImplementedError("Thai Ketu (9) calculation is not yet implemented.")
+        # Thai Ketu (เกตุ ๙) calculation
+        # Constant speed: 40 arc-minutes per day (Direct)
+        # Epoch: 01-01-1900 00:00 UTC (JD 2415020.5) -> Ketu at 288 degrees
+        # Note: Thai Ketu is usually calculated in the Sidereal zodiac.
+        # If Tropical mode is on, we'll still calculate it but it might be conceptually different.
+        
+        jd_epoch = 2415020.5
+        days_since_epoch = jd - jd_epoch
+        ketu_lon = (288.0 + (days_since_epoch * 40.0 / 60.0)) % 360
+        
+        results["Ketu"] = {
+            "longitude": ketu_lon,
+            "latitude": 0, # Thai Ketu is on the ecliptic
+            "sign": int(ketu_lon / 30) + 1,
+            "degree_in_sign": ketu_lon % 30,
+            "speed": 40.0 / 60.0,
+            "is_retrograde": False
+        }
     else:
         raise ValueError(f"Unknown Ketu mode: {ketu_mode}")
     
@@ -85,20 +106,26 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic"):
         name_to_id = {"Sun": 0, "Moon": 1, "Mars": 2, "Mercury": 3, "Jupiter": 4, "Venus": 5, "Saturn": 6, "Rahu": 7, "Ketu": 8, "Uranus": 9}
         p_id = name_to_id.get(name)
         
-        dignity_list = get_dignity(p_id, data["longitude"])
-        
-        # Check Vargottama (วรโคตม)
-        from chart.d9 import calculate_navamsa
-        d1_sign = int(data["longitude"] / 30) + 1
-        d9_sign = calculate_navamsa(data["longitude"])
-        if d1_sign == d9_sign and "วรโคตม" not in dignity_list:
-            if dignity_list == ["ปกติ"]:
-                dignity_list = ["วรโคตม"]
-            else:
-                dignity_list.append("วรโคตม")
+        # Dignity only applies to Sidereal zodiac in this engine
+        if is_sidereal:
+            dignity_list = get_dignity(p_id, data["longitude"])
+            
+            # Check Vargottama (วรโคตม)
+            from chart.d9 import calculate_navamsa
+            d1_sign = int(data["longitude"] / 30) + 1
+            d9_sign = calculate_navamsa(data["longitude"])
+            if d1_sign == d9_sign and "วรโคตม" not in dignity_list:
+                if dignity_list == ["ปกติ"]:
+                    dignity_list = ["วรโคตม"]
+                else:
+                    dignity_list.append("วรโคตม")
 
-        data["dignity_list"] = [s.strip() for s in dignity_list if s.strip()]
-        data["dignity"] = " · ".join(data["dignity_list"])
+            data["dignity_list"] = [s.strip() for s in dignity_list if s.strip()]
+            data["dignity"] = " · ".join(data["dignity_list"])
+        else:
+            data["dignity_list"] = []
+            data["dignity"] = "N/A (Tropical)"
+
         data["speed_status"] = get_speed_status(name, data["speed"])
         data["is_combust"] = False # Default
         data["planetary_war"] = False # Default

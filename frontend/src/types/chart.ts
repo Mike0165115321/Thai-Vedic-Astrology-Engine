@@ -76,8 +76,8 @@ export interface BirthFormData {
   lon: number;
   timezone: string;
   ayanamsa_mode?: string;
-  custom_ayanamsa_offset?: number;
   node_type?: "MEAN" | "TRUE";
+  ketu_mode?: "vedic" | "thai";
   house_system?: string;
   aspect_orb?: number;
 }

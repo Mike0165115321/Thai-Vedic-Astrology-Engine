@@ -30,18 +30,19 @@ def calculate_birth_chart(data: BirthData):
     )
 
     # 1. Set Ayanamsa for all subsequent calculations
-    set_ayanamsa(data.ayanamsa_mode, data.custom_ayanamsa_offset)
+    set_ayanamsa(data.ayanamsa_mode)
     ayanamsa_val = swe.get_ayanamsa_ut(jd)
     
     # 2. Calculate Lagna
-    lagna = calculate_lagna(jd, data.lat, data.lon)
+    lagna = calculate_lagna(jd, data.lat, data.lon, ayanamsa_mode=data.ayanamsa_mode)
     lagna_sign = lagna["sign"]
     
     # 3. Calculate Planets
     planets = get_all_planets(
         jd, 
         node_type=data.node_type,
-        ketu_mode=data.ketu_mode
+        ketu_mode=data.ketu_mode,
+        ayanamsa_mode=data.ayanamsa_mode
     )
     
     # 4. Calculate Houses based on selected system

@@ -34,6 +34,7 @@ export default function Home() {
   const [globalSettings, setGlobalSettings] = useState<Partial<BirthFormData>>({
     ayanamsa_mode: "LAHIRI",
     node_type: "TRUE",
+    ketu_mode: "vedic",
     house_system: "Whole Sign",
     aspect_orb: 5
   });
@@ -66,7 +67,8 @@ export default function Home() {
                         lon: item.lon,
                         timezone: item.timezone,
                         ayanamsa_mode: item.ayanamsa_mode,
-                        custom_ayanamsa_offset: item.custom_ayanamsa_offset
+                        node_type: item.node_type,
+                        ketu_mode: item.ketu_mode
                     }
                 }));
                 setHistory(mapped);
@@ -233,10 +235,11 @@ export default function Home() {
     try {
       const payload = {
         ...formData,
-        ayanamsa_mode: formData.ayanamsa_mode || globalSettings.ayanamsa_mode,
-        node_type: formData.node_type || globalSettings.node_type,
-        house_system: formData.house_system || globalSettings.house_system,
-        aspect_orb: formData.aspect_orb || globalSettings.aspect_orb
+        ayanamsa_mode: globalSettings.ayanamsa_mode,
+        node_type: globalSettings.node_type,
+        ketu_mode: globalSettings.ketu_mode,
+        house_system: globalSettings.house_system,
+        aspect_orb: globalSettings.aspect_orb
       };
 
       const response = await fetch(API_ENDPOINTS.CALCULATE_CHART, {
@@ -285,10 +288,27 @@ export default function Home() {
   const calculateCompare = async (dataA: BirthFormData, dataB: BirthFormData) => {
     setLoading(true);
     try {
+      const payloadA = {
+        ...dataA,
+        ayanamsa_mode: globalSettings.ayanamsa_mode,
+        node_type: globalSettings.node_type,
+        ketu_mode: globalSettings.ketu_mode,
+        house_system: globalSettings.house_system,
+        aspect_orb: globalSettings.aspect_orb
+      };
+      const payloadB = {
+        ...dataB,
+        ayanamsa_mode: globalSettings.ayanamsa_mode,
+        node_type: globalSettings.node_type,
+        ketu_mode: globalSettings.ketu_mode,
+        house_system: globalSettings.house_system,
+        aspect_orb: globalSettings.aspect_orb
+      };
+      
       const response = await fetch(API_ENDPOINTS.CALCULATE_COMPARE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ person_a: dataA, person_b: dataB }),
+        body: JSON.stringify({ person_a: payloadA, person_b: payloadB }),
       });
       if (!response.ok) throw new Error("API Error");
       const data = await response.json();

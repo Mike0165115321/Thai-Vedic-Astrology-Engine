@@ -24,8 +24,7 @@ def calculate_transit_endpoint(data: TransitRequest):
             lat=data.birth_data.lat, # Usually transit is relative to current location, but often we use birth location for simplicity or let user choose.
             lon=data.birth_data.lon,
             timezone=data.transit_timezone,
-            ayanamsa_mode=data.birth_data.ayanamsa_mode,
-            custom_ayanamsa_offset=data.birth_data.custom_ayanamsa_offset
+            ayanamsa_mode=data.birth_data.ayanamsa_mode
         )
         
         # 3. Calculate Transit Chart

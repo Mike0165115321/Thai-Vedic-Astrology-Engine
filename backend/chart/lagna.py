@@ -2,13 +2,16 @@ import swisseph as swe
 from core.constants import DEFAULT_AYANAMSA, DEFAULT_HOUSE_SYSTEM
 from core.ayanamsa import set_ayanamsa
 
-def calculate_lagna(jd, lat, lon, house_system=DEFAULT_HOUSE_SYSTEM):
+def calculate_lagna(jd, lat, lon, house_system=DEFAULT_HOUSE_SYSTEM, ayanamsa_mode="LAHIRI"):
     """Calculates the Ascendant (Lagna) and House cusps."""
+    
+    is_sidereal = (ayanamsa_mode.upper() != "TROPICAL")
+    flags = swe.FLG_SIDEREAL if is_sidereal else 0
     
     # Calculate houses
     # cusps: 13 elements (index 1 to 12 are houses)
     # ascmc: 10 elements (index 0 is Ascendant)
-    cusps, ascmc = swe.houses_ex(jd, lat, lon, house_system.encode(), swe.FLG_SIDEREAL)
+    cusps, ascmc = swe.houses_ex(jd, lat, lon, house_system.encode(), flags)
     
     lagna_longitude = ascmc[0]
     
