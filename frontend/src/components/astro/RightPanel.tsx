@@ -5,7 +5,7 @@ import { SIGNS } from "./data";
 import { ChartData, CompareResponse } from "@/types/chart";
 import { THAI_NAKSHATRAS } from "./nakshatra_data";
 
-type Tab = "ข้อมูลดาว" | "การทำมุม";
+type Tab = "ข้อมูลดาว" | "ตารางดาว" | "การทำมุม";
 
 function degToSign(lon: number) {
   const i = Math.floor(lon / 30);
@@ -159,7 +159,7 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
           </div>
           
           <div className="flex gap-1.5 p-1 bg-black/30 rounded-xl border border-white/5 shadow-inner">
-        {(["ข้อมูลดาว", "การทำมุม"] as Tab[]).map((t) => (
+        {(["ข้อมูลดาว", "ตารางดาว", "การทำมุม"] as Tab[]).map((t) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 px-3 py-2 text-[11px] font-bold transition-all duration-300 rounded-lg ${
               tab === t ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -459,6 +459,54 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
                           );
                       });
                   })()}
+              </div>
+            )}
+
+            {tab === "ตารางดาว" && (
+              <div className="p-4 overflow-x-auto">
+                <table className="w-full text-[12px] border-collapse">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground/60">
+                      <th className="py-2 px-1 text-left font-black uppercase tracking-wider text-[10px]">ดาว</th>
+                      <th className="py-2 px-1 text-left font-black uppercase tracking-wider text-[10px]">องศา/ลิปตา</th>
+                      <th className="py-2 px-1 text-left font-black uppercase tracking-wider text-[10px]">ราศี</th>
+                      <th className="py-2 px-1 text-left font-black uppercase tracking-wider text-[10px]">มาตรฐาน/สถานะ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/10">
+                    {(() => {
+                        const planetsList = processChartPlanets(chartData);
+                        return planetsList.map((p, idx) => {
+                            const d = degToSign(p.lon);
+                            return (
+                                <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                    <td className="py-3 px-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-[14px]" style={{ color: p.color }}>{p.symbol}</span>
+                                            <span className="text-white/80 font-bold text-[11px]">{p.name}</span>
+                                        </div>
+                                    </td>
+                                    <td className="py-3 px-1">
+                                        <span className="text-white font-mono font-bold">{d.deg}°{String(d.min).padStart(2, '0')}′</span>
+                                    </td>
+                                    <td className="py-3 px-1">
+                                        <span className="text-muted-foreground font-bold">{d.sign.name_th}</span>
+                                    </td>
+                                    <td className="py-3 px-1">
+                                        <div className="flex flex-wrap gap-1">
+                                            {p.dignityList.map((s: string) => (
+                                                <span key={s} className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${getDignityStyle(s)}`}>
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        });
+                    })()}
+                  </tbody>
+                </table>
               </div>
             )}
 

@@ -72,9 +72,9 @@ const resolveOverlaps = (list: any[], baseRadius: number) => {
     for (let i = 0; i < sorted.length; i++) {
         const p = sorted[i];
         let stackLevel = 0;
+        const localThreshold = 14; 
+        const step = 13;          // Reduced step to keep everything inside
         
-        // Check previous planets in a sliding window to find a free level
-        // We look at the last 3 planets to see if we're too close to any of them
         const lookBack = 4;
         let occupiedLevels = new Set<number>();
         
@@ -82,20 +82,19 @@ const resolveOverlaps = (list: any[], baseRadius: number) => {
             if (i - j >= 0) {
                 const prev = sorted[i - j];
                 const diff = Math.abs(p.lon - prev.lon);
-                if (diff < threshold) {
+                if (diff < localThreshold) {
                     occupiedLevels.add(usedLevels[i - j]);
                 }
             }
         }
 
-        // Find the first level (0, 1, -1, 2, -2...) that isn't occupied by a nearby planet
-        const levelsToTry = [0, 1, -1, 2, -2, 3, -3];
+        const levelsToTry = [0, 1, -1, 2, -2]; 
         for (const level of levelsToTry) {
             if (!occupiedLevels.has(level)) {
                 stackLevel = level;
                 break;
             }
-            stackLevel = level; // Fallback to furthest if all busy
+            stackLevel = level;
         }
         
         usedLevels[i] = stackLevel;
@@ -312,10 +311,11 @@ export function ZodiacWheel({
         return (
           <g key={s.name}>
             <path d={path} fill={fill} stroke="var(--border)" strokeWidth={0.5} />
-            <text x={dynamicPolar(i * 30 + 15, (rHouses + rInner) / 2 + 4).x} y={dynamicPolar(i * 30 + 15, (rHouses + rInner) / 2 + 4).y} textAnchor="middle" fontSize="10" fontWeight="bold"
+            <text x={dynamicPolar(i * 30 + 15, rInner + 18).x} y={dynamicPolar(i * 30 + 15, rInner + 18).y} textAnchor="middle" fontSize="11" fontWeight="bold"
               fill={s.element === "fire" ? "var(--destructive)" :
                     s.element === "earth" ? "var(--success)" :
-                    s.element === "air" ? "var(--info)" : "var(--accent)"}>
+                    s.element === "air" ? "var(--info)" : "var(--accent)"}
+              opacity={0.7}>
               {s.name_th}
             </text>
           </g>
@@ -407,30 +407,34 @@ export function ZodiacWheel({
                 if (!p.isLagna) onSelectPlanet(p.name); 
              }}>
               <g>
-                {/* Subtle background glow for presence */}
-                <circle cx={0} cy={0} r={isSelected ? 16 : 12} fill={p.color} opacity={isSelected ? 0.35 : 0.08} />
+                {/* No background circles for maximum clarity */}
                 
-                {/* Planet Symbol (Thai Character/Number) */}
+                {/* Planet Symbol - Large & Colored */}
                 <text
                   textAnchor="middle"
-                  dy="4.5"
-                  fontSize={isSelected ? "16" : "14"}
+                  dy="7"
+                  fontSize={isSelected ? "22" : "19"}
                   fill={p.color}
-                  fontWeight={isSelected || p.isLagna ? 900 : 700}
+                  fontWeight="900"
                   className="select-none transition-all duration-300"
-                  style={{ filter: isSelected ? `drop-shadow(0 0 4px ${p.color})` : "drop-shadow(0 0 1px oklch(0 0 0 / 0.5))" }}
+                  style={{ 
+                    filter: "drop-shadow(0 2px 2px black) drop-shadow(0 0 1px black)",
+                    paintOrder: "stroke",
+                    stroke: "black",
+                    strokeWidth: isSelected ? "0.8px" : "0.5px"
+                  }}
                 >
                   {p.symbol}
                 </text>
 
-                {/* Retrograde indicator */}
+                {/* Retrograde indicator (Thai Style) */}
                 {p.retro && (
-                  <text x="6" y="-6" fontSize="8" fill="var(--destructive)" fontWeight="bold">℞</text>
+                  <text x="12" y="-12" fontSize="10" fill="var(--destructive)" fontWeight="bold" style={{ filter: "drop-shadow(0 0 2px black)" }}>พ</text>
                 )}
 
-                {/* Transit badge (Always show for Person B in Synastry) */}
+                {/* Transit Indicator */}
                 {p.isTransit && !p.isLagna && (
-                  <circle cx="6" cy="6" r="2.5" fill={isSynastry ? "#ffffff" : "var(--primary)"} stroke="var(--background)" strokeWidth="0.5" />
+                  <circle cx="12" cy="12" r="3.5" fill="var(--primary)" stroke="black" strokeWidth="1" />
                 )}
               </g>
           </motion.g>
