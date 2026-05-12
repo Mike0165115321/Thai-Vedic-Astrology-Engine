@@ -12,7 +12,7 @@ PLANET_HYBRID = {
     "Venus": -2.15,
     "Saturn": 0.0,
     "Rahu": -0.68,
-    "Ketu": 0.0,
+    "Ketu": 6.22
 }
 
 # สูตร มายโหรรา (MYHORO)
@@ -25,7 +25,7 @@ PLANET_MYHORO = {
     "Venus": -2.15,
     "Saturn": -3.29,
     "Rahu": -0.68,
-    "Ketu": 0.0,
+    "Ketu": 6.22
 }
 
 def get_preset_correction(mode, planet_name):

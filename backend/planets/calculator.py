@@ -84,8 +84,10 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode="LAHI
     raw_rahu["degree_in_sign"] = raw_rahu["longitude"] % 30
     results["Rahu"] = raw_rahu
     
-    # Calculate Ketu based on mode
-    if ketu_mode.lower() == "vedic":
+    # Calculate Ketu based on mode (Force Vedic logic for HYBRID and MYHORO)
+    is_hybrid_or_myhoro = ayanamsa_mode in ["HYBRID", "MYHORO"]
+    
+    if ketu_mode.lower() == "vedic" or is_hybrid_or_myhoro:
         # Vedic Ketu is exactly 180 degrees from Rahu
         rahu_lon = results["Rahu"]["longitude"]
         ketu_lon = (rahu_lon + 180) % 360
