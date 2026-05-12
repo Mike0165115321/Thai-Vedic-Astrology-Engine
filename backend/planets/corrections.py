@@ -25,7 +25,7 @@ PLANET_MYHORO = {
     "Venus": -2.15,
     "Saturn": -3.29,
     "Rahu": -0.68,
-    "Ketu": 6.22
+    "Ketu": 16.42,
 }
 
 def get_preset_correction(mode, planet_name):
