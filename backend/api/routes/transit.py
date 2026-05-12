@@ -21,10 +21,13 @@ def calculate_transit_endpoint(data: TransitRequest):
             day=data.transit_day,
             hour=data.transit_hour,
             minute=data.transit_minute,
-            lat=data.birth_data.lat, # Usually transit is relative to current location, but often we use birth location for simplicity or let user choose.
+            lat=data.birth_data.lat,
             lon=data.birth_data.lon,
             timezone=data.transit_timezone,
-            ayanamsa_mode=data.birth_data.ayanamsa_mode
+            ayanamsa_mode=data.birth_data.ayanamsa_mode,
+            node_type=data.birth_data.node_type,
+            ketu_mode=data.birth_data.ketu_mode,
+            planet_corrections=data.birth_data.planet_corrections
         )
         
         # 3. Calculate Transit Chart

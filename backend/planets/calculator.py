@@ -1,6 +1,10 @@
 import swisseph as swe
 from core.constants import DEFAULT_AYANAMSA
 from core.ayanamsa import set_ayanamsa
+try:
+    from planets.corrections import apply_correction, get_preset_correction
+except ImportError:
+    from .corrections import apply_correction, get_preset_correction
 
 # Planet IDs for internal use
 PLANET_IDS = {
@@ -15,7 +19,7 @@ PLANET_IDS = {
     "Uranus": swe.URANUS,
 }
 
-def calculate_planet_position(jd, planet_id, is_sidereal=True):
+def calculate_planet_position(jd, planet_id, is_sidereal=True, planet_name=None):
     """Calculates the position of a planet."""
     
     flags = swe.FLG_SWIEPH | swe.FLG_SPEED
@@ -41,12 +45,24 @@ def calculate_planet_position(jd, planet_id, is_sidereal=True):
     }
 
 
-def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode="LAHIRI"):
+def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode="LAHIRI", planet_corrections=None):
     """Calculates positions for all 9 planets (including Ketu)."""
     results = {}
     
     is_sidereal = (ayanamsa_mode.upper() != "TROPICAL")
     
+    # Use corrections from Presets AND Manual Overrides from API
+    def get_corrected_lon(name, raw_lon):
+        # Base offset from the selected calendar mode (Preset)
+        preset_offset = get_preset_correction(ayanamsa_mode, name)
+        
+        # Manual offset from the UI (Override)
+        manual_offset = 0.0
+        if planet_corrections and name in planet_corrections:
+            manual_offset = float(planet_corrections[name])
+            
+        return (raw_lon + preset_offset + manual_offset) % 360
+
     # Set Rahu ID based on node_type
     rahu_id = swe.MEAN_NODE if node_type.upper() == "MEAN" else swe.TRUE_NODE
     
@@ -54,16 +70,26 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode="LAHI
     standard_planets = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Uranus"]
     for name in standard_planets:
         p_id = PLANET_IDS[name]
-        results[name] = calculate_planet_position(jd, p_id, is_sidereal=is_sidereal)
+        raw_pos = calculate_planet_position(jd, p_id, is_sidereal=is_sidereal)
+        raw_pos["longitude"] = get_corrected_lon(name, raw_pos["longitude"])
+        # Re-calculate sign/degree after correction
+        raw_pos["sign"] = int(raw_pos["longitude"] / 30) + 1
+        raw_pos["degree_in_sign"] = raw_pos["longitude"] % 30
+        results[name] = raw_pos
         
     # Calculate Rahu
-    results["Rahu"] = calculate_planet_position(jd, rahu_id, is_sidereal=is_sidereal)
+    raw_rahu = calculate_planet_position(jd, rahu_id, is_sidereal=is_sidereal)
+    raw_rahu["longitude"] = get_corrected_lon("Rahu", raw_rahu["longitude"])
+    raw_rahu["sign"] = int(raw_rahu["longitude"] / 30) + 1
+    raw_rahu["degree_in_sign"] = raw_rahu["longitude"] % 30
+    results["Rahu"] = raw_rahu
     
     # Calculate Ketu based on mode
     if ketu_mode.lower() == "vedic":
         # Vedic Ketu is exactly 180 degrees from Rahu
         rahu_lon = results["Rahu"]["longitude"]
         ketu_lon = (rahu_lon + 180) % 360
+        ketu_lon = get_corrected_lon("Ketu", ketu_lon)
         
         results["Ketu"] = {
             "longitude": ketu_lon,
@@ -84,6 +110,7 @@ def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode="LAHI
         jd_epoch = 2415020.5
         days_since_epoch = jd - jd_epoch
         ketu_lon = (288.0 + (days_since_epoch * 40.0 / 60.0)) % 360
+        ketu_lon = get_corrected_lon("Ketu", ketu_lon)
         
         results["Ketu"] = {
             "longitude": ketu_lon,

@@ -42,7 +42,8 @@ def calculate_birth_chart(data: BirthData):
         jd, 
         node_type=data.node_type,
         ketu_mode=data.ketu_mode,
-        ayanamsa_mode=data.ayanamsa_mode
+        ayanamsa_mode=data.ayanamsa_mode,
+        planet_corrections=data.planet_corrections
     )
     
     # 4. Calculate Houses based on selected system

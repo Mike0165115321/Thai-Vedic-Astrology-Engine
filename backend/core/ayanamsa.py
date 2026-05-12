@@ -3,16 +3,10 @@ import swisseph as swe
 # Mapping of Ayanamsa names to Swiss Ephemeris IDs
 AYANAMSA_MODES = {
     "LAHIRI": swe.SIDM_LAHIRI,
-    "RAMAN": swe.SIDM_RAMAN,
-    "KRISHNAMURTI": swe.SIDM_KRISHNAMURTI,
-    "FAGAN_BRADLEY": swe.SIDM_FAGAN_BRADLEY,
-    "JN_BHASIN": swe.SIDM_JN_BHASIN,
-    "YUKTESHWAR": swe.SIDM_YUKTESHWAR,
-    "SURYASIDDHANTA": swe.SIDM_SURYASIDDHANTA,
-    "SURYASIDDHANTA_MSUN": swe.SIDM_SURYASIDDHANTA_MSUN,
-    "SURYAYART": swe.SIDM_SURYASIDDHANTA,  # Using Surya Siddhanta as the base for Suriyayart
-    "TRUE_CITRA": swe.SIDM_TRUE_CITRA,
-    "TROPICAL": -1, # Flag for Tropical (no sidereal mode)
+    "SURYAYART": swe.SIDM_SURYASIDDHANTA,
+    "HYBRID": swe.SIDM_LAHIRI,
+    "MYHORO": swe.SIDM_LAHIRI,
+    "TROPICAL": -1,
 }
 
 def set_ayanamsa(mode_name="LAHIRI"):

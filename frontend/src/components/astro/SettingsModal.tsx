@@ -23,15 +23,14 @@ export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProp
         <div className="space-y-4 text-xs">
           <Section 
             title="ปฏิทินอายนางศ (Ayanamsa)" 
-            options={["LAHIRI", "RAMAN", "KRISHNAMURTI", "FAGAN_BRADLEY", "JN_BHASIN", "YUKTESHWAR", "SURYASIDDHANTA", "SURYASIDDHANTA_MSUN", "SURYAYART", "TRUE_CITRA", "TROPICAL"]} 
+            options={["LAHIRI", "SURYAYART", "HYBRID", "MYHORO"]} 
             active={ayanamsa} 
             onChange={(val) => onUpdate({ ayanamsa_mode: val })}
             labels={{
-              "SURYAYART": "สุริยยาตร์ (ไทย)",
               "LAHIRI": "ลาหิรี (Vedic)",
-              "TROPICAL": "สายนะ (Western)",
-              "SURYASIDDHANTA": "สุริยสิทธันตะ",
-              "SURYASIDDHANTA_MSUN": "สุริยสิทธันตะ (MSun)"
+              "SURYAYART": "สุริยยาตร์ (ไทย)",
+              "HYBRID": "ลาหิรีผสมสุริยาต",
+              "MYHORO": "มายโหรรา (MyHoro)"
             }}
           />
           <Section 
@@ -60,6 +59,29 @@ export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProp
             active={aspectOrb} 
             onChange={(val) => onUpdate({ aspect_orb: parseInt(val) })}
           />
+
+          <div className="pt-4 border-t border-border/40">
+            <h3 className="text-[10px] font-bold text-primary uppercase tracking-widest mb-4">ปรับจูนองศาดาว (Manual Tuning)</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"].map((p) => (
+                <div key={p} className="space-y-1">
+                  <label className="text-[9px] font-bold text-muted-foreground uppercase">{p}</label>
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    className="w-full bg-muted/40 border border-border rounded px-2 py-1 text-[11px] outline-none focus:border-primary/50"
+                    value={settings.planet_corrections?.[p] || 0}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value) || 0;
+                      const newCorrections = { ...(settings.planet_corrections || {}), [p]: val };
+                      onUpdate({ planet_corrections: newCorrections });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-[9px] text-muted-foreground italic">* ค่าที่ใส่จะบวก/ลบจากองศาจริง เช่น -0.41 หรือ +2.95</p>
+          </div>
         </div>
       </div>
     </div>

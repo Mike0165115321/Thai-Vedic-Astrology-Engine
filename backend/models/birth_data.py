@@ -20,5 +20,6 @@ class BirthData(BaseModel):
     ketu_mode: Optional[str] = DEFAULT_KETU_MODE  # vedic or thai
     house_system: Optional[str] = "Whole Sign"
     aspect_orb: Optional[float] = 5.0
+    planet_corrections: Optional[dict] = None
 
 

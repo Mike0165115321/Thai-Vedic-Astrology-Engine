@@ -36,7 +36,11 @@ export default function Home() {
     node_type: "TRUE",
     ketu_mode: "vedic",
     house_system: "Whole Sign",
-    aspect_orb: 5
+    aspect_orb: 5,
+    planet_corrections: {
+      "Sun": 0.0, "Moon": 0.0, "Mars": 0.0, "Mercury": 0.0,
+      "Jupiter": 0.0, "Venus": 0.0, "Saturn": 0.0, "Rahu": 0.0, "Ketu": 0.0
+    }
   });
   const currentBirthData = useRef<BirthFormData | null>(null);
   const transitTimer = useRef<NodeJS.Timeout | null>(null);
@@ -153,6 +157,13 @@ export default function Home() {
     }, 400);
   }, []);
 
+  // Auto-recalculate when settings change
+  useEffect(() => {
+    if (currentBirthData.current) {
+      calculateChart(currentBirthData.current);
+    }
+  }, [globalSettings.ayanamsa_mode, globalSettings.node_type, globalSettings.ketu_mode, globalSettings.house_system, globalSettings.planet_corrections]);
+
   // Auto-sync to current time when entering Transit mode
   useEffect(() => {
     if (mode === "Transit" && currentBirthData.current) {
@@ -239,7 +250,8 @@ export default function Home() {
         node_type: globalSettings.node_type,
         ketu_mode: globalSettings.ketu_mode,
         house_system: globalSettings.house_system,
-        aspect_orb: globalSettings.aspect_orb
+        aspect_orb: globalSettings.aspect_orb,
+        planet_corrections: globalSettings.planet_corrections
       };
 
       const response = await fetch(API_ENDPOINTS.CALCULATE_CHART, {
@@ -294,7 +306,8 @@ export default function Home() {
         node_type: globalSettings.node_type,
         ketu_mode: globalSettings.ketu_mode,
         house_system: globalSettings.house_system,
-        aspect_orb: globalSettings.aspect_orb
+        aspect_orb: globalSettings.aspect_orb,
+        planet_corrections: globalSettings.planet_corrections
       };
       const payloadB = {
         ...dataB,
@@ -302,7 +315,8 @@ export default function Home() {
         node_type: globalSettings.node_type,
         ketu_mode: globalSettings.ketu_mode,
         house_system: globalSettings.house_system,
-        aspect_orb: globalSettings.aspect_orb
+        aspect_orb: globalSettings.aspect_orb,
+        planet_corrections: globalSettings.planet_corrections
       };
       
       const response = await fetch(API_ENDPOINTS.CALCULATE_COMPARE, {

@@ -80,6 +80,7 @@ export interface BirthFormData {
   ketu_mode?: "vedic" | "thai";
   house_system?: string;
   aspect_orb?: number;
+  planet_corrections?: { [key: string]: number };
 }
 
 export interface CompareResponse {
