@@ -432,10 +432,7 @@ export function ZodiacWheel({
                   <text x="12" y="-12" fontSize="10" fill="var(--destructive)" fontWeight="bold" style={{ filter: "drop-shadow(0 0 2px black)" }}>พ</text>
                 )}
 
-                {/* Transit Indicator */}
-                {p.isTransit && !p.isLagna && (
-                  <circle cx="12" cy="12" r="3.5" fill="var(--primary)" stroke="black" strokeWidth="1" />
-                )}
+
               </g>
           </motion.g>
         );
