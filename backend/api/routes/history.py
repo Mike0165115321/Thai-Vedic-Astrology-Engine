@@ -17,7 +17,7 @@ class HistoryCreate(BaseModel):
     lat: float
     lon: float
     timezone: str
-    ayanamsa_mode: str = "LAHIRI"
+    ayanamsa_mode: str = "HYBRID"
     custom_ayanamsa_offset: float = 0.0
 
 class HistoryResponse(HistoryCreate):

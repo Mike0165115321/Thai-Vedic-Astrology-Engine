@@ -21,7 +21,7 @@ PLANETS = {
 }
 
 # Ayanamsa — default mode (must match keys in core/ayanamsa.py AYANAMSA_MODES)
-DEFAULT_AYANAMSA = "LAHIRI"
+DEFAULT_AYANAMSA = "HYBRID"
 AYANAMSA_LIST = [
     "LAHIRI", "SURYAYART", "HYBRID", "MYHORO", "TROPICAL"
 ]

@@ -13,7 +13,7 @@ def scan_transits(
     end_date: datetime,
     planet_names: List[str],
     step_days: float = 1.0,
-    ayanamsa_mode: str = "LAHIRI",
+    ayanamsa_mode: str = "HYBRID",
     natal_data: Optional[Dict] = None
 ) -> List[Dict[str, Any]]:
     """

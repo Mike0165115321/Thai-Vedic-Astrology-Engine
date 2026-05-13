@@ -9,7 +9,7 @@ AYANAMSA_MODES = {
     "TROPICAL": -1,
 }
 
-def set_ayanamsa(mode_name="LAHIRI"):
+def set_ayanamsa(mode_name="HYBRID"):
     """
     Sets the sidereal mode for Swiss Ephemeris.
     """

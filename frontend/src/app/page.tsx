@@ -35,7 +35,7 @@ export default function Home() {
   const [timelineData, setTimelineData] = useState<any>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [globalSettings, setGlobalSettings] = useState<Partial<BirthFormData>>({
-    ayanamsa_mode: "LAHIRI",
+    ayanamsa_mode: "HYBRID",
     node_type: "TRUE",
     ketu_mode: "vedic",
     house_system: "Whole Sign",

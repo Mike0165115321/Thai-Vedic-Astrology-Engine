@@ -2,7 +2,7 @@ import swisseph as swe
 from core.constants import DEFAULT_AYANAMSA, DEFAULT_HOUSE_SYSTEM
 from core.ayanamsa import set_ayanamsa
 
-def calculate_lagna(jd, lat, lon, house_system=DEFAULT_HOUSE_SYSTEM, ayanamsa_mode="LAHIRI"):
+def calculate_lagna(jd, lat, lon, house_system=DEFAULT_HOUSE_SYSTEM, ayanamsa_mode=DEFAULT_AYANAMSA):
     """Calculates the Ascendant (Lagna) and House cusps."""
     
     is_sidereal = (ayanamsa_mode.upper() != "TROPICAL")

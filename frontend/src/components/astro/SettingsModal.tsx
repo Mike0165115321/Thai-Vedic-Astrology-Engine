@@ -8,7 +8,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ onClose, settings, onUpdate }: SettingsModalProps) {
-  const ayanamsa = settings.ayanamsa_mode || "LAHIRI";
+  const ayanamsa = settings.ayanamsa_mode || "HYBRID";
   const houseSystem = settings.house_system || "Whole Sign";
   const nodeType = settings.node_type || "TRUE";
   const aspectOrb = settings.aspect_orb?.toString() || "5";

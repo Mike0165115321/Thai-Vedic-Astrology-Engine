@@ -45,7 +45,7 @@ def calculate_planet_position(jd, planet_id, is_sidereal=True, planet_name=None)
     }
 
 
-def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode="LAHIRI", planet_corrections=None):
+def get_all_planets(jd, node_type="MEAN", ketu_mode="vedic", ayanamsa_mode=DEFAULT_AYANAMSA, planet_corrections=None):
     """Calculates positions for all 9 planets (including Ketu)."""
     results = {}
     

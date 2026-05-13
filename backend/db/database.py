@@ -26,7 +26,7 @@ class SavedChart(Base):
     lat = Column(Float)
     lon = Column(Float)
     timezone = Column(String, default="Asia/Bangkok")
-    ayanamsa_mode = Column(String, default="LAHIRI")
+    ayanamsa_mode = Column(String, default="HYBRID")
     custom_ayanamsa_offset = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
