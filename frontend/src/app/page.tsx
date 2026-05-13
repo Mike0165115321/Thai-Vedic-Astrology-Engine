@@ -9,6 +9,7 @@ import { RightPanel } from "@/components/astro/RightPanel";
 import { AIAssistant } from "@/components/astro/AIAssistant";
 import { SettingsModal } from "@/components/astro/SettingsModal";
 import { TransitScannerModal } from "@/components/astro/TransitScannerModal";
+import { ExportNatalModal, ExportConfig } from "@/components/astro/ExportNatalModal";
 import TransitReport from "@/components/astro/TransitReport";
 import { ChartData, BirthFormData, CompareResponse } from "@/types/chart";
 import { TransitTimelineReport } from "@/components/astro/TransitTimelineReport";
@@ -23,7 +24,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"Natal" | "Synastry" | "Transit">("Natal");
   const [settings, setSettings] = useState(false);
-  const [exportModal, setExportModal] = useState(false);
+  const [exportModal, setExportModal] = useState(false); // Transit Scanner
+  const [natalExportModal, setNatalExportModal] = useState(false); // Natal Export
+  const [exportConfig, setExportConfig] = useState<ExportConfig | null>(null);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [synastryFocus, setSynastryFocus] = useState<"A" | "B" | "Both">("Both");
   const [hasMounted, setHasMounted] = useState(false);
@@ -361,32 +364,41 @@ export default function Home() {
     }
   };
 
-  const handleExportNatalJSON = () => {
-    if (!chartData) {
-        alert("กรุณาเลือกหรือคำนวณดวงชะตาก่อน");
-        return;
+  const handleExportNatal = (config: ExportConfig) => {
+    if (!chartData) return;
+
+    if (config.format === 'JSON') {
+        const exportData = {
+            type: "NATAL_REPORT",
+            name: currentBirthData.current?.name || "ไม่ระบุชื่อ",
+            birth_data: currentBirthData.current,
+            chart_data: chartData,
+            config: config,
+            exported_at: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+        const firstName = exportData.name.split(" ")[0];
+        const fileName = `Natal_${firstName}_${new Date().getTime()}.json`;
+        
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setNatalExportModal(false);
+    } else {
+        // PDF format: Show the TransitReport but with natal data and config
+        setReportData({
+            natal_chart: chartData,
+            // Add other fields if TransitReport needs them
+        });
+        setExportConfig(config);
+        setShowReport(true);
+        setNatalExportModal(false);
     }
-    
-    // Pure Natal Data Export (No Transits)
-    const exportData = {
-        type: "NATAL_REPORT",
-        name: currentBirthData.current?.name || "ไม่ระบุชื่อ",
-        birth_data: currentBirthData.current,
-        chart_data: chartData,
-        exported_at: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-    const firstName = exportData.name.split(" ")[0];
-    const fileName = `Natal_${firstName}_${new Date().getTime()}.json`;
-    
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
   };
 
   if (!hasMounted) return null;
@@ -396,7 +408,7 @@ export default function Home() {
       <TopBar 
         onSettings={() => setSettings(true)} 
         onTransitScan={() => setExportModal(true)}
-        onExportNatalJSON={handleExportNatalJSON}
+        onExportNatal={() => setNatalExportModal(true)}
         currentChartType={chartType}
         onChartTypeChange={setChartType}
       />
@@ -515,6 +527,14 @@ export default function Home() {
         />
       )}
 
+      {natalExportModal && (
+        <ExportNatalModal 
+          onClose={() => setNatalExportModal(false)}
+          chartName={currentBirthData.current?.name || "ดวงชะตา"}
+          onExport={handleExportNatal}
+        />
+      )}
+
       {settings && (
         <SettingsModal 
           onClose={() => setSettings(false)} 
@@ -528,7 +548,11 @@ export default function Home() {
       {showReport && (
         <TransitReport 
           data={reportData} 
-          onClose={() => setShowReport(false)} 
+          onClose={() => {
+            setShowReport(false);
+            setExportConfig(null);
+          }} 
+          config={exportConfig || undefined}
         />
       )}
 

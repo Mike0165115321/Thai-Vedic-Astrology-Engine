@@ -110,7 +110,7 @@ export function ExportNatalModal({ onClose, onExport, chartName }: ExportNatalMo
               {Object.entries({
                 basicInfo: "ข้อมูลพื้นฐาน",
                 planetTable: "ตารางดาสถิต",
-                yogas: "เกณฑ์ชะตาพิเศษ",
+                yogas: "โยค / เกณฑ์ชะตาพิเศษ",
                 dasha: "ทักษา/วิมโชตตรี"
               }).map(([key, label]) => (
                 <button

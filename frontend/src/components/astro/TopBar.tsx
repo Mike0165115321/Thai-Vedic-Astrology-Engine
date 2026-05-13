@@ -2,13 +2,13 @@ import { Download, Settings, FileJson } from "lucide-react";
 
 export function TopBar({ 
   onSettings, 
-  onExportNatalJSON,
+  onExportNatal,
   onTransitScan,
   currentChartType, 
   onChartTypeChange 
 }: { 
   onSettings: () => void,
-  onExportNatalJSON?: () => void,
+  onExportNatal?: () => void,
   onTransitScan?: () => void,
   currentChartType: string,
   onChartTypeChange: (type: 'D1' | 'D3' | 'D9' | 'CAL') => void
@@ -48,10 +48,10 @@ export function TopBar({
 
       <div className="flex items-center gap-1.5">
         <button 
-          onClick={onExportNatalJSON}
+          onClick={onExportNatal}
           className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted text-primary font-bold"
         >
-          <FileJson className="h-3.5 w-3.5" /> JSON กำเนิด
+          <Download className="h-3.5 w-3.5" /> ส่งออกข้อมูล (Export)
         </button>
         <button 
           onClick={onTransitScan}
