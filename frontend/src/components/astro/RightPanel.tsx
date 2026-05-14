@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { SIGNS } from "./data";
+import { HelpCircle } from "lucide-react";
 import { ChartData, CompareResponse } from "@/types/chart";
 import { THAI_NAKSHATRAS } from "./nakshatra_data";
 
@@ -208,6 +209,16 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
                           </div>
                           <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary/80 mb-4 flex items-center gap-2">
                              วิเคราะห์วาสนา (อินทภาส-บาทจันทร์)
+                             <div className="group/tooltip relative cursor-help inline-flex items-center">
+                                 <HelpCircle className="w-3.5 h-3.5 text-primary/40 hover:text-primary transition-colors" />
+                                 <div className="absolute right-0 top-6 w-72 p-4 bg-slate-900/95 border border-primary/30 rounded-2xl text-[12px] text-white/90 font-medium hidden group-hover/tooltip:block z-50 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200">
+                                     <div className="flex items-center gap-2 mb-2 border-b border-white/10 pb-2">
+                                         <span className="text-lg">📜</span>
+                                         <p className="text-primary font-black uppercase tracking-wider">อินทภาส-บาทจันทร์</p>
+                                     </div>
+                                     <p className="opacity-80">วิชาโหรหลวงชั้นสูงที่ใช้หา <span className="text-amber-400 font-bold">"ดาวคุมวาสนา"</span> เพื่อดูว่าดาวดวงไหนให้คุณสูงสุดและเป็นตัวตัดสินความสำเร็จในชีวิตของคุณ</p>
+                                 </div>
+                             </div>
                           </h3>
                           
                           <div className="space-y-4">

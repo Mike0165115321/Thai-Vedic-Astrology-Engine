@@ -68,6 +68,7 @@ def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
                 "planet": m_planet,
                 "start": max(temp_mahadasha_date, birth_datetime).isoformat(),
                 "end": m_end_date.isoformat(),
+                "duration": m_years,
                 "is_current": max(temp_mahadasha_date, birth_datetime) <= now_utc <= m_end_date,
                 "antardashas": antardashas
             })

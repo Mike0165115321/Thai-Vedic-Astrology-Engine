@@ -80,6 +80,7 @@ export interface BirthFormData {
   minute: number;
   lat: number;
   lon: number;
+  location?: string;
   timezone: string;
   ayanamsa_mode?: string;
   node_type?: "MEAN" | "TRUE";

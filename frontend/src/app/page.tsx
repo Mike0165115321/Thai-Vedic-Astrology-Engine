@@ -390,10 +390,18 @@ export default function Home() {
         a.remove();
         setNatalExportModal(false);
     } else {
-        // PDF format: Show the TransitReport but with natal data and config
+        // PDF format: Construct a complete report data object with metadata
+        const birth = currentBirthData.current;
+        const formattedDate = birth ? `${birth.day}/${birth.month}/${birth.year + 543} เวลา ${String(birth.hour).padStart(2, '0')}:${String(birth.minute).padStart(2, '0')} น.` : "-";
+        const formattedLoc = birth ? (birth.location || `${birth.lat.toFixed(4)}, ${birth.lon.toFixed(4)}`) : "-";
+
         setReportData({
-            natal_chart: chartData,
-            // Add other fields if TransitReport needs them
+            natal_chart: {
+                ...chartData,
+                name: birth?.name || "ไม่ระบุชื่อ",
+                birth_date: formattedDate,
+                location: formattedLoc
+            }
         });
         setExportConfig(config);
         setShowReport(true);

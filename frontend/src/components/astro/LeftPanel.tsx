@@ -230,7 +230,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                   </div>
                 </div>
 
-                <LocationSearch onSelect={(lat, lon) => setFormData(p => ({ ...p, lat, lon }))} />
+                <LocationSearch onSelect={(lat, lon, name) => setFormData(p => ({ ...p, lat, lon, location: name }))} />
               </div>
 
               {/* คนที่ 2 */}
@@ -297,7 +297,7 @@ export function LeftPanel({ mode, setMode, onCalculate, onCalculateCompare, load
                         <input type="number" value={formDataB.minute} onChange={(e) => handleInputChange("minute", e.target.value, true)} className="w-full rounded-lg border border-border bg-muted/10 px-3 py-2 text-[13px] outline-none font-medium" />
                     </div>
                   </div>
-                  <LocationSearch onSelect={(lat, lon) => setFormDataB(prev => ({ ...prev, lat, lon }))} />
+                  <LocationSearch onSelect={(lat, lon, name) => setFormDataB(prev => ({ ...prev, lat, lon, location: name }))} />
                 </div>
               )}
 

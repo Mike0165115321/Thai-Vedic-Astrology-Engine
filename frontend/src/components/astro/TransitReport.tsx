@@ -139,6 +139,33 @@ const TransitReport: React.FC<TransitReportProps> = ({ data, onClose, config }) 
           </div>
         )}
 
+        {/* Advanced Analysis Section (Inthaphas-Batchan) */}
+        {natal_chart?.advanced_analysis && (
+          <section className="mb-6 p-4 bg-slate-50 border border-slate-300 rounded-lg">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">👑</span>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ดาวอินทภาส (วาสนา)</p>
+                  <p className="text-sm font-black text-slate-900">ดาว{getThaiPlanetName(natal_chart.advanced_analysis.inthaphas.planet)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⭐</span>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">ดาวบาทจันทร์ (โชคลาภ)</p>
+                  <p className="text-sm font-black text-slate-900">ดาว{getThaiPlanetName(natal_chart.advanced_analysis.batchan.planet)}</p>
+                </div>
+              </div>
+              {natal_chart.advanced_analysis.is_dual_lord && (
+                <div className="ml-auto flex items-center gap-2 px-3 py-1 bg-amber-100 border border-amber-200 rounded text-amber-800 font-bold text-[11px]">
+                  <span>💎</span> ดาวดวงเดียวกันคุมทั้งสองตำแหน่ง (วาสนาสูงส่งพิเศษ)
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* Master Table Section */}
         {(!config || config.sections.planetTable) && (
           <section className="mt-4">
@@ -164,7 +191,11 @@ const TransitReport: React.FC<TransitReportProps> = ({ data, onClose, config }) 
                         <span className="font-bold text-[16px] leading-none">
                           {Object.entries({Sun:"๑",Moon:"๒",Mars:"๓",Mercury:"๔",Jupiter:"๕",Venus:"๖",Saturn:"๗",Rahu:"๘",Ketu:"๙",Uranus:"๐"}).find(([k])=>k===name)?.[1]}
                         </span>
-                        <span className="text-[11px] font-medium">{getThaiPlanetName(name)}</span>
+                        <div className="flex items-center gap-0.5">
+                          <span className="text-[11px] font-medium">{getThaiPlanetName(name)}</span>
+                          {natal_chart?.advanced_analysis?.inthaphas?.planet === name && <span className="text-[9px]">👑</span>}
+                          {natal_chart?.advanced_analysis?.batchan?.planet === name && <span className="text-[9px]">⭐</span>}
+                        </div>
                       </div>
                     </td>
                     {(!config || config.tableColumns.degrees) && <td className="px-1 py-3 border-r border-slate-200 text-[13px] font-medium">{formatDegree(p.longitude)}</td>}
@@ -295,7 +326,42 @@ const TransitReport: React.FC<TransitReportProps> = ({ data, onClose, config }) 
           </section>
         )}
 
-        {/* Dasha section was here, removed per user request */}
+        {/* Dasha Timeline Section */}
+        {(!config || config.sections.dasha) && natal_chart?.dasha_timeline && (
+          <section className="mt-8 break-inside-avoid">
+            <h3 className="text-lg font-black text-slate-900 border-b-2 border-slate-800 pb-1 mb-4">ลำดับมหาทศา (Vimshottari Dasha)</h3>
+            <div className="grid grid-cols-1 gap-2">
+              {natal_chart.dasha_timeline.slice(0, 9).map((d: any, idx: number) => {
+                const start = new Date(d.start).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+                const end = new Date(d.end).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+                
+                // Highlight if it's the Inthaphas/Batchan planet
+                const isMaster = natal_chart.advanced_analysis?.inthaphas?.planet === d.planet || 
+                                 natal_chart.advanced_analysis?.batchan?.planet === d.planet;
+
+                return (
+                  <div key={idx} className={`flex items-center justify-between p-2.5 border rounded ${isMaster ? 'bg-amber-50 border-amber-300' : 'bg-white border-slate-200'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm">
+                        {Object.entries({Sun:"๑",Moon:"๒",Mars:"๓",Mercury:"๔",Jupiter:"๕",Venus:"๖",Saturn:"๗",Rahu:"๘",Ketu:"๙"}).find(([k])=>k===d.planet)?.[1]}
+                      </span>
+                      <div>
+                        <p className="text-[13px] font-bold text-slate-900">
+                          มหาทศา{getThaiPlanetName(d.planet)} 
+                          {isMaster && <span className="ml-2 text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-200">ดาวคุมชะตาทำงาน</span>}
+                        </p>
+                        <p className="text-[11px] text-slate-500">{start} — {end}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] font-bold text-slate-400">ระยะเวลา {d.duration} ปี</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <div className="mt-6 pt-4 border-t-2 border-slate-800 flex justify-between items-end text-slate-500 text-[12px]">
           <div>
