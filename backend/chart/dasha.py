@@ -11,21 +11,23 @@ DASHA_YEARS = {
 def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
     """
     Calculates the Vimshottari Dasha timeline from birth (Mahadasha & Antardasha).
+    Uses high-precision floating point for durations to prevent date drift.
     """
-    # 13°20' = 800 minutes
-    naks_index = int(moon_longitude / (13 + 1/3))
-    degree_in_naks = moon_longitude % (13 + 1/3)
+    DAYS_IN_YEAR = 365.2422
+    NAKS_DEG = 13.333333333333334
+    
+    naks_index = int(moon_longitude / NAKS_DEG)
+    degree_in_naks = moon_longitude % NAKS_DEG
     
     start_planet_idx = naks_index % 9
-    total_naks_deg = 13 + 1/3
     start_planet = DASHA_ORDER[start_planet_idx]
     total_years = DASHA_YEARS[start_planet]
     
-    consumed_years = (degree_in_naks / total_naks_deg) * total_years
+    consumed_years = (degree_in_naks / NAKS_DEG) * total_years
     now_utc = datetime.now(pytz.UTC)
     
-    # Start from the beginning of the first dasha in the cycle
-    cycle_start_date = birth_datetime - timedelta(days=int(consumed_years * 365.2422))
+    # Start from the beginning of the first dasha in the cycle (no int truncation)
+    cycle_start_date = birth_datetime - timedelta(days=consumed_years * DAYS_IN_YEAR)
     
     timeline = []
     temp_mahadasha_date = cycle_start_date
@@ -33,7 +35,7 @@ def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
     for i in range(9):
         m_planet = DASHA_ORDER[(start_planet_idx + i) % 9]
         m_years = DASHA_YEARS[m_planet]
-        m_end_date = temp_mahadasha_date + timedelta(days=int(m_years * 365.2422))
+        m_end_date = temp_mahadasha_date + timedelta(days=m_years * DAYS_IN_YEAR)
         
         # Only process if this Mahadasha ends after birth
         if m_end_date > birth_datetime:
@@ -48,8 +50,8 @@ def calculate_vimshottari_dasha(moon_longitude, birth_datetime):
                 a_planet = DASHA_ORDER[(m_planet_order_idx + j) % 9]
                 a_years = DASHA_YEARS[a_planet]
                 # Formula: (Mahadasha Years * Antardasha Years) / 120
-                a_duration_days = (m_years * a_years * 365.2422) / 120
-                a_end_date = temp_antardasha_date + timedelta(days=int(a_duration_days))
+                a_duration_days = (m_years * a_years * DAYS_IN_YEAR) / 120
+                a_end_date = temp_antardasha_date + timedelta(days=a_duration_days)
                 
                 # Only add Antardasha if it overlaps with post-birth period
                 if a_end_date > birth_datetime:
