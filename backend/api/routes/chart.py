@@ -13,6 +13,7 @@ from chart.divisional import get_divisional_positions
 from chart.lunar import get_lunar_data
 from chart.dasha import calculate_vimshottari_dasha
 from chart.house_lords import get_house_lords, get_planet_lordships
+from chart.advanced_analysis import calculate_inthaphas_batchan
 from chart.yogas import detect_yogas
 from datetime import datetime
 
@@ -89,6 +90,9 @@ def calculate_birth_chart(data: BirthData):
     d9_house_lords = get_house_lords(d9_lagna["sign"])
     d9_planet_lordships = get_planet_lordships(d9_lagna["sign"])
     
+    # 10B. Layer 4: Advanced Thai Analysis
+    advanced_analysis = calculate_inthaphas_batchan(planets_with_houses, lagna, house_lords)
+    
     # Attach lordship to planets for easy frontend access
     for name, p_data in planets_with_houses.items():
         p_data["lordships"] = planet_lordships.get(name, [])
@@ -121,6 +125,7 @@ def calculate_birth_chart(data: BirthData):
         "d9_lagna": d9_lagna,
         "lunar_data": lunar_data,
         "dasha_timeline": dasha_timeline,
+        "advanced_analysis": advanced_analysis,
         "house_lords": house_lords,
         "d3_house_lords": d3_house_lords,
         "d9_house_lords": d9_house_lords,

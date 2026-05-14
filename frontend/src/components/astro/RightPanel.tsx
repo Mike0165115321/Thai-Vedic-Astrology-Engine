@@ -128,6 +128,8 @@ function processChartPlanets(cData: any, ownerTag: string | null = null, ownerCo
             nakshatra: t ? `${t.name} (${naks.pada})` : "—",
             ownerTag,
             ownerColor,
+            isInthaphas: cData.advanced_analysis?.inthaphas?.planet === name,
+            isBatchan: cData.advanced_analysis?.batchan?.planet === name,
             cData
         });
     });
@@ -198,6 +200,50 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
             )}
             {tab === "ข้อมูลดาว" && (
               <div className="p-0 pb-12 divide-y divide-border/20">
+                  {/* สรุปอินทภาส-บาทจันทร์ (Advanced Analysis Card) */}
+                  {chartData?.advanced_analysis && (
+                      <div className="p-5 bg-(image:--gradient-cosmic) border-b border-primary/20 relative overflow-hidden group">
+                          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                              <span className="text-4xl">👑</span>
+                          </div>
+                          <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-primary/80 mb-4 flex items-center gap-2">
+                             วิเคราะห์วาสนา (อินทภาส-บาทจันทร์)
+                          </h3>
+                          
+                          <div className="space-y-4">
+                              <div className="flex items-center gap-4 bg-black/40 p-3 rounded-2xl border border-white/5 backdrop-blur-md">
+                                  <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-lg shadow-glow shadow-amber-500/20">👑</div>
+                                  <div>
+                                      <div className="text-[9px] font-bold text-amber-400/60 uppercase tracking-widest">ดาวอินทภาส (วาสนา)</div>
+                                      <div className="text-[14px] font-black text-white">
+                                          ดาว{planetThaiNames[chartData.advanced_analysis.inthaphas.planet]}
+                                          <span className="ml-2 text-[10px] text-muted-foreground font-medium">คุมอำนาจและการสนับสนุน</span>
+                                      </div>
+                                  </div>
+                              </div>
+
+                              <div className="flex items-center gap-4 bg-black/40 p-3 rounded-2xl border border-white/5 backdrop-blur-md">
+                                  <div className="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-lg shadow-glow shadow-indigo-500/20">⭐</div>
+                                  <div>
+                                      <div className="text-[9px] font-bold text-indigo-400/60 uppercase tracking-widest">ดาวบาทจันทร์ (โชคลาภ)</div>
+                                      <div className="text-[14px] font-black text-white">
+                                          ดาว{planetThaiNames[chartData.advanced_analysis.batchan.planet]}
+                                          <span className="ml-2 text-[10px] text-muted-foreground font-medium">คุมพื้นฐานชีวิตและโชคลาภ</span>
+                                      </div>
+                                  </div>
+                              </div>
+                              
+                              {chartData.advanced_analysis.is_dual_lord && (
+                                  <div className="mt-2 p-3 bg-primary/10 border border-primary/30 rounded-xl flex items-center gap-3 animate-pulse">
+                                      <span className="text-xl">💎</span>
+                                      <div className="text-[11px] font-bold text-primary leading-tight">
+                                          ดาวดวงเดียวกันคุมทั้งอินทภาสและบาทจันทร์! ถือเป็นดวงชะตาที่มี "วาสนาสูงส่ง" เป็นพิเศษ
+                                      </div>
+                                  </div>
+                              )}
+                          </div>
+                      </div>
+                  )}
                   {(() => {
                       if (mode === "Synastry" && personFocus === "Both") {
                           const dataA = processChartPlanets(natalData, "คนที่ 1", "bg-blue-500/20 text-blue-300 border-blue-500/30");
@@ -315,6 +361,8 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
                           dignityList: allStatuses,
                           nakshatra: thaiNak ? `${thaiNak.name} (${naks?.pada})` : "—",
                           color: planetColors[name] || "var(--accent)",
+                          isInthaphas: chartData.advanced_analysis?.inthaphas?.planet === name,
+                          isBatchan: chartData.advanced_analysis?.batchan?.planet === name,
                           cData: chartData
                         }
                       }) : [];
@@ -392,6 +440,8 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
                                                   {p.name} 
                                                   {p.isLagna && <span className="text-[10px] bg-warning/20 text-warning px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">ลัคนา</span>}
                                                   {p.retro && <span className="text-rose-500 font-bold text-[11px] bg-rose-500/10 px-1 rounded" title="โคจรพักร์ (ถอยหลัง)">พักร์</span>}
+                                                  {p.isInthaphas && <span className="text-[12px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-md border border-amber-500/30 shadow-glow flex items-center gap-1" title="ดาวอินทภาส (วาสนา)"><span className="text-[10px]">👑</span></span>}
+                                                  {p.isBatchan && <span className="text-[12px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-md border border-indigo-500/30 shadow-glow flex items-center gap-1" title="ดาวบาทจันทร์ (โชคลาภ)"><span className="text-[10px]">⭐</span></span>}
                                               </div>
                                               <div className="text-[11px] text-muted-foreground font-bold mt-1">
                                                   {d.deg}°{String(d.min).padStart(2, "0")}′ {d.sign.name_th}
@@ -484,6 +534,8 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
                                         <div className="flex items-center gap-2">
                                             <span className="font-bold text-[14px]" style={{ color: p.color }}>{p.symbol}</span>
                                             <span className="text-white/80 font-bold text-[11px]">{p.name}</span>
+                                            {p.isInthaphas && <span className="text-[10px]" title="อินทภาส">👑</span>}
+                                            {p.isBatchan && <span className="text-[10px]" title="บาทจันทร์">⭐</span>}
                                         </div>
                                     </td>
                                     <td className="py-3 px-1">

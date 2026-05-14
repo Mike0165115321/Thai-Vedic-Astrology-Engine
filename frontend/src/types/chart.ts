@@ -63,6 +63,12 @@ export interface ChartData {
     planet_nakshatras: { [key: string]: NakshatraInfo };
   };
   dasha_timeline: DashaPeriod[];
+  advanced_analysis?: {
+    inthaphas: { planet: string; sign: number; longitude: number };
+    batchan: { planet: string; sign: number };
+    is_dual_lord: boolean;
+    summary_th: string;
+  };
 }
 
 export interface BirthFormData {
