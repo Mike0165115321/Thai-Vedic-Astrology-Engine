@@ -141,6 +141,9 @@ export function ZodiacWheel({
             isLagna: false
         }));
     }
+    // Filter out invalid longitudes to prevent NaN coordinates causing items to get stuck at (0,0)
+    list = list.filter(p => typeof p.lon === 'number' && !isNaN(p.lon));
+
     if (natalLagna) {
         list.push({
             id: 'n-lagna',
@@ -171,6 +174,8 @@ export function ZodiacWheel({
             isLagna: false
         }));
     }
+    list = list.filter(p => typeof p.lon === 'number' && !isNaN(p.lon));
+
     if (compareLagna) {
         list.push({
             id: 'c-lagna',
@@ -202,6 +207,8 @@ export function ZodiacWheel({
             isLagna: false
         }));
     }
+    list = list.filter(p => typeof p.lon === 'number' && !isNaN(p.lon));
+
     if (transitLagna) {
         list.push({
             id: 't-lagna',
@@ -389,6 +396,7 @@ export function ZodiacWheel({
           <motion.g 
              key={p.id} 
              layout
+             initial={{ x: pos.x, y: pos.y }}
              animate={{ x: pos.x, y: pos.y }}
              transition={{ 
                 type: "spring", 
