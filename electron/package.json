@@ -1,0 +1,44 @@
+{
+  "name": "aetox-astro",
+  "version": "1.0.0",
+  "description": "Thai-Vedic Astrology Engine Desktop Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.aetox.astro",
+    "productName": "Aetox Astro",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "resources/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/backend-dist",
+        "to": "backend",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "resources/frontend-out/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}

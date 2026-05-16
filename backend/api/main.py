@@ -31,4 +31,20 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import sys
+    import io
+    
+    # Fix for PyInstaller console=False mode where standard streams are None
+    if sys.stdout is None:
+        sys.stdout = io.StringIO()
+    if sys.stderr is None:
+        sys.stderr = io.StringIO()
+
+    port = 8000
+    if len(sys.argv) > 1:
+        try:
+            port = int(sys.argv[1])
+        except ValueError:
+            pass
+    # Bind to localhost for security since it's a desktop app now
+    uvicorn.run(app, host="127.0.0.1", port=port)

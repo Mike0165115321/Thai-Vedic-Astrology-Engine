@@ -5,7 +5,16 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
 # Setup database path
-DB_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+import sys
+
+if getattr(sys, 'frozen', False):
+    # Running as compiled executable, use AppData
+    app_data = os.getenv('APPDATA') or os.path.expanduser('~')
+    DB_DIR = os.path.join(app_data, 'AetoxAstro', 'data')
+else:
+    # Running as script, use local data folder
+    DB_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+    
 os.makedirs(DB_DIR, exist_ok=True)
 DATABASE_URL = f"sqlite:///{os.path.join(DB_DIR, 'astrology.db')}"
 

@@ -5,7 +5,15 @@
  * In development, it defaults to http://localhost:8000
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+let dynamicPort = null;
+if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    dynamicPort = params.get('port');
+}
+
+const API_BASE_URL = dynamicPort 
+    ? `http://127.0.0.1:${dynamicPort}`
+    : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
 
 export const API_ENDPOINTS = {
     HISTORY: `${API_BASE_URL}/history/`,
