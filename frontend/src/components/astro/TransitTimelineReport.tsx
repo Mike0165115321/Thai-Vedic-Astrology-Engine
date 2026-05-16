@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Info, Star, AlertTriangle, ArrowRight, Download, Printer, X, Calendar } from 'lucide-react';
+import { Clock, Info, Star, AlertTriangle, ArrowRight, Download, Printer, X, Calendar, FileCode2 } from 'lucide-react';
 
 interface TransitTimelineReportProps {
   data: any;
@@ -135,6 +135,49 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
     a.remove();
   };
 
+  const handleExportMD = () => {
+    const personName = data.natal_chart?.name || 'ไม่ระบุชื่อ';
+    const firstName = personName.split(' ')[0];
+    const lines: string[] = [];
+
+    lines.push(`# 🔭 Transit Timeline — ${personName}`);
+    lines.push('');
+    lines.push(`> **AETOX ASTRO ENGINE** | สร้างเมื่อ: ${new Date().toLocaleString('th-TH')}`);
+    lines.push(`> ช่วงเวลา: ${scan_period_days} วัน | เหตุการณ์ทั้งหมด: ${total_events} รายการ`);
+    lines.push('');
+
+    years.forEach(year => {
+      lines.push(`## พ.ศ. ${year}`);
+      lines.push('');
+      Object.keys(groupedEvents[year]).map(Number).sort((a, b) => a - b).forEach(month => {
+        lines.push(`### ${monthsTh[month]}`);
+        lines.push('');
+        lines.push('| วันที่ | เหตุการณ์ | ความสำคัญ | สถานะ |');
+        lines.push('|--------|-----------|-----------|-------|');
+        groupedEvents[year][month].forEach((event: any) => {
+          const tier = getEventTier(event.planet);
+          const day = new Date(event.timestamp).getDate();
+          const tierLabel = tier === 'MAJOR' ? '🔥 จุดเปลี่ยน' : tier === 'IMPORTANT' ? '📌 สำคัญ' : 'ทั่วไป';
+          const status = event.status === 'RETROGRADE' ? 'พักร์ ℞' : event.dignity || '-';
+          lines.push(`| ${day} ${monthsTh[month]} | ${event.description} | ${tierLabel} | ${status} |`);
+        });
+        lines.push('');
+      });
+    });
+
+    lines.push('---');
+    lines.push(`*รายงานจาก AETOX ASTRO ENGINE v1.0 | สร้างเมื่อ ${new Date().toLocaleString('th-TH')}*`);
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Timeline_${firstName}_${new Date().getTime()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
   const handleExportICS = () => {
     let icsContent = [
       "BEGIN:VCALENDAR",
@@ -249,6 +292,9 @@ export function TransitTimelineReport({ data, onClose }: TransitTimelineReportPr
           </button>
           <button onClick={handleDownloadJSON} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2">
             <Download className="h-4 w-4" /> บันทึก JSON
+          </button>
+          <button onClick={handleExportMD} className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-bold hover:bg-emerald-100 transition-all flex items-center gap-2">
+            <FileCode2 className="h-4 w-4" /> บันทึก MD
           </button>
           <button onClick={handleExportICS} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-bold hover:bg-indigo-100 transition-all flex items-center gap-2">
             <Calendar className="h-4 w-4" /> บันทึกปฏิทิน (.ics)

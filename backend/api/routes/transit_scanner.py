@@ -99,6 +99,10 @@ def scan_transits_endpoint(data: TransitScanRequest):
             natal_data=data.natal_data
         )
         
+        # Inject name into natal_chart for frontend display
+        if natal_chart and data.natal_data and hasattr(data.natal_data, "name"):
+            natal_chart["name"] = data.natal_data.name
+
         return {
             "natal_chart": natal_chart,
             "initial_transits": initial_transits,

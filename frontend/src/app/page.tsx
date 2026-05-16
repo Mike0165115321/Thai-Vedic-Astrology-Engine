@@ -366,67 +366,56 @@ export default function Home() {
   };
 
   const handleExportNatal = (config: ExportConfig) => {
+    const name = currentBirthData.current?.name || "ไม่ระบุชื่อ";
+    const firstName = name.split(" ")[0];
+    const ts = new Date().getTime();
+
+    // ── Transit source ───────────────────────────────────────────
+    if (config.source === 'transit') {
+      if (!transitData) return;
+      if (config.format === 'JSON') {
+        const blob = new Blob([JSON.stringify({ type: "TRANSIT_REPORT", name, transit_data: transitData, exported_at: new Date().toISOString() }, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = `Transit_${firstName}_${ts}.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      } else {
+        // MD (only option besides JSON for transit)
+        const mdContent = generateTransitMarkdown(transitData, new Date());
+        downloadMarkdown(mdContent, `Transit_${firstName}_${ts}.md`);
+      }
+      setNatalExportModal(false);
+      return;
+    }
+
+    // ── Natal source ─────────────────────────────────────────────
     if (!chartData) return;
 
     if (config.format === 'JSON') {
-        const exportData = {
-            type: "NATAL_REPORT",
-            name: currentBirthData.current?.name || "ไม่ระบุชื่อ",
-            birth_data: currentBirthData.current,
-            chart_data: chartData,
-            config: config,
-            exported_at: new Date().toISOString()
-        };
-        
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-        const firstName = exportData.name.split(" ")[0];
-        const fileName = `Natal_${firstName}_${new Date().getTime()}.json`;
-        
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setNatalExportModal(false);
+      const exportData = { type: "NATAL_REPORT", name, birth_data: currentBirthData.current, chart_data: chartData, config, exported_at: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `Natal_${firstName}_${ts}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      setNatalExportModal(false);
     } else if (config.format === 'MD') {
-        const birth = currentBirthData.current;
-        const name = birth?.name || "ดวงชะตา";
-        const firstName = name.split(" ")[0];
-        const mdContent = generateNatalMarkdown(
-            { ...chartData, name },
-            birth,
-            config
-        );
-        downloadMarkdown(mdContent, `Natal_${firstName}_${new Date().getTime()}.md`);
-        setNatalExportModal(false);
+      const birth = currentBirthData.current;
+      const mdContent = generateNatalMarkdown({ ...chartData, name }, birth, config);
+      downloadMarkdown(mdContent, `Natal_${firstName}_${ts}.md`);
+      setNatalExportModal(false);
     } else {
-        // PDF format: Construct a complete report data object with metadata
-        const birth = currentBirthData.current;
-        const formattedDate = birth ? `${birth.day}/${birth.month}/${birth.year + 543} เวลา ${String(birth.hour).padStart(2, '0')}:${String(birth.minute).padStart(2, '0')} น.` : "-";
-        const formattedLoc = birth ? (birth.location || `${birth.lat.toFixed(4)}, ${birth.lon.toFixed(4)}`) : "-";
-
-        setReportData({
-            natal_chart: {
-                ...chartData,
-                name: birth?.name || "ไม่ระบุชื่อ",
-                birth_date: formattedDate,
-                location: formattedLoc
-            }
-        });
-        setExportConfig(config);
-        setShowReport(true);
-        setNatalExportModal(false);
+      // PDF
+      const birth = currentBirthData.current;
+      const formattedDate = birth ? `${birth.day}/${birth.month}/${birth.year + 543} เวลา ${String(birth.hour).padStart(2, '0')}:${String(birth.minute).padStart(2, '0')} น.` : "-";
+      const formattedLoc = birth ? (birth.location || `${birth.lat.toFixed(4)}, ${birth.lon.toFixed(4)}`) : "-";
+      setReportData({ natal_chart: { ...chartData, name, birth_date: formattedDate, location: formattedLoc } });
+      setExportConfig(config);
+      setShowReport(true);
+      setNatalExportModal(false);
     }
-  };
-
-  const handleExportTransitMD = () => {
-    if (!transitData) return;
-    const name = currentBirthData.current?.name || "ดาวจร";
-    const firstName = name.split(" ")[0];
-    const mdContent = generateTransitMarkdown(transitData, new Date());
-    downloadMarkdown(mdContent, `Transit_${firstName}_${new Date().getTime()}.md`);
   };
 
   if (!hasMounted) return null;
@@ -437,7 +426,6 @@ export default function Home() {
         onSettings={() => setSettings(true)} 
         onTransitScan={() => setExportModal(true)}
         onExportNatal={() => setNatalExportModal(true)}
-        onExportTransitMD={handleExportTransitMD}
         currentChartType={chartType}
         onChartTypeChange={setChartType}
       />
