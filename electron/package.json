@@ -14,13 +14,17 @@
       "output": "dist"
     },
     "files": [
-      "main.js",
-      "resources/**/*"
+      "main.js"
     ],
     "extraResources": [
       {
         "from": "resources/backend-dist",
         "to": "backend",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "resources/frontend-out",
+        "to": "frontend-out",
         "filter": ["**/*"]
       }
     ],

@@ -1,13 +1,16 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, protocol, net } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const { spawn } = require('child_process');
 const http = require('http');
+const url = require('url');
 
 let mainWindow;
 let backendProcess;
 let apiPort;
 
-// Get a random free port
+// ---------- Helpers ----------
+
 function getFreePort() {
   return new Promise((resolve, reject) => {
     const server = http.createServer();
@@ -19,7 +22,6 @@ function getFreePort() {
   });
 }
 
-// Wait for the backend to be ready
 function waitForBackend(port, maxRetries = 30) {
   return new Promise((resolve, reject) => {
     let retries = 0;
@@ -40,56 +42,78 @@ function waitForBackend(port, maxRetries = 30) {
   });
 }
 
+// ---------- Frontend root directory ----------
+
+function getFrontendDir() {
+  if (app.isPackaged) {
+    // electron-builder puts "files" inside resources/app.asar
+    // and "extraResources" beside it → resources/frontend-out
+    return path.join(process.resourcesPath, 'frontend-out');
+  }
+  return path.join(__dirname, 'resources', 'frontend-out');
+}
+
+// ---------- Backend ----------
+
 async function startBackend() {
   apiPort = await getFreePort();
-  console.log(`Starting backend on port ${apiPort}`);
+  console.log(`[main] Starting backend on port ${apiPort}`);
 
   const backendExePath = app.isPackaged
     ? path.join(process.resourcesPath, 'backend', 'backend', 'backend.exe')
     : path.join(__dirname, '..', 'backend', 'dist', 'backend', 'backend.exe');
 
-  console.log(`Backend path: ${backendExePath}`);
-  
+  console.log(`[main] Backend path: ${backendExePath}`);
+
   backendProcess = spawn(backendExePath, [apiPort.toString()], {
-    detached: false, // Ensure it's not detached so it dies when we die
+    detached: false,
   });
 
-  backendProcess.stdout.on('data', (data) => console.log(`Backend: ${data}`));
-  backendProcess.stderr.on('data', (data) => console.error(`Backend Error: ${data}`));
+  backendProcess.stdout.on('data', (d) => console.log(`[backend] ${d}`));
+  backendProcess.stderr.on('data', (d) => console.error(`[backend-err] ${d}`));
+  backendProcess.on('error', (err) => console.error('[main] spawn error:', err));
 
   await waitForBackend(apiPort);
+  console.log('[main] Backend is ready!');
 }
 
-const { protocol, net } = require('electron');
+// ---------- Window ----------
 
-async function createWindow() {
+function createWindow() {
+  const frontendDir = getFrontendDir();
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    icon: path.join(__dirname, 'resources', 'frontend-out', 'icon.png'),
+    icon: path.join(frontendDir, 'icon.png'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: true // Important for custom protocols
     },
   });
 
-  mainWindow.setMenu(null); // Hide default menu
+  mainWindow.setMenu(null);
 
-  // Optional: Open DevTools for debugging
+  // --- Open DevTools for debugging (remove for production) ---
   // mainWindow.webContents.openDevTools();
 
-  const fileUrl = `app://-/index.html?port=${apiPort}`;
-  console.log(`Loading frontend from: ${fileUrl}`);
-  mainWindow.loadURL(fileUrl);
+  // Load the static index.html directly via file:// protocol
+  // and inject the port via a hash so the renderer can read it
+  const indexPath = path.join(frontendDir, 'index.html');
+  console.log(`[main] Loading: ${indexPath}`);
+
+  mainWindow.loadFile(indexPath, {
+    query: { port: apiPort.toString() },
+  });
 }
 
-// Single instance lock
+// ---------- App lifecycle ----------
+
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
@@ -97,31 +121,41 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(async () => {
-    // Register custom protocol to handle Next.js absolute paths
-    protocol.handle('app', (request) => {
-      const urlStr = request.url.replace('app://-', '');
-      const decodedPath = decodeURIComponent(urlStr.split('?')[0]).replace(/^\//, ''); // Remove leading slash
-      
-      let filePath = app.isPackaged
-        ? path.join(process.resourcesPath, 'frontend-out', decodedPath)
-        : path.join(__dirname, 'resources', 'frontend-out', decodedPath);
-        
-      const fs = require('fs');
-      if (!fs.existsSync(filePath)) {
-        // Fallback to index.html for SPA routing
-        filePath = app.isPackaged
-          ? path.join(process.resourcesPath, 'frontend-out', 'index.html')
-          : path.join(__dirname, 'resources', 'frontend-out', 'index.html');
+    // ---- Custom protocol to intercept absolute "/_next/..." requests ----
+    // Next.js static export uses paths like "/_next/static/css/xxx.css"
+    // When loaded via file://, the browser resolves them to the drive root.
+    // This protocol intercepts those requests and serves from our frontend dir.
+    protocol.interceptFileProtocol('file', (request, callback) => {
+      let requestPath = decodeURIComponent(new URL(request.url).pathname);
+
+      // On Windows, pathname starts with /C:/... – normalise
+      if (process.platform === 'win32' && requestPath.startsWith('/')) {
+        requestPath = requestPath.substring(1);
       }
-      
-      return net.fetch('file://' + filePath);
+
+      const frontendDir = getFrontendDir();
+
+      // If the path contains "/_next/" but points outside our frontend dir,
+      // redirect it to our frontend dir.
+      if (requestPath.includes('_next') && !requestPath.startsWith(frontendDir.replace(/\\/g, '/'))) {
+        // Extract the _next/... portion
+        const nextIdx = requestPath.indexOf('_next');
+        const relativePath = requestPath.substring(nextIdx);
+        const correctedPath = path.join(frontendDir, relativePath);
+        console.log(`[protocol] Redirect: ${requestPath} → ${correctedPath}`);
+        callback(correctedPath);
+        return;
+      }
+
+      // Default: serve as-is
+      callback(requestPath);
     });
 
     try {
       await startBackend();
       createWindow();
     } catch (error) {
-      console.error('Failed to start application:', error);
+      console.error('[main] Failed to start:', error);
       app.quit();
     }
 
@@ -136,7 +170,7 @@ if (!gotTheLock) {
 
   app.on('quit', () => {
     if (backendProcess) {
-      console.log('Killing backend process...');
+      console.log('[main] Killing backend process...');
       backendProcess.kill();
     }
   });
