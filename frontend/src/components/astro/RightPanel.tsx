@@ -89,6 +89,8 @@ function processChartPlanets(cData: any, ownerTag: string | null = null, ownerCo
             house: 1,
             dignityList: [],
             retro: false,
+            isInthaphas: false,
+            isBatchan: false,
             ownerTag,
             ownerColor,
             cData
@@ -394,6 +396,8 @@ export function RightPanel({ chartData: natalData, transitData, compareData, dis
                               house: 1,
                               dignityList: [],
                               retro: false,
+                              isInthaphas: false,
+                              isBatchan: false,
                               cData: chartData
                           });
                       }

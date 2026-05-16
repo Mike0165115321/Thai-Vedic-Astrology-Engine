@@ -14,6 +14,7 @@ import TransitReport from "@/components/astro/TransitReport";
 import { ChartData, BirthFormData, CompareResponse } from "@/types/chart";
 import { TransitTimelineReport } from "@/components/astro/TransitTimelineReport";
 import { API_ENDPOINTS } from "@/config/api";
+import { generateNatalMarkdown, generateTransitMarkdown, downloadMarkdown } from "@/lib/markdownExport";
 
 
 export default function Home() {
@@ -389,6 +390,17 @@ export default function Home() {
         a.click();
         a.remove();
         setNatalExportModal(false);
+    } else if (config.format === 'MD') {
+        const birth = currentBirthData.current;
+        const name = birth?.name || "ดวงชะตา";
+        const firstName = name.split(" ")[0];
+        const mdContent = generateNatalMarkdown(
+            { ...chartData, name },
+            birth,
+            config
+        );
+        downloadMarkdown(mdContent, `Natal_${firstName}_${new Date().getTime()}.md`);
+        setNatalExportModal(false);
     } else {
         // PDF format: Construct a complete report data object with metadata
         const birth = currentBirthData.current;
@@ -409,6 +421,14 @@ export default function Home() {
     }
   };
 
+  const handleExportTransitMD = () => {
+    if (!transitData) return;
+    const name = currentBirthData.current?.name || "ดาวจร";
+    const firstName = name.split(" ")[0];
+    const mdContent = generateTransitMarkdown(transitData, new Date());
+    downloadMarkdown(mdContent, `Transit_${firstName}_${new Date().getTime()}.md`);
+  };
+
   if (!hasMounted) return null;
 
   return (
@@ -417,6 +437,7 @@ export default function Home() {
         onSettings={() => setSettings(true)} 
         onTransitScan={() => setExportModal(true)}
         onExportNatal={() => setNatalExportModal(true)}
+        onExportTransitMD={handleExportTransitMD}
         currentChartType={chartType}
         onChartTypeChange={setChartType}
       />

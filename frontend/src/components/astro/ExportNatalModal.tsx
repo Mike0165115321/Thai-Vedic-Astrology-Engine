@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { X, FileJson, FileText, Check, Download } from 'lucide-react';
+import { X, FileJson, FileText, FileCode2, Check, Download } from 'lucide-react';
 
 interface ExportNatalModalProps {
   onClose: () => void;
@@ -10,7 +10,7 @@ interface ExportNatalModalProps {
 }
 
 export interface ExportConfig {
-  format: 'JSON' | 'PDF';
+  format: 'JSON' | 'PDF' | 'MD';
   sections: {
     basicInfo: boolean;
     planetTable: boolean;
@@ -29,7 +29,7 @@ export interface ExportConfig {
 }
 
 export function ExportNatalModal({ onClose, onExport, chartName }: ExportNatalModalProps) {
-  const [format, setFormat] = useState<'JSON' | 'PDF'>('PDF');
+  const [format, setFormat] = useState<'JSON' | 'PDF' | 'MD'>('PDF');
   const [sections, setSections] = useState({
     basicInfo: true,
     planetTable: true,
@@ -71,7 +71,7 @@ export function ExportNatalModal({ onClose, onExport, chartName }: ExportNatalMo
           {/* Format Selection */}
           <div className="space-y-3">
             <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">รูปแบบไฟล์ (Format)</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <button
                 onClick={() => setFormat('PDF')}
                 className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
@@ -83,7 +83,21 @@ export function ExportNatalModal({ onClose, onExport, chartName }: ExportNatalMo
                 <FileText className={`h-8 w-8 ${format === 'PDF' ? 'text-primary' : 'text-muted-foreground'}`} />
                 <div className="text-center">
                   <div className="text-sm font-bold">PDF Report</div>
-                  <div className="text-[10px] text-muted-foreground">สำหรับพิมพ์หรืออ่าน</div>
+                  <div className="text-[10px] text-muted-foreground">สำหรับพิมพ์</div>
+                </div>
+              </button>
+              <button
+                onClick={() => setFormat('MD')}
+                className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                  format === 'MD' 
+                    ? 'border-primary bg-primary/10 ring-1 ring-primary' 
+                    : 'border-border bg-muted/20 hover:border-muted-foreground/30'
+                }`}
+              >
+                <FileCode2 className={`h-8 w-8 ${format === 'MD' ? 'text-primary' : 'text-muted-foreground'}`} />
+                <div className="text-center">
+                  <div className="text-sm font-bold">Markdown</div>
+                  <div className="text-[10px] text-muted-foreground">สำหรับ Obsidian/Notion</div>
                 </div>
               </button>
               <button
@@ -97,7 +111,7 @@ export function ExportNatalModal({ onClose, onExport, chartName }: ExportNatalMo
                 <FileJson className={`h-8 w-8 ${format === 'JSON' ? 'text-primary' : 'text-muted-foreground'}`} />
                 <div className="text-center">
                   <div className="text-sm font-bold">JSON Data</div>
-                  <div className="text-[10px] text-muted-foreground">สำหรับโปรแกรมเมอร์</div>
+                  <div className="text-[10px] text-muted-foreground">สำหรับนักพัฒนา</div>
                 </div>
               </button>
             </div>
@@ -167,7 +181,7 @@ export function ExportNatalModal({ onClose, onExport, chartName }: ExportNatalMo
             onClick={handleExport}
             className="w-full rounded-xl bg-(image:--gradient-gold) py-3 text-sm font-black text-primary-foreground shadow-(--shadow-glow) hover:opacity-90 active:scale-[0.98] transition-all"
           >
-            ยืนยันการส่งออก ({format})
+            ยืนยันการส่งออก ({format === 'MD' ? 'Markdown .md' : format})
           </button>
         </div>
       </div>

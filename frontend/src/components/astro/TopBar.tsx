@@ -1,15 +1,17 @@
-import { Download, Settings, FileJson } from "lucide-react";
+import { Download, Settings, FileCode2 } from "lucide-react";
 
 export function TopBar({ 
   onSettings, 
   onExportNatal,
   onTransitScan,
+  onExportTransitMD,
   currentChartType, 
   onChartTypeChange 
 }: { 
   onSettings: () => void,
   onExportNatal?: () => void,
   onTransitScan?: () => void,
+  onExportTransitMD?: () => void,
   currentChartType: string,
   onChartTypeChange: (type: 'D1' | 'D3' | 'D9' | 'CAL') => void
 }) {
@@ -51,7 +53,14 @@ export function TopBar({
           onClick={onExportNatal}
           className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted text-primary font-bold"
         >
-          <Download className="h-3.5 w-3.5" /> ส่งออกข้อมูล (Export)
+          <Download className="h-3.5 w-3.5" /> ส่งออกดวงกำเนิด
+        </button>
+        <button 
+          onClick={onExportTransitMD}
+          title="ส่งออกดาวจรเป็นไฟล์ .md"
+          className="flex items-center gap-1.5 rounded border border-border bg-muted/40 px-2.5 py-1.5 text-xs hover:bg-muted text-amber-400 font-bold"
+        >
+          <FileCode2 className="h-3.5 w-3.5" /> ดาวจร .md
         </button>
         <button 
           onClick={onTransitScan}
