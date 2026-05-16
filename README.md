@@ -66,10 +66,18 @@ npm install
 npm run dev
 ```
 
+#### Desktop App Build (Windows)
+The project can be packaged into a standalone `.exe` using Electron and PyInstaller.
+```bash
+.\build-desktop.bat
+```
+This will generate the installer in `electron/dist/`.
+
 ## 📂 Project Structure
 
 - `backend/`: Python API and Calculation Engine.
 - `frontend/`: Next.js Web Interface.
+- `electron/`: Electron wrapper for the standalone desktop application.
 - `docs/`: Technical documentation and build orders.
 - `temp_geography/`: Local database for high-precision coordinate search.
 

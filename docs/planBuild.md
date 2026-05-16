@@ -123,8 +123,8 @@ Plan 2 — Interpretation & Analysis (Building Layer 2 & 3)
 ───────────────────────────────────────────────
 
 Phase 2.1: The Logic Core
-  [ ] House Lord Mapping - ระบบผูกดาวเจ้าเรือน 12 ภพ (พื้นฐาน Layer 2)
-  [ ] Yoga Rule Engine - ระบบตรวจจับเกณฑ์และโยคต่างๆ (เริ่มต้น)
+  [x] House Lord Mapping - ระบบผูกดาวเจ้าเรือน 12 ภพ (พื้นฐาน Layer 2)
+  [x] Yoga Rule Engine - ระบบตรวจจับเกณฑ์และโยคต่างๆ (เริ่มต้น)
   [ ] Rahu/Ketu Dignity Update - เพิ่มมาตรฐานไทยของราหู-เกตุลง Backend
 
 Phase 2.2: The Narrative Dashboard
@@ -134,6 +134,7 @@ Phase 2.2: The Narrative Dashboard
 
 Phase 2.3: System & Persistence
   [ ] History Persistence (SQLite/PostgreSQL) - เก็บข้อมูลลง DB ถาวร
-  [ ] Export System (Current Focus)
-    - [ ] PDF Report Export - ระบบออกใบพยากรณ์สวยงาม
+  [x] Desktop Application Wrapper (Electron + PyInstaller) - ทำแอป Desktop แบบ Standalone
+  [x] Export System (Current Focus)
+    - [x] PDF Report Export - ระบบออกใบพยากรณ์สวยงาม
     - [ ] JSON Data Export - สำหรับนำข้อมูลไปประมวลผลต่อ
